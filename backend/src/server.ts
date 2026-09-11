@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import { query } from './db/index.js';
-import { getSupplyChainDAG, getRiskState, getAlternatesForSupplier, resetRiskState } from './db/queries.js';
+import { getSupplyChainDAG, getRiskState, getAlternatesForSupplier, resetRiskState, getSPOFAnalytics } from './db/queries.js';
 import { triggerDisruptionSentinel, TriggerDisruptionRequestSchema } from './services/sentinel.js';
 import { generateMitigationMemo } from './services/mitigation.js';
 import { parseBOMCSV, ingestBOMItems } from './services/ingestion.js';
@@ -152,6 +152,21 @@ app.get(
       const { supplierId } = req.params;
       const alternates = await getAlternatesForSupplier(supplierId);
       res.json({ supplierId, alternates });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+);
+
+// 7b. Graph SPOF Hazard & Bottleneck Analytics
+app.get(
+  '/api/analytics/spofs/:orgId?',
+  validateUUIDParam('orgId', false),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const orgId = req.params.orgId || DEFAULT_ORG_ID;
+      const analytics = await getSPOFAnalytics(orgId);
+      res.json(analytics);
     } catch (error: any) {
       next(error);
     }

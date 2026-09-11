@@ -258,3 +258,46 @@ export async function saveMitigationMemo(memo: Omit<MitigationMemo, 'id' | 'gene
     generatedAt: row.generatedAt instanceof Date ? row.generatedAt.toISOString() : new Date(row.generatedAt).toISOString(),
   };
 }
+
+/**
+ * Retrieves Single Points of Failure (SPOFs) and critical bridge corridors
+ */
+export async function getSPOFAnalytics(orgId: string) {
+  const spofResult = await query(
+    `SELECT 
+      id AS "supplierId", 
+      name, 
+      tier, 
+      country, 
+      material_category AS "materialCategory",
+      'ARTICULATION_POINT_SPOF' AS "hazardType",
+      CONCAT('Single Point of Failure: Removal of ', name, ' disconnects upstream tiers from downstream manufacturing.') AS "rationale"
+    FROM suppliers 
+    WHERE org_id = $1 AND is_spof = TRUE AND tier > 0
+    ORDER BY tier ASC, name ASC`,
+    [orgId]
+  );
+
+  const bridgeResult = await query(
+    `SELECT 
+      e.child_supplier_id AS "childSupplierId",
+      c.name AS "childName",
+      e.parent_supplier_id AS "parentSupplierId",
+      p.name AS "parentName",
+      e.component_name AS "component",
+      'Single transit corridor: no alternate pathway exists between these nodes.' AS "rationale"
+    FROM supplier_edges e
+    JOIN suppliers p ON p.id = e.parent_supplier_id
+    JOIN suppliers c ON c.id = e.child_supplier_id
+    WHERE p.org_id = $1
+    ORDER BY p.tier ASC, e.spend_usd DESC`,
+    [orgId]
+  );
+
+  return {
+    orgId,
+    singlePointsOfFailure: spofResult.rows,
+    bridgeEdges: bridgeResult.rows,
+  };
+}
+

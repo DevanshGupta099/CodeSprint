@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 from .db.connection import get_connection_pool, check_database_health
 from .db.cte_queries import (
-    get_supply_chain_dag, get_risk_state, reset_risk_state
+    get_supply_chain_dag, get_risk_state, reset_risk_state, get_alternates_for_supplier
 )
 from .services.graph_analytics import analyze_spofs_and_bottlenecks
 from .services.ai_engine import (
@@ -158,3 +158,19 @@ def analyze_spofs(org_id: str):
         return analyze_spofs_and_bottlenecks(org_id)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.get("/api/alternates/{supplier_id}", tags=["Mitigation Engine"])
+def get_candidate_alternates(supplier_id: str):
+    """
+    Retrieves candidate pre-qualified alternate suppliers for a given supplier node.
+    """
+    try:
+        alternates = get_alternates_for_supplier(supplier_id)
+        return {
+            "supplierId": supplier_id,
+            "alternates": alternates
+        }
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
