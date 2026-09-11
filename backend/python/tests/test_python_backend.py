@@ -101,3 +101,26 @@ def test_reset_disruption():
 def test_invalid_organization_404():
     response = client.get("/api/supply-chain/99999999-9999-9999-9999-999999999999")
     assert response.status_code == 404
+
+
+def test_get_candidate_alternates():
+    response = client.get(f"/api/alternates/{APEX_SUPPLIER_ID}")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["supplierId"] == APEX_SUPPLIER_ID
+    assert len(data["alternates"]) > 0
+    assert data["alternates"][0]["name"] == "Nordic Horn Maritime Lines"
+
+
+def test_csv_bom_ingest():
+    sample_csv = (
+        "supplierName,code,country,countryCode,tier,materialCategory,componentName,spendUsd,leadTimeDays,parentSupplierCode,shippingRoute,lat,lng\n"
+        "Nordic Minerals Oy,NMO-FIN,Finland,FIN,3,Battery Minerals,Purified Nickel,42000000,28,VCD-KOR,Baltic Maritime,60.1699,24.9384\n"
+    )
+    files = {"file": ("test_bom.csv", sample_csv, "text/csv")}
+    response = client.post("/api/ingest", files=files, data={"org_id": ORG_ID})
+    assert response.status_code == 200
+    data = response.json()
+    assert "Successfully ingested 1 suppliers" in data["message"]
+    assert len(data["dag"]["nodes"]) > 0
+

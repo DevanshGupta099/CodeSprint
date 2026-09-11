@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 
 from .db.connection import get_connection_pool, check_database_health
 from .db.cte_queries import (
@@ -11,6 +11,7 @@ from .services.graph_analytics import analyze_spofs_and_bottlenecks
 from .services.ai_engine import (
     simulate_red_sea_blockade, trigger_disruption_event, generate_mitigation_memo
 )
+from .services.ingestion import parse_bom_csv, ingest_bom_items
 from .models.schemas import (
     SupplyChainDAGResponse, RiskStateResponse, MitigationMemo,
     TriggerDisruptionRequest, SPOFAnalysisResponse
@@ -173,4 +174,42 @@ def get_candidate_alternates(supplier_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.post("/api/ingest", tags=["BOM Ingestion"])
+async def ingest_bom(
+    file: Optional[UploadFile] = File(None),
+    org_id: Optional[str] = Form(None)
+):
+    """
+    Ingests BOM data via multipart CSV upload, reconstructs supplier hierarchy and edges,
+    and returns the updated DAG.
+    """
+    target_org_id = org_id or "00000000-0000-0000-0000-000000000001"
+    try:
+        if not file:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please upload a CSV file as form-data (field: 'file')"
+            )
+
+        content = await file.read()
+        csv_text = content.decode("utf-8")
+        items, errors = parse_bom_csv(csv_text)
+        if not items:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No valid BOM line items found: {errors}"
+            )
+
+        result = ingest_bom_items(target_org_id, items)
+        return {
+            "message": f"Successfully ingested {result['ingestedSuppliersCount']} suppliers and linked {result['linkedEdgesCount']} edges",
+            "dag": result["dag"]
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
 
