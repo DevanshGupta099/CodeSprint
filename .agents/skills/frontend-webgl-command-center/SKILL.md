@@ -16,7 +16,9 @@ This skill provides step-by-step instructions, code snippets, and UI architectur
 ## 1. Typography & Aesthetic Token Setup
 
 ### Google Fonts Injection
+
 Add the following to `app/layout.tsx` or `index.html`:
+
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +26,9 @@ Add the following to `app/layout.tsx` or `index.html`:
 ```
 
 ### Tailwind Config Font Extensions
+
 In `tailwind.config.js`:
+
 ```javascript
 module.exports = {
   theme: {
@@ -59,6 +63,7 @@ module.exports = {
 ## 2. WebGL / Canvas Background Grid Component
 
 Create `src/components/canvas/WebGLGridCanvas.tsx`:
+
 - Technical coordinate grid with latitude/longitude markers.
 - Continuous slow radar sweep line.
 - Shockwave radial wave effect when a disruption is simulated:

@@ -1,5 +1,6 @@
 # VeritasSupply — Contributor B Frontend & WebGL Guide
-### Enterprise Command Center, Acid Brutalism Typography & Interactive Workflow
+
+*Enterprise Command Center, Acid Brutalism Typography & Interactive Workflow*
 
 ---
 
@@ -8,6 +9,7 @@
 VeritasSupply is not a generic SaaS dashboard. It is an **Autonomous Supply Chain Command Center** (comparable to Palantir Foundry or Sourcemap) styled with **Acid Brutalism / Neo-Brutalist Cyberpunk Editorial Typography**.
 
 ### Visual Rules
+
 1. **Dark Technical Register**: Base background `#07090E` with semi-transparent carbon cards (`rgba(11, 15, 25, 0.75)`), blurred with `backdrop-blur-md`.
 2. **Sharp Industrial Edges**: Micro-borders (`1px solid rgba(255,255,255,0.1)`), razor-sharp 0px or 2px border radiuses, and corner crosshair accents.
 3. **Typography Pairing**:
@@ -26,6 +28,7 @@ VeritasSupply is not a generic SaaS dashboard. It is an **Autonomous Supply Chai
 The background features an interactive WebGL / Canvas coordinate grid with radar sweep lines and an active shockwave pulse when the user hits `[SIMULATE RED SEA BLOCKADE]`.
 
 ### Implementation: `components/canvas/WebGLGridCanvas.tsx`
+
 ```tsx
 import React, { useEffect, useRef } from 'react';
 
@@ -119,6 +122,7 @@ export const WebGLGridCanvas: React.FC<WebGLGridProps> = ({ isDisrupted }) => {
 React Flow renders the tiered dependency graph left-to-right (Tier 0 Enterprise at root, downstream to Tier 4 raw minerals).
 
 ### Dagre Layout Utility: `utils/graphLayout.ts`
+
 ```typescript
 import dagre from 'dagre';
 import { Node, Edge } from '@xyflow/react';
@@ -156,6 +160,7 @@ export const layoutGraph = (nodes: Node[], edges: Edge[], direction: 'LR' | 'TB'
 ## 4. Custom Dark Glass Node Component
 
 ### Component: `components/graph/CustomSupplierNode.tsx`
+
 ```tsx
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
@@ -302,6 +307,7 @@ export const TerminalMitigationMemo: React.FC<MemoProps> = ({ memoText, onExecut
 ## 6. The Showstopper Trigger: `[SIMULATE RED SEA BLOCKADE]`
 
 Place this directly in the top HUD navigation bar:
+
 - Button label: `[⚡ SIMULATE RED SEA BLOCKADE]` with industrial hazard diagonal styling.
 - On click:
   1. Activates `isDisrupted` state on `WebGLGridCanvas` (triggering shockwave).

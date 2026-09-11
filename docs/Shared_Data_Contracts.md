@@ -7,6 +7,7 @@ This document establishes the inviolable data contract between **Contributor A (
 ## 1. Shared Types & Schemas
 
 ### Entity: Supplier
+
 ```typescript
 import { z } from 'zod';
 
@@ -35,6 +36,7 @@ export type Supplier = z.infer<typeof SupplierSchema>;
 ```
 
 ### Entity: SupplierEdge (DAG Dependency)
+
 ```typescript
 export const SupplierEdgeSchema = z.object({
   id: z.string(),
@@ -51,6 +53,7 @@ export type SupplierEdge = z.infer<typeof SupplierEdgeSchema>;
 ```
 
 ### Entity: DisruptionEvent
+
 ```typescript
 export const DisruptionTypeSchema = z.enum([
   'GEOPOLITICAL_BLOCKADE',
@@ -73,6 +76,7 @@ export type DisruptionEvent = z.infer<typeof DisruptionEventSchema>;
 ```
 
 ### Entity: AlternateSupplier & MitigationMemo
+
 ```typescript
 export const AlternateSupplierSchema = z.object({
   id: z.string().uuid(),
@@ -107,6 +111,7 @@ export type MitigationMemo = z.infer<typeof MitigationMemoSchema>;
 ## 2. API Response Payloads
 
 ### `GET /api/supply-chain/:orgId`
+
 ```typescript
 export interface SupplyChainDAGResponse {
   organization: {
@@ -120,6 +125,7 @@ export interface SupplyChainDAGResponse {
 ```
 
 ### `GET /api/risk-state/:orgId`
+
 ```typescript
 export interface RiskStateResponse {
   orgId: string;

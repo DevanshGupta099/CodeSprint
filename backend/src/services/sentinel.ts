@@ -1,13 +1,17 @@
+import { z } from 'zod';
 import { query } from '../db/index.js';
 import { propagateRiskUpstream } from '../db/queries.js';
+import { DisruptionTypeSchema } from '../types/supply-chain.js';
 
-export interface TriggerDisruptionParams {
-  supplierId?: string;
-  type?: 'GEOPOLITICAL_BLOCKADE' | 'NATURAL_DISASTER' | 'SANCTIONS_FORCED_LABOR' | 'PORT_CLOSURE';
-  severity?: number;
-  sourceSummary?: string;
-  sourceUrl?: string;
-}
+export const TriggerDisruptionRequestSchema = z.object({
+  supplierId: z.string().uuid().optional(),
+  type: DisruptionTypeSchema.optional().default('GEOPOLITICAL_BLOCKADE'),
+  severity: z.number().min(0).max(1).optional().default(0.90),
+  sourceSummary: z.string().max(1000).optional(),
+  sourceUrl: z.string().url().optional().or(z.literal('')),
+});
+
+export type TriggerDisruptionParams = z.infer<typeof TriggerDisruptionRequestSchema>;
 
 export async function triggerDisruptionSentinel(params: TriggerDisruptionParams) {
   // Default to the showstopper: Apex Maritime Logistics (Bab-el-Mandeb chokepoint)
@@ -18,6 +22,13 @@ export async function triggerDisruptionSentinel(params: TriggerDisruptionParams)
   const sourceSummary = params.sourceSummary || 
     'Bab-el-Mandeb Strait transit halt due to maritime security escalation. 42 commercial bulk carriers rerouted or held.';
   const sourceUrl = params.sourceUrl || 'https://lloydslist.maritimeintelligence.informa.com';
+
+  // Verify target supplier exists
+  const supplierCheck = await query('SELECT id, name, country, tier FROM suppliers WHERE id = $1', [targetSupplierId]);
+  if (supplierCheck.rows.length === 0) {
+    throw new Error(`Target supplier '${targetSupplierId}' not found`);
+  }
+  const targetSupplier = supplierCheck.rows[0];
 
   // 1. Record Disruption Event
   const eventInsert = await query(
@@ -38,6 +49,12 @@ export async function triggerDisruptionSentinel(params: TriggerDisruptionParams)
 
   return {
     event,
+    targetSupplier: {
+      id: targetSupplier.id,
+      name: targetSupplier.name,
+      country: targetSupplier.country,
+      tier: targetSupplier.tier,
+    },
     impactedNodes,
     message: `[DISRUPTION_ACTIVE] Propagated risk to ${impactedNodes.length} downstream tiers via recursive CTE.`,
   };

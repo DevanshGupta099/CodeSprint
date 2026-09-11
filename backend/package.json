@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test:cte": "tsx test/test-backend.ts",
+    "test:security": "tsx test/test-security-and-edge-cases.ts",
+    "test": "tsx test/test-security-and-edge-cases.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

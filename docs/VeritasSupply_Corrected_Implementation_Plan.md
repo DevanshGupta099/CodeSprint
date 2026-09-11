@@ -1,12 +1,13 @@
 # VeritasSupply — Corrected Implementation Plan & Architecture
-### Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine
+
+*Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine*
 
 ---
 
 ## 0. What Was Wrong With the Original Plan
 
 | Issue | Original | Fix |
-|---|---|---|
+| :--- | :--- | :--- |
 | **Timeline format** | Hour-by-hour plan (Hours 0–32+), written like a single overnight hackathon | Re-timed to the actual calendar: kickoff today → team meeting tomorrow → LinkedIn checkpoint Wednesday → presentation Thursday |
 | **No commit cadence** | Judging criteria include *consistent daily GitHub commits*, never referenced in the plan | Each day now ends with a defined, committable, working state — not just "progress" |
 | **No LinkedIn checkpoint** | Documentation/visibility bonus not mentioned | Built into Day 2 as a hard deliverable (a working demo clip, not just a screenshot) |
@@ -86,7 +87,7 @@ The original document's *technical* instincts (thin vertical slice, recursive CT
 
 ## 4. System Architecture
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ CLIENT (Browser)                                                          │
 │ Next.js App Router · Tailwind · shadcn/ui                                │
@@ -146,7 +147,7 @@ The original document's *technical* instincts (thin vertical slice, recursive CT
 ## 6. API Endpoints
 
 | Method | Endpoint | Purpose | Notes |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | `POST` | `/api/ingest` | Upload BOM/invoice (CSV/XLSX/PDF) | CSV/XLSX parsed directly; PDF routed to extraction agent |
 | `GET` | `/api/supply-chain/:orgId` | Full DAG as `{ nodes, edges }` | Shaped for direct React Flow consumption |
 | `GET` | `/api/risk-state/:orgId` | Current risk score per node | Polled every 3–5s by the frontend |
@@ -236,7 +237,7 @@ FROM risk_up GROUP BY supplier_id;
 ## 8. AI Agent Responsibilities
 
 | Agent | Input | Output (structured JSON) | Notes |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | Extraction Agent | Raw BOM/PDF text | `{ lineItems: [{ supplierName, country, part, tier, spendUsd }] }` | Zod-validated, retry-on-failure |
 | Risk Scoring Agent | Disruption event + supplier metadata | `{ probability, severity, confidence, rationale }` | Low temperature, deterministic-leaning prompt |
 | Mitigation Agent | Disrupted supplier + candidate alternates | `{ recommendedAlternateId, priceVariancePct, leadTimeDeltaDays, avoidedScope3Tco2e, rationale, executiveSummary }` | This is the "wow" output — invest in prompt quality |

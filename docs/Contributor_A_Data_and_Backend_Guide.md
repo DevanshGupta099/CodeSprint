@@ -1,11 +1,13 @@
 # VeritasSupply — Contributor A Data & Backend Guide
-### Lead Architect: Devansh | Database, CTE Propagation, AI Sentinels & Seed Architecture
+
+*Lead Architect: Devansh | Database, CTE Propagation, AI Sentinels & Seed Architecture*
 
 ---
 
 ## 1. Responsibilities Overview
 
 As **Contributor A (Devansh)**, you own the core data engine and intelligence pipeline:
+
 1. **Relational Schema & Database Migrations**: Supabase, Neon, or PostgreSQL.
 2. **Recursive CTEs**:
    - Downward tree reconstruction: Rebuilding the full multi-tier DAG from flat edge records.
@@ -113,7 +115,9 @@ CREATE TABLE mitigation_memos (
 ## 3. Recursive CTE Algorithms
 
 ### A. Downward Tree Reconstruction
+
 Reconstructs the hierarchical N-tier tree starting from the enterprise node:
+
 ```sql
 WITH RECURSIVE bom_tree AS (
   SELECT 
@@ -133,7 +137,9 @@ SELECT * FROM bom_tree ORDER BY depth;
 ```
 
 ### B. Upward Risk Propagation with Attenuation
+
 When a Tier-4/3 supplier encounters a disruption, risk climbs upward to its downstream consumers, decaying by 30% (`* 0.7`) per tier hop:
+
 ```sql
 WITH RECURSIVE risk_up AS (
   -- Seed anchor: disrupted supplier
@@ -172,7 +178,7 @@ GROUP BY supplier_id;
 To power an unforgettable demo, seed data maps directly to real-world disruption scenarios:
 
 | Node Name | Tier | Country | Role / Story Archetype |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | **Veritas Motors Corp** | Tier 0 | USA | Finished EV Automobile Assembler |
 | **Apex Power Systems** | Tier 1 | Germany | High-voltage battery pack manufacturer |
 | **Voltaic Cell Dynamics** | Tier 2 | South Korea | Lithium-ion battery cell fabricator |
@@ -186,6 +192,7 @@ To power an unforgettable demo, seed data maps directly to real-world disruption
 ## 5. AI Agent Prompt Specifications
 
 ### 1. Risk Scoring Agent
+
 ```typescript
 const prompt = `
 You are the VeritasSupply Risk Sentinel Agent.
@@ -204,6 +211,7 @@ Evaluate the supply chain risk. Respond ONLY with valid JSON matching:
 ```
 
 ### 2. Autonomous Mitigation Engine
+
 ```typescript
 const prompt = `
 You are the VeritasSupply Autonomous Mitigation Agent.

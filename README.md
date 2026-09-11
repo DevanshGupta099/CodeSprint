@@ -1,4 +1,5 @@
 # VeritasSupply // [TIER-N INTEL ENGINE]
+
 > **Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine**
 
 [![GitHub branch](https://img.shields.io/badge/branch-main-00F0FF?style=flat-square&logo=github)](https://github.com/DevanshGupta099/CodeSprint)
@@ -17,6 +18,7 @@ Enterprise manufacturers have visibility into their direct **Tier-1** suppliers,
 > **"Manufacturers can see Tier-1. We show them Tier-4."**
 
 **VeritasSupply** solves this with an autonomous intelligence loop:
+
 1. **BOM Ingestion & Resolution**: Ingests flat BOMs/invoices and reconstructs deep parent-to-child Directed Acyclic Graphs (DAGs) in PostgreSQL.
 2. **Interactive Command Center**: High-contrast, Acid Brutalist / Cyberpunk HUD visualizer powered by React Flow, Dagre tiered layout, and dark glassmorphic telemetry cards.
 3. **Disruption Sentinel**: Simulates or detects geopolitical blockades and environmental hazards on upstream nodes via low-temperature structured AI reasoning.
@@ -27,7 +29,7 @@ Enterprise manufacturers have visibility into their direct **Tier-1** suppliers,
 
 ## 2. System Architecture
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │ CLIENT (Browser)                                                       │
 │ Next.js App Router · Tailwind CSS · React Flow · Recharts              │
@@ -40,7 +42,7 @@ Enterprise manufacturers have visibility into their direct **Tier-1** suppliers,
           │ POST /api/ingest     │ GET /api/supply-chain   │ GET /api/risk-state (3-5s poll)
           ▼                      ▼                         ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│ APPLICATION LAYER (Next.js Server Actions / API Routes)                │
+│ APPLICATION LAYER (Next.js Server Actions / API Routes / Node.js)      │
 │ TypeScript · Zod Validation · Deterministic JSON Schemas               │
 │ ┌───────────────────┐ ┌──────────────────────┐ ┌─────────────────────┐ │
 │ │ Ingestion Service │ │ Disruption Sentinel  │ │ Mitigation Engine   │ │
@@ -68,6 +70,7 @@ Enterprise manufacturers have visibility into their direct **Tier-1** suppliers,
 ## 3. Visual Identity: Acid Brutalism & Cyberpunk HUD
 
 VeritasSupply uses an **Acid Brutalist / Cyberpunk Command Center** visual design:
+
 - **Typography Pairing**:
   - **Display / Headlines**: **`Syne`** (weights 700/800, tight negative tracking `-0.04em`, uppercase, ink traps).
   - **HUD Telemetry / Micro-labels**: **`JetBrains Mono`** and **`Space Mono`** for bracketed metadata `[SYS_INIT // 01]`, coordinate tags `[LAT: 12.59 // LNG: 43.32]`, and metrics.
@@ -87,16 +90,18 @@ VeritasSupply uses an **Acid Brutalist / Cyberpunk Command Center** visual desig
 The codebase enforces a decoupled boundary through a **Shared Data Contract** ([types/supply-chain.ts](file:///c:/Users/Devansh/Downloads/CodeSprint/frontend/src/types/supply-chain.ts)):
 
 | Track | Lead Contributor | Core Responsibilities |
-|---|---|---|
-| **Data & Backend** | **Contributor A (Devansh)** | • PostgreSQL schema & DDL migrations<br>• Recursive CTE queries (`bom_tree` & `risk_up`)<br>• BOM/invoice ingestion engine<br>• Disruption Sentinel & Mitigation AI agents<br>• Seed dataset (Chile lithium, DRC cobalt, Red Sea chokepoint) |
-| **Graph & Frontend** | **Contributor B** | • Next.js App Router shell & Tailwind CSS<br>• React Flow DAG canvas with Dagre auto-layout<br>• WebGL coordinate grid & shockwave canvas<br>• `[SIMULATE RED SEA BLOCKADE]` trigger bar<br>• Terminal Typewriter Memo & Recharts dashboards |
+| :--- | :--- | :--- |
+| **Data & Backend** | **Contributor A (Devansh)** | PostgreSQL schema, DDL migrations, recursive CTEs (`bom_tree` & `risk_up`), ingestion engine, Disruption Sentinel, Mitigation AI agents, seed dataset. |
+| **Graph & Frontend** | **Contributor B** | Next.js App Router shell, Tailwind CSS, React Flow DAG canvas, WebGL coordinate grid canvas, `[SIMULATE RED SEA BLOCKADE]` trigger bar, terminal memo, Recharts dashboards. |
 
 ---
 
 ## 5. Core Recursive Algorithms
 
 ### 1. Downward Tree Reconstruction (PostgreSQL CTE)
+
 Reconstructs the hierarchical N-tier tree starting from the enterprise node down to raw materials:
+
 ```sql
 WITH RECURSIVE bom_tree AS (
   SELECT id, name, country, tier, material_category, 0 AS depth
@@ -114,7 +119,9 @@ SELECT * FROM bom_tree ORDER BY depth;
 ```
 
 ### 2. Upward Risk Propagation with 0.7x Attenuation
+
 When an upstream supplier is disrupted, risk climbs upward to its downstream consumers, decaying by 30% per hop:
+
 ```sql
 WITH RECURSIVE risk_up AS (
   SELECT 
@@ -141,7 +148,7 @@ GROUP BY supplier_id;
 
 ## 6. Repository Structure
 
-```
+```text
 CodeSprint/
 ├── .agents/                                # Antigravity Customizations & Runbooks
 │   └── skills/
@@ -151,8 +158,16 @@ CodeSprint/
 │           └── SKILL.md
 ├── AGENTS.md                               # Project Rules & Style Guidelines
 ├── backend/
-│   └── types/
-│       └── supply-chain.ts                 # Backend TypeScript & Zod schemas
+│   ├── db/
+│   │   ├── schema.sql                      # PostgreSQL DDL
+│   │   └── seed.sql                        # EV Battery Supply Chain Seed Data
+│   ├── src/
+│   │   ├── db/                             # Pool & Recursive CTE Queries
+│   │   ├── middleware/                     # Validation Middleware (UUID, Zod)
+│   │   ├── services/                       # Sentinel, Mitigation, Ingestion
+│   │   ├── types/                          # Shared TypeScript / Zod Contracts
+│   │   └── server.ts                       # Express REST Server
+│   └── test/                               # Security & CTE Test Suites
 ├── docs/
 │   ├── Contributor_A_Data_and_Backend_Guide.md
 │   ├── Contributor_B_Frontend_and_WebGL_Guide.md
@@ -172,29 +187,46 @@ CodeSprint/
 ## 7. Quickstart Guide
 
 ### Prerequisites
+
 - **Node.js**: v18.0.0+ (Tested on v24.4.0)
 - **PostgreSQL**: v14+ (Local, Supabase, or Neon)
 - **Package Manager**: npm or pnpm
 
 ### 1. Clone & Install
+
 ```bash
 git clone https://github.com/DevanshGupta099/CodeSprint.git
 cd CodeSprint
 ```
 
 ### 2. Configure Environment
-Create a `.env` file in root or `frontend/`:
-```env
-# Database
-DATABASE_URL="postgresql://postgres:password@localhost:5432/veritassupply"
 
-# LLM Providers (OpenAI / Anthropic / Gemini)
-OPENAI_API_KEY="your-key-here"
-ANTHROPIC_API_KEY="your-key-here"
+Create a `.env` file in `backend/`:
+
+```env
+PORT=5000
+DATABASE_URL="postgresql://postgres:root@localhost:5432/veritassupply"
+DEFAULT_ORG_ID="00000000-0000-0000-0000-000000000001"
 ```
 
-### 3. Database Migration
-Run the SQL DDL found in [Contributor_A_Data_and_Backend_Guide.md](file:///c:/Users/Devansh/Downloads/CodeSprint/docs/Contributor_A_Data_and_Backend_Guide.md#2-complete-database-schema-postgresql) to initialize the schema and seed data.
+### 3. Database Migration & Seed
+
+Run the SQL DDL and seed scripts to initialize the database:
+
+```bash
+psql -U postgres -h localhost -d veritassupply -f backend/db/schema.sql
+psql -U postgres -h localhost -d veritassupply -f backend/db/seed.sql
+```
+
+### 4. Run Backend & Tests
+
+```bash
+cd backend
+npm run dev
+
+# Run automated Security & Edge Case test suite
+npx tsx test/test-security-and-edge-cases.ts
+```
 
 ---
 
