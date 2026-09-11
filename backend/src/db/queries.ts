@@ -1,5 +1,13 @@
 import { query } from './index.js';
-import { Supplier, SupplierEdge, AlternateSupplier, MitigationMemo, RiskStateResponse } from '../types/supply-chain.js';
+import { 
+  Supplier, 
+  SupplierEdge, 
+  AlternateSupplier, 
+  MitigationMemo, 
+  RiskStateResponse,
+  RerouteExecutionResponse,
+  PortfolioBreakdownResponse
+} from '../types/supply-chain.js';
 
 /**
  * Reconstructs the full supply chain DAG starting from the organization
@@ -335,6 +343,201 @@ export async function getSPOFAnalytics(orgId: string) {
     orgId,
     singlePointsOfFailure: spofResult.rows,
     bridgeEdges: bridgeResult.rows,
+  };
+}
+
+/**
+ * Executes an autonomous reroute: re-points DAG edges from disrupted supplier to alternate
+ * and restores upstream nominal status.
+ */
+export async function executeReroute(memoId: string): Promise<RerouteExecutionResponse> {
+  // 1. Fetch memo
+  const memoRes = await query(
+    `SELECT 
+      m.id, 
+      m.disrupted_supplier_id, 
+      m.alternate_supplier_id, 
+      m.alternate_name, 
+      m.avoided_scope3_tco2e,
+      s.name AS disrupted_name,
+      s.org_id,
+      s.tier,
+      s.material_category,
+      s.spend
+    FROM mitigation_memos m
+    JOIN suppliers s ON s.id = m.disrupted_supplier_id
+    WHERE m.id = $1`,
+    [memoId]
+  );
+
+  if (memoRes.rows.length === 0) {
+    throw new Error(`Mitigation memo with ID ${memoId} not found`);
+  }
+  const memo = memoRes.rows[0];
+
+  // 2. Fetch alternate supplier specs
+  const altRes = await query(
+    `SELECT id, name, country, country_code, price_index, lead_time_days, emissions_factor, certifications
+     FROM alternate_suppliers
+     WHERE id = $1`,
+    [memo.alternate_supplier_id]
+  );
+
+  if (altRes.rows.length === 0) {
+    throw new Error(`Alternate supplier with ID ${memo.alternate_supplier_id} not found`);
+  }
+  const alt = altRes.rows[0];
+
+  // 3. Ensure alternate exists as an active node in suppliers table
+  const existingSupplier = await query(
+    `SELECT id FROM suppliers WHERE id = $1`,
+    [alt.id]
+  );
+
+  const altCode = `ALT-${alt.country_code}-${memo.tier}`;
+  if (existingSupplier.rows.length === 0) {
+    await query(
+      `INSERT INTO suppliers (
+        id, org_id, name, code, country, country_code, tier, material_category,
+        certifications, spend, lead_time_days, status, risk_score, is_spof
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'NOMINAL', 0.05, FALSE)
+      ON CONFLICT (code) DO UPDATE SET 
+        status = 'NOMINAL', 
+        risk_score = 0.05`,
+      [
+        alt.id,
+        memo.org_id,
+        alt.name,
+        altCode,
+        alt.country,
+        alt.country_code,
+        memo.tier,
+        memo.material_category,
+        alt.certifications || [],
+        Number(memo.spend || 0) * alt.price_index,
+        alt.lead_time_days,
+      ]
+    );
+  } else {
+    await query(
+      `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05 WHERE id = $1`,
+      [alt.id]
+    );
+  }
+
+  // 4. Rewire supplier_edges: re-point edges where child was disrupted to alternate
+  await query(
+    `UPDATE supplier_edges
+     SET child_supplier_id = $1, lead_time_days = $2
+     WHERE child_supplier_id = $3`,
+    [alt.id, alt.lead_time_days, memo.disrupted_supplier_id]
+  );
+
+  // 5. Clean disruption events for this supplier
+  await query(
+    `DELETE FROM disruption_events WHERE supplier_id = $1`,
+    [memo.disrupted_supplier_id]
+  );
+
+  // 6. Reset all suppliers in the org to NOMINAL (disruption bypassed)
+  await query(
+    `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05 WHERE org_id = $1`,
+    [memo.org_id]
+  );
+
+  const updatedDAG = await getSupplyChainDAG(memo.org_id);
+
+  return {
+    success: true,
+    message: `Autonomous reroute executed: swapped ${memo.disrupted_name} with certified alternate ${alt.name}. Supply chain DAG rewired and downstream assembly corridors restored to nominal status.`,
+    memoId: memo.id,
+    previousSupplierId: memo.disrupted_supplier_id,
+    previousSupplierName: memo.disrupted_name,
+    newSupplierId: alt.id,
+    newSupplierName: alt.name,
+    avoidedScope3Tco2e: Number(memo.avoided_scope3_tco2e),
+    updatedDAG,
+  };
+}
+
+/**
+ * Returns portfolio spend & ESG analytics grouped for Recharts dashboards
+ */
+export async function getPortfolioAnalytics(orgId: string): Promise<PortfolioBreakdownResponse> {
+  const countryRes = await query(
+    `SELECT 
+      country,
+      country_code AS "countryCode",
+      (SUM(spend) * 1000000)::float AS "spendUSD",
+      COUNT(*)::int AS "supplierCount",
+      (SUM(CASE WHEN status IN ('CRITICAL', 'ELEVATED') THEN spend * 1000000 ELSE 0 END))::float AS "atRiskSpendUSD",
+      MAX(risk_score)::float AS "highestRiskScore",
+      CASE 
+        WHEN MAX(risk_score) >= 0.70 THEN 'CRITICAL'
+        WHEN MAX(risk_score) >= 0.35 THEN 'ELEVATED'
+        ELSE 'NOMINAL'
+      END AS status
+    FROM suppliers
+    WHERE org_id = $1
+    GROUP BY country, country_code
+    ORDER BY "spendUSD" DESC`,
+    [orgId]
+  );
+
+  const tierRes = await query(
+    `SELECT 
+      tier,
+      CASE tier
+        WHEN 0 THEN 'Tier 0 (Assembly)'
+        WHEN 1 THEN 'Tier 1 (Sub-Assembly)'
+        WHEN 2 THEN 'Tier 2 (Components)'
+        WHEN 3 THEN 'Tier 3 (Processing)'
+        WHEN 4 THEN 'Tier 4 (Raw Materials)'
+        ELSE CONCAT('Tier ', tier)
+      END AS "tierLabel",
+      (SUM(spend) * 1000000)::float AS "spendUSD",
+      COUNT(*)::int AS "supplierCount",
+      (SUM(CASE WHEN status IN ('CRITICAL', 'ELEVATED') THEN spend * 1000000 ELSE 0 END))::float AS "atRiskSpendUSD"
+    FROM suppliers
+    WHERE org_id = $1
+    GROUP BY tier
+    ORDER BY tier ASC`,
+    [orgId]
+  );
+
+  const esgRes = await query(
+    `SELECT 
+      COUNT(*)::int AS total_suppliers,
+      COUNT(CASE WHEN array_length(certifications, 1) > 0 THEN 1 END)::int AS certified_suppliers,
+      COUNT(CASE WHEN certifications && ARRAY['RMI Cobalt Participant', 'IMO 2020 Clean Fuel Compliant', 'Towards Sustainable Mining', 'BIMCO'] THEN 1 END)::int AS labor_certified,
+      COUNT(CASE WHEN certifications && ARRAY['ISO 14001', 'IRMA Verified', 'SBTi Verified Net-Zero', 'Green Marine EU'] THEN 1 END)::int AS env_certified
+    FROM suppliers
+    WHERE org_id = $1`,
+    [orgId]
+  );
+
+  const esgRow = esgRes.rows[0] || {
+    total_suppliers: 0,
+    certified_suppliers: 0,
+    labor_certified: 0,
+    env_certified: 0,
+  };
+
+  const total = esgRow.total_suppliers || 1;
+  const certified = esgRow.certified_suppliers || 0;
+
+  return {
+    orgId,
+    timestamp: new Date().toISOString(),
+    byCountry: countryRes.rows,
+    byTier: tierRes.rows,
+    esgCompliance: {
+      totalSuppliers: esgRow.total_suppliers,
+      certifiedSuppliersCount: certified,
+      compliancePercentage: Math.round((certified / total) * 1000) / 10,
+      laborStandardsCertifiedCount: esgRow.labor_certified,
+      environmentalCertifiedCount: esgRow.env_certified,
+    },
   };
 }
 

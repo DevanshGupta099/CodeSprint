@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, Field
 from uuid import UUID
 
@@ -136,3 +136,60 @@ class SPOFAnalysisResponse(BaseModel):
     singlePointsOfFailure: List[dict]
     bridgeEdges: List[dict]
     betweennessCentrality: dict
+
+
+class DisruptionScenario(BaseModel):
+    key: str
+    title: str
+    targetSupplierCode: str
+    targetSupplierName: str
+    disruptionType: DisruptionType
+    severity: float
+    sdgAnchor: str
+    narrative: str
+
+
+class RerouteExecutionResponse(BaseModel):
+    success: bool
+    message: str
+    memoId: str
+    previousSupplierId: str
+    previousSupplierName: str
+    newSupplierId: str
+    newSupplierName: str
+    avoidedScope3Tco2e: float
+    updatedDAG: Any
+
+
+class CountrySpendBreakdown(BaseModel):
+    country: str
+    countryCode: str
+    spendUSD: float
+    supplierCount: int
+    atRiskSpendUSD: float
+    highestRiskScore: float
+    status: SupplierStatus
+
+
+class TierSpendBreakdown(BaseModel):
+    tier: int
+    tierLabel: str
+    spendUSD: float
+    supplierCount: int
+    atRiskSpendUSD: float
+
+
+class ESGComplianceMetrics(BaseModel):
+    totalSuppliers: int
+    certifiedSuppliersCount: int
+    compliancePercentage: float
+    laborStandardsCertifiedCount: int
+    environmentalCertifiedCount: int
+
+
+class PortfolioBreakdownResponse(BaseModel):
+    orgId: str
+    timestamp: str
+    byCountry: List[CountrySpendBreakdown]
+    byTier: List[TierSpendBreakdown]
+    esgCompliance: ESGComplianceMetrics

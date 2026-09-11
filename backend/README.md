@@ -2,7 +2,7 @@
 
 > **Lead Architect**: Contributor A (Devansh)  
 > **Core Stack**: PostgreSQL 18 + Node.js (TypeScript / Express) + Python 3.14 (FastAPI / NetworkX / Pydantic v2)  
-> **Status**: **100% Complete, Hardened & Verified (16/16 Node.js Tests + 9/9 Pytest Tests Passing)**
+> **Status**: **100% Complete, Hardened & Verified (16/16 Node Security Tests + 5/5 Node Expansion Tests + 13/13 Pytest Tests Passing)**
 
 ---
 
@@ -80,6 +80,24 @@ To support both high-speed Node.js API serving and advanced scientific Python gr
 - Added security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, disabled `X-Powered-By`).
 - Scoped all telemetry queries (`avoidedScope3Tco2e`, `activeDisruptionsCount`) strictly to `org_id` to prevent multi-tenant data leaks.
 - Enhanced disruption reset (`POST /api/disruption/reset/:orgId`) to delete active disruption records so `activeDisruptionsCount` returns cleanly to `0`.
+
+### Phase 8: Contributor A Autonomous Expansions & Analytics Feeds
+- **Autonomous Rerouting Engine (`POST /api/mitigation/execute`)**:
+  - Closed-loop supply graph rewiring: fetches `mitigation_memos`, promotes alternate supplier into active `suppliers` table with `NOMINAL` status, rewires `supplier_edges` pointing downstream consumers to the alternate node, and clears disrupted state back to nominal ($0.05$).
+- **Multi-Scenario Disruption Catalog (SDG 8 & SDG 12)**:
+  - Preset catalog with 4 high-fidelity scenarios:
+    1. `RED_SEA_BLOCKADE`: Apex Maritime Logistics (AML-YEM), severity 0.92, Bab-el-Mandeb bypass & crew safety.
+    2. `XINJIANG_UFLPA_SANCTIONS`: Sino-Refine Silicon Co (SRS-CHN), severity 0.88, US CBP forced labor detention (SDG 8).
+    3. `DRC_COBALT_MORATORIUM`: Katanga Artisanal Ore (KAO-COD), severity 0.95, child labor audit moratorium (SDG 8 & 12).
+    4. `ATACAMA_WATER_CRISIS`: Atacama Salt Brine Ltd (ASB-CHL), severity 0.85, indigenous aquifer depletion & DLE reroute (SDG 12).
+  - Endpoints: `GET /api/disruption/scenarios` and `POST /api/disruption/simulate/:scenarioKey`.
+- **Recharts Portfolio Analytics (`GET /api/analytics/portfolio-breakdown/:orgId?`)**:
+  - Formatted data feeds for Contributor B's dashboard:
+    - **By Country**: spend, supplier count, and status breakdown.
+    - **By Tier**: spend and at-risk spend across Tiers 0 to 4.
+    - **ESG / SDG Compliance Index**: percentage and counts for ISO 14001, IRMA, SBTi Net-Zero, and RMI.
+- **Gemini AI Structured Reasoning Service (`gemini.ts`)**:
+  - Structured JSON model interaction for executive risk assessment and procurement switch memos with automated fallback fixtures for zero-latency demo guarantees.
 
 ---
 
@@ -284,6 +302,116 @@ Both servers (`http://localhost:5000` and `http://localhost:8000`) expose identi
 - **Payload**: Multipart form-data `file: <sample-ev-battery-bom.csv>` or JSON `{ "lineItems": [...] }`.
 - **Response**: Returns updated DAG with all nodes and linked edges.
 
+### 10. Multi-Scenario Disruption Catalog (SDG 8 & SDG 12)
+- **Endpoint**: `GET /api/disruption/scenarios`
+- **Response**:
+```json
+{
+  "scenarios": [
+    {
+      "key": "RED_SEA_BLOCKADE",
+      "title": "Red Sea & Bab-el-Mandeb Maritime Chokepoint Blockade",
+      "targetSupplierCode": "AML-YEM",
+      "targetSupplierName": "Apex Maritime Logistics",
+      "disruptionType": "GEOPOLITICAL_BLOCKADE",
+      "severity": 0.92,
+      "sdgAnchor": "SDG 8 (Decent Work & Maritime Crew Welfare) / SDG 12 (Avoided Scope-3 Emissions)",
+      "narrative": "Houthi drone swarm and missile strikes near Bab-el-Mandeb strait force indefinite container bypass..."
+    },
+    {
+      "key": "XINJIANG_UFLPA_SANCTIONS",
+      "title": "Xinjiang Polysilicon Forced Labor Withhold Release Order (UFLPA)",
+      "targetSupplierCode": "SRS-CHN",
+      "targetSupplierName": "Sino-Refine Silicon Co",
+      "disruptionType": "SANCTIONS_FORCED_LABOR",
+      "severity": 0.88,
+      "sdgAnchor": "SDG 8: Decent Work & Total Eradication of Forced Labor",
+      "narrative": "US Customs and Border Protection (CBP) enforces immediate detention of polysilicon substrates..."
+    },
+    {
+      "key": "DRC_COBALT_MORATORIUM",
+      "title": "DRC Artisanal Cobalt Mine Moratorium & Child Labor Audit",
+      "targetSupplierCode": "KAO-COD",
+      "targetSupplierName": "Katanga Artisanal Ore",
+      "disruptionType": "SANCTIONS_FORCED_LABOR",
+      "severity": 0.95,
+      "sdgAnchor": "SDG 8: Elimination of Hazardous Child Labor & Modern Slavery",
+      "narrative": "Artisanal pit collapse and audit exposé in Katanga province triggers emergency export embargo..."
+    },
+    {
+      "key": "ATACAMA_WATER_CRISIS",
+      "title": "Atacama Basin Water Extraction Freeze & Aquifer Depletion",
+      "targetSupplierCode": "ASB-CHL",
+      "targetSupplierName": "Atacama Salt Brine Ltd",
+      "disruptionType": "NATURAL_DISASTER",
+      "severity": 0.85,
+      "sdgAnchor": "SDG 12: Sustainable Consumption & Water Resource Protection",
+      "narrative": "Chilean Environmental Court orders immediate 60-day cessation of brine pumping..."
+    }
+  ]
+}
+```
+
+### 11. 1-Click Scenario Simulation
+- **Endpoint**: `POST /api/disruption/simulate/:scenarioKey`
+- **Example**: `POST /api/disruption/simulate/XINJIANG_UFLPA_SANCTIONS`
+- **Response**: Triggers disruption and propagates upward risk attenuation with $0.7\times$ decay.
+
+### 12. Execute Autonomous Reroute ([EXECUTE_REROUTE])
+- **Endpoint**: `POST /api/mitigation/execute` (or `POST /api/mitigation/:memoId/execute`)
+- **Payload**: `{ "memoId": "<uuid>" }`
+- **Response**:
+```json
+{
+  "success": true,
+  "message": "Autonomous reroute executed: swapped Sino-Refine Silicon Co with certified alternate Patagonia Sustainable Inverter Silicon Wafers SpA. Supply chain DAG rewired and downstream assembly corridors restored to nominal status.",
+  "memoId": "634f8a12-cb08-407a-8ae8-69c3b632daff",
+  "previousSupplierId": "30000000-0000-0000-0000-000000000003",
+  "previousSupplierName": "Sino-Refine Silicon Co",
+  "newSupplierId": "b5ef40bc-1a89-423c-ae7b-e44cc1e9c7d8",
+  "newSupplierName": "Patagonia Sustainable Inverter Silicon Wafers SpA",
+  "avoidedScope3Tco2e": 350.0,
+  "updatedDAG": { "nodes": [...], "edges": [...] }
+}
+```
+
+### 13. Recharts Portfolio Breakdown Analytics
+- **Endpoint**: `GET /api/analytics/portfolio-breakdown/:orgId?`
+- **Response**:
+```json
+{
+  "orgId": "00000000-0000-0000-0000-000000000001",
+  "timestamp": "2026-09-11T12:00:00.000Z",
+  "byCountry": [
+    {
+      "country": "United States",
+      "countryCode": "USA",
+      "spendUSD": 450000000,
+      "supplierCount": 1,
+      "atRiskSpendUSD": 0,
+      "highestRiskScore": 0.05,
+      "status": "NOMINAL"
+    }
+  ],
+  "byTier": [
+    {
+      "tier": 0,
+      "tierLabel": "Tier 0 (Assembly)",
+      "spendUSD": 450000000,
+      "supplierCount": 1,
+      "atRiskSpendUSD": 0
+    }
+  ],
+  "esgCompliance": {
+    "totalSuppliers": 12,
+    "certifiedSuppliersCount": 12,
+    "compliancePercentage": 100,
+    "laborStandardsCertifiedCount": 8,
+    "environmentalCertifiedCount": 10
+  }
+}
+```
+
 ---
 
 ## 5. Test Suite Verification
@@ -308,26 +436,43 @@ npm test
   ✓ [PASS] 12. Ingestion of Malformed CSV Data -> HTTP 400: INVALID_BOM_DATA
   ✓ [PASS] 13. Ingestion of Valid CSV with Quoted Commas -> HTTP 200: 1 suppliers, 1 edges linked
   ✓ [PASS] 14. Reset Disruption State to Nominal -> Reset confirmed. Spend: $0, Disruptions: 0
-  ✓ [PASS] 15. Graph SPOF Hazard & Bottleneck Analytics -> HTTP 200: Found 5 SPOFs, 12 Bridges
+  ✓ [PASS] 15. Graph SPOF Hazard & Bottleneck Analytics -> HTTP 200: Found 2 SPOFs, 11 Bridges
   ✓ [PASS] 16. Candidate Alternate Suppliers for Red Sea Chokepoint -> HTTP 200: Found 3 alternates
 ```
 
-### Python Pytest Suite (`npm run test:python`): 9/9 Passed (100%)
+### Node.js Contributor A Expansions Suite (`npm run test:expansions`): 5/5 Passed (100%)
+```bash
+cd backend
+npm run test:expansions
+```
+```text
+  ✓ PASS: Scenario catalog successfully retrieved (4 scenarios).
+  ✓ PASS: Scenario simulation triggered and propagated 0.7x upward decay.
+  ✓ PASS: Autonomous mitigation memo synthesized.
+  ✓ PASS: Closed-loop autonomous reroute successfully updated graph edges.
+  ✓ PASS: Recharts portfolio breakdown analytics formatted accurately.
+```
+
+### Python Pytest Suite (`npm run test:python`): 13/13 Passed (100%)
 ```bash
 cd backend
 npm run test:python
 ```
 ```text
-backend/python/tests/test_python_backend.py::test_health_check PASSED
-backend/python/tests/test_python_backend.py::test_get_supply_chain_dag PASSED
-backend/python/tests/test_python_backend.py::test_networkx_spof_analytics PASSED
-backend/python/tests/test_python_backend.py::test_simulate_red_sea_blockade_disruption PASSED
-backend/python/tests/test_python_backend.py::test_autonomous_mitigation_memo PASSED
-backend/python/tests/test_python_backend.py::test_reset_disruption PASSED
-backend/python/tests/test_python_backend.py::test_invalid_organization_404 PASSED
-backend/python/tests/test_python_backend.py::test_get_candidate_alternates PASSED
-backend/python/tests/test_python_backend.py::test_csv_bom_ingest PASSED
-======================== 9 passed in 1.49s ========================
+python/tests/test_python_backend.py::test_health_check PASSED
+python/tests/test_python_backend.py::test_get_supply_chain_dag PASSED
+python/tests/test_python_backend.py::test_networkx_spof_analytics PASSED
+python/tests/test_python_backend.py::test_simulate_red_sea_blockade_disruption PASSED
+python/tests/test_python_backend.py::test_autonomous_mitigation_memo PASSED
+python/tests/test_python_backend.py::test_reset_disruption PASSED
+python/tests/test_python_backend.py::test_invalid_organization_404 PASSED
+python/tests/test_python_backend.py::test_get_candidate_alternates PASSED
+python/tests/test_python_backend.py::test_csv_bom_ingest PASSED
+python/tests/test_python_backend.py::test_disruption_scenario_catalog PASSED
+python/tests/test_python_backend.py::test_simulate_named_scenario PASSED
+python/tests/test_python_backend.py::test_portfolio_analytics PASSED
+python/tests/test_python_backend.py::test_execute_reroute_endpoint PASSED
+======================== 13 passed in 1.53s ========================
 ```
 
 ---
@@ -347,7 +492,8 @@ npm run start:python
 psql -U postgres -h localhost -d veritassupply -f backend/db/schema.sql
 psql -U postgres -h localhost -d veritassupply -f backend/db/seed.sql
 
-# 4. Run Both Automated Test Suites
-npm test            # Node.js 16/16 Suite
-npm run test:python # Python 9/9 Pytest Suite
+# 4. Run All Automated Test Suites
+npm test                 # Node.js 16/16 Security & Edge-Case Suite
+npm run test:expansions  # Node.js 5/5 Contributor A Expansions Suite
+npm run test:python      # Python 13/13 Pytest Suite
 ```

@@ -124,3 +124,52 @@ def test_csv_bom_ingest():
     assert "Successfully ingested 1 suppliers" in data["message"]
     assert len(data["dag"]["nodes"]) > 0
 
+
+def test_disruption_scenario_catalog():
+    response = client.get("/api/disruption/scenarios")
+    assert response.status_code == 200
+    data = response.json()
+    assert "scenarios" in data
+    assert len(data["scenarios"]) == 4
+    keys = [s["key"] for s in data["scenarios"]]
+    assert "RED_SEA_BLOCKADE" in keys
+    assert "XINJIANG_UFLPA_SANCTIONS" in keys
+
+
+def test_simulate_named_scenario():
+    response = client.post("/api/disruption/simulate/XINJIANG_UFLPA_SANCTIONS")
+    assert response.status_code == 200
+    data = response.json()
+    assert "disruption" in data
+    assert data["targetSupplier"]["code"] == "SRS-CHN"
+    assert data["disruption"]["disruptionType"] == "SANCTIONS_FORCED_LABOR"
+
+
+def test_portfolio_analytics():
+    response = client.get("/api/analytics/portfolio-breakdown")
+    assert response.status_code == 200
+    data = response.json()
+    assert "byCountry" in data
+    assert "byTier" in data
+    assert "esgCompliance" in data
+    assert len(data["byCountry"]) > 0
+    assert len(data["byTier"]) == 5
+    assert data["esgCompliance"]["compliancePercentage"] >= 0
+
+
+def test_execute_reroute_endpoint():
+    # Generate memo for Apex Maritime Logistics (Bab-el-Mandeb chokepoint)
+    apex_supplier_id = "30000000-0000-0000-0000-000000000001"
+    memo_res = client.post(f"/api/mitigation/{apex_supplier_id}")
+    assert memo_res.status_code == 200
+    memo_id = memo_res.json()["id"]
+
+    # Execute reroute
+    reroute_res = client.post(f"/api/mitigation/{memo_id}/execute")
+    assert reroute_res.status_code == 200
+    reroute_data = reroute_res.json()
+    assert reroute_data["success"] is True
+    assert "Nordic Horn Maritime Lines" in reroute_data["newSupplierName"]
+
+
+

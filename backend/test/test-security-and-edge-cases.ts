@@ -3,7 +3,17 @@
  * VeritasSupply Backend Intelligence Engine
  */
 
+import fs from 'fs';
+import path from 'path';
+import { query, pool } from '../src/db/index.js';
+
 const BASE_URL = 'http://localhost:5000';
+
+async function resetToSeed() {
+  const seedPath = path.resolve('db/seed.sql');
+  const sql = fs.readFileSync(seedPath, 'utf-8');
+  await query(sql);
+}
 
 interface TestResult {
   name: string;
@@ -28,6 +38,8 @@ async function assertTest(name: string, expected: string, fn: () => Promise<{ pa
 }
 
 async function runAllTests() {
+  await resetToSeed();
+
   console.log('\n========================================================');
   console.log('[VERITAS // SUPPLY] RUNNING SECURITY & API TEST SUITE');
   console.log('========================================================\n');
@@ -267,6 +279,9 @@ async function runAllTests() {
   const totalPassed = results.filter((r) => r.passed).length;
   console.log(`TEST SUMMARY: ${totalPassed}/${results.length} TESTS PASSED (${((totalPassed / results.length) * 100).toFixed(0)}%)`);
   console.log('========================================================\n');
+
+  await resetToSeed();
+  await pool.end();
 
   if (totalPassed < results.length) {
     process.exit(1);

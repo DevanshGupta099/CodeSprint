@@ -5,16 +5,19 @@ from typing import Dict, Any, Optional, List
 
 from .db.connection import get_connection_pool, check_database_health
 from .db.cte_queries import (
-    get_supply_chain_dag, get_risk_state, reset_risk_state, get_alternates_for_supplier
+    get_supply_chain_dag, get_risk_state, reset_risk_state, get_alternates_for_supplier,
+    execute_reroute, get_portfolio_analytics
 )
 from .services.graph_analytics import analyze_spofs_and_bottlenecks
 from .services.ai_engine import (
     simulate_red_sea_blockade, trigger_disruption_event, generate_mitigation_memo
 )
 from .services.ingestion import parse_bom_csv, ingest_bom_items
+from .services.scenarios import get_scenario_catalog, simulate_scenario
 from .models.schemas import (
     SupplyChainDAGResponse, RiskStateResponse, MitigationMemo,
-    TriggerDisruptionRequest, SPOFAnalysisResponse
+    TriggerDisruptionRequest, SPOFAnalysisResponse,
+    DisruptionScenario, RerouteExecutionResponse, PortfolioBreakdownResponse
 )
 
 
@@ -134,6 +137,38 @@ def reset_disruption(org_id: str):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@app.post("/api/mitigation/execute", response_model=RerouteExecutionResponse, tags=["Mitigation Engine"])
+async def execute_mitigation_reroute(request: Request):
+    """
+    Executes autonomous rerouting: re-points DAG edges to certified alternate and restores nominal status.
+    """
+    try:
+        body = await request.json()
+        memo_id = body.get("memoId") or body.get("memo_id")
+        if not memo_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing required field: memoId")
+        return execute_reroute(memo_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.post("/api/mitigation/{memo_id}/execute", response_model=RerouteExecutionResponse, tags=["Mitigation Engine"])
+def execute_mitigation_reroute_by_param(memo_id: str):
+    """
+    Executes autonomous rerouting by memo ID path parameter.
+    """
+    try:
+        return execute_reroute(memo_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 @app.post("/api/mitigation/{supplier_id}", response_model=MitigationMemo, tags=["Mitigation Engine"])
 def generate_mitigation(supplier_id: str):
     """
@@ -142,9 +177,43 @@ def generate_mitigation(supplier_id: str):
     and generates the CRT terminal typewriter procurement memo.
     """
     try:
-        return generate_mitigation_memo(supplier_id)
+        memo = generate_mitigation_memo(supplier_id)
+        return memo
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.get("/api/disruption/scenarios", tags=["Disruption Sentinel"])
+def list_disruption_scenarios():
+    """
+    Returns the multi-scenario disruption catalog anchored to SDG 8 and SDG 12.
+    """
+    return {"scenarios": get_scenario_catalog()}
+
+
+@app.post("/api/disruption/simulate/{scenario_key}", tags=["Disruption Sentinel"])
+def simulate_named_scenario(scenario_key: str):
+    """
+    Triggers a named disruption scenario from the catalog (e.g. XINJIANG_UFLPA_SANCTIONS, DRC_COBALT_MORATORIUM).
+    """
+    try:
+        return simulate_scenario(scenario_key)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.get("/api/analytics/portfolio-breakdown", response_model=PortfolioBreakdownResponse, tags=["Graph Analytics"])
+@app.get("/api/analytics/portfolio-breakdown/{org_id}", response_model=PortfolioBreakdownResponse, tags=["Graph Analytics"])
+def get_portfolio_breakdown(org_id: str = "00000000-0000-0000-0000-000000000001"):
+    """
+    Provides aggregated spend by country, tier, and ESG certification compliance metrics for Recharts dashboards.
+    """
+    try:
+        return get_portfolio_analytics(org_id)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 

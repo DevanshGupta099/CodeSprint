@@ -116,3 +116,62 @@ export interface RiskStateResponse {
     activeDisruptionsCount: number;
   };
 }
+
+export const DisruptionScenarioSchema = z.object({
+  key: z.string(),
+  title: z.string(),
+  targetSupplierCode: z.string(),
+  targetSupplierName: z.string(),
+  disruptionType: DisruptionTypeSchema,
+  severity: z.number().min(0).max(1),
+  sdgAnchor: z.string(),
+  narrative: z.string(),
+});
+export type DisruptionScenario = z.infer<typeof DisruptionScenarioSchema>;
+
+export const RerouteExecutionResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  memoId: z.string().uuid(),
+  previousSupplierId: z.string().uuid(),
+  previousSupplierName: z.string(),
+  newSupplierId: z.string().uuid(),
+  newSupplierName: z.string(),
+  avoidedScope3Tco2e: z.number(),
+  updatedDAG: z.any(),
+});
+export type RerouteExecutionResponse = z.infer<typeof RerouteExecutionResponseSchema>;
+
+export interface CountrySpendBreakdown {
+  country: string;
+  countryCode: string;
+  spendUSD: number;
+  supplierCount: number;
+  atRiskSpendUSD: number;
+  highestRiskScore: number;
+  status: SupplierStatus;
+}
+
+export interface TierSpendBreakdown {
+  tier: number;
+  tierLabel: string;
+  spendUSD: number;
+  supplierCount: number;
+  atRiskSpendUSD: number;
+}
+
+export interface ESGComplianceMetrics {
+  totalSuppliers: number;
+  certifiedSuppliersCount: number;
+  compliancePercentage: number;
+  laborStandardsCertifiedCount: number;
+  environmentalCertifiedCount: number;
+}
+
+export interface PortfolioBreakdownResponse {
+  orgId: string;
+  timestamp: string;
+  byCountry: CountrySpendBreakdown[];
+  byTier: TierSpendBreakdown[];
+  esgCompliance: ESGComplianceMetrics;
+}

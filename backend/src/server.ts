@@ -3,10 +3,19 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import { query } from './db/index.js';
-import { getSupplyChainDAG, getRiskState, getAlternatesForSupplier, resetRiskState, getSPOFAnalytics } from './db/queries.js';
+import { 
+  getSupplyChainDAG, 
+  getRiskState, 
+  getAlternatesForSupplier, 
+  resetRiskState, 
+  getSPOFAnalytics,
+  executeReroute,
+  getPortfolioAnalytics 
+} from './db/queries.js';
 import { triggerDisruptionSentinel, TriggerDisruptionRequestSchema } from './services/sentinel.js';
 import { generateMitigationMemo } from './services/mitigation.js';
 import { parseBOMCSV, ingestBOMItems } from './services/ingestion.js';
+import { getScenarioCatalog, simulateScenario } from './services/scenarios.js';
 import { validateUUIDParam, validateBody } from './middleware/validate.js';
 
 dotenv.config();
@@ -125,7 +134,44 @@ app.post(
   }
 );
 
-// 6. Generate Autonomous Procurement Switch Memo
+// 6. Execute Autonomous Reroute (Closed-loop mitigation)
+app.post(
+  '/api/mitigation/execute',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const memoId = req.body.memoId;
+      if (!memoId) {
+        return res.status(400).json({ error: 'BAD_REQUEST', message: 'Missing required field: memoId' });
+      }
+      const result = await executeReroute(memoId);
+      res.json(result);
+    } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return res.status(404).json({ error: 'NOT_FOUND', message: error.message });
+      }
+      next(error);
+    }
+  }
+);
+
+app.post(
+  '/api/mitigation/:memoId/execute',
+  validateUUIDParam('memoId', true),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { memoId } = req.params;
+      const result = await executeReroute(memoId);
+      res.json(result);
+    } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return res.status(404).json({ error: 'NOT_FOUND', message: error.message });
+      }
+      next(error);
+    }
+  }
+);
+
+// 6b. Generate Autonomous Procurement Switch Memo
 app.post(
   '/api/mitigation/:supplierId',
   validateUUIDParam('supplierId', true),
@@ -134,6 +180,28 @@ app.post(
       const { supplierId } = req.params;
       const memo = await generateMitigationMemo(supplierId);
       res.json(memo);
+    } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return res.status(404).json({ error: 'NOT_FOUND', message: error.message });
+      }
+      next(error);
+    }
+  }
+);
+
+// 6c. Multi-Scenario Disruption Catalog
+app.get('/api/disruption/scenarios', (req: Request, res: Response) => {
+  res.json({ scenarios: getScenarioCatalog() });
+});
+
+// 6d. Simulate Named Preset Scenario
+app.post(
+  '/api/disruption/simulate/:scenarioKey',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { scenarioKey } = req.params;
+      const result = await simulateScenario(scenarioKey);
+      res.json(result);
     } catch (error: any) {
       if (error.message?.includes('not found')) {
         return res.status(404).json({ error: 'NOT_FOUND', message: error.message });
@@ -166,6 +234,21 @@ app.get(
     try {
       const orgId = req.params.orgId || DEFAULT_ORG_ID;
       const analytics = await getSPOFAnalytics(orgId);
+      res.json(analytics);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+);
+
+// 7c. Recharts Portfolio Breakdown Analytics
+app.get(
+  '/api/analytics/portfolio-breakdown/:orgId?',
+  validateUUIDParam('orgId', false),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const orgId = req.params.orgId || DEFAULT_ORG_ID;
+      const analytics = await getPortfolioAnalytics(orgId);
       res.json(analytics);
     } catch (error: any) {
       next(error);

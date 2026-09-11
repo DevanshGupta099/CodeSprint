@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { query } from '../db/index.js';
 import { getAlternatesForSupplier, saveMitigationMemo } from '../db/queries.js';
 import { MitigationMemo, MitigationMemoSchema } from '../types/supply-chain.js';
+import { generateMitigationWithAI } from './gemini.js';
 
 export async function generateMitigationMemo(disruptedSupplierId: string): Promise<MitigationMemo> {
   // 1. Fetch disrupted supplier
@@ -68,10 +69,26 @@ export async function generateMitigationMemo(disruptedSupplierId: string): Promi
 
   const leadSign = leadTimeDeltaDays >= 0 ? '+' : '';
   const priceSign = priceVariancePct >= 0 ? '+' : '';
-  const executiveSummary = 
+  const fallbackExecutiveSummary = 
     `AUTONOMOUS SOURCING MEMO // Veritas Global Procurement. Recommended immediate execution of supplier reroute from ${disrupted.name} to ${chosenAlternate.name}. Trade-off profile: ${priceSign}${priceVariancePct}% spot cost offset by ${leadTimeDeltaDays < 0 ? Math.abs(leadTimeDeltaDays) + ' days transit reduction' : leadSign + leadTimeDeltaDays + ' days lead time'} and an estimated ${avoidedScope3Tco2e.toLocaleString()} tCO2e avoided Scope-3 emissions (SDG 12 Responsible Production).`;
 
-  // 4. Save to Database
+  // 4. Autonomous AI Intelligence Synthesis (with zero-latency fallback)
+  const aiInsight = await generateMitigationWithAI(
+    disrupted.name,
+    disrupted.country,
+    disrupted.material_category,
+    chosenAlternate.name,
+    priceVariancePct,
+    leadTimeDeltaDays,
+    avoidedScope3Tco2e,
+    {
+      complianceRationale,
+      executiveSummary: fallbackExecutiveSummary,
+      sdgAnchors: ['SDG 8: Decent Work', 'SDG 12: Responsible Production'],
+    }
+  );
+
+  // 5. Save to Database
   const savedMemo = await saveMitigationMemo({
     disruptedSupplierId: disrupted.id,
     alternateSupplierId: chosenAlternate.id,
@@ -79,10 +96,10 @@ export async function generateMitigationMemo(disruptedSupplierId: string): Promi
     priceVariancePct,
     leadTimeDeltaDays,
     avoidedScope3Tco2e,
-    complianceRationale,
-    executiveSummary,
+    complianceRationale: aiInsight.complianceRationale,
+    executiveSummary: aiInsight.executiveSummary,
   });
 
-  // 5. Strict Zod Validation
+  // 6. Strict Zod Validation
   return MitigationMemoSchema.parse(savedMemo);
 }
