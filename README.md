@@ -161,13 +161,23 @@ CodeSprint/
 │   ├── db/
 │   │   ├── schema.sql                      # PostgreSQL DDL
 │   │   └── seed.sql                        # EV Battery Supply Chain Seed Data
-│   ├── src/
+│   ├── python/                             # Python Intelligence Stack (FastAPI + NetworkX)
+│   │   ├── app/
+│   │   │   ├── db/                         # Threaded Pool & Recursive CTE Queries
+│   │   │   ├── models/                     # Pydantic v2 Schemas (Strict Data Contracts)
+│   │   │   ├── services/                   # NetworkX Graph Analytics, AI Sentinel, Mitigation
+│   │   │   └── main.py                     # FastAPI Application & OpenAPI Docs
+│   │   ├── tests/                          # Pytest Suite (100% Passing)
+│   │   └── run_server.py                   # Python Server Runner (Port 8000)
+│   ├── src/                                # Node.js / TypeScript Stack (Express)
 │   │   ├── db/                             # Pool & Recursive CTE Queries
 │   │   ├── middleware/                     # Validation Middleware (UUID, Zod)
 │   │   ├── services/                       # Sentinel, Mitigation, Ingestion
 │   │   ├── types/                          # Shared TypeScript / Zod Contracts
-│   │   └── server.ts                       # Express REST Server
-│   └── test/                               # Security & CTE Test Suites
+│   │   └── server.ts                       # Express REST Server (Port 5000)
+│   ├── test/                               # Security & CTE Test Suites
+│   ├── package.json
+│   └── requirements.txt                    # Python Dependencies (FastAPI, NetworkX, Psycopg2)
 ├── docs/
 │   ├── Contributor_A_Data_and_Backend_Guide.md
 │   ├── Contributor_B_Frontend_and_WebGL_Guide.md
@@ -189,6 +199,7 @@ CodeSprint/
 ### Prerequisites
 
 - **Node.js**: v18.0.0+ (Tested on v24.4.0)
+- **Python**: v3.10+ (Tested on Python 3.14.7)
 - **PostgreSQL**: v14+ (Local, Supabase, or Neon)
 - **Package Manager**: npm or pnpm
 
@@ -218,14 +229,29 @@ psql -U postgres -h localhost -d veritassupply -f backend/db/schema.sql
 psql -U postgres -h localhost -d veritassupply -f backend/db/seed.sql
 ```
 
-### 4. Run Backend & Tests
+### 4. Run Node.js Backend & Security Test Suite
 
 ```bash
 cd backend
+npm install
 npm run dev
 
-# Run automated Security & Edge Case test suite
-npx tsx test/test-security-and-edge-cases.ts
+# Run automated Security & Edge Case test suite (14/14 passing)
+npm test
+```
+
+### 5. Run Python Intelligence Engine (FastAPI + NetworkX)
+
+```bash
+cd backend
+python -m venv .venv
+.venv/Scripts/pip install -r requirements.txt
+
+# Start Python API (Port 8000, Interactive docs at http://localhost:8000/docs)
+npm run start:python
+
+# Run Pytest test suite (7/7 passing)
+npm run test:python
 ```
 
 ---

@@ -33,6 +33,7 @@ venv/
 .venv/
 env/
 *.egg-info/
+.pytest_cache/
 
 # Operating System & IDEs
 .DS_Store

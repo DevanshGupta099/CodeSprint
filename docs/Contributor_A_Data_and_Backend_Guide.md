@@ -240,3 +240,48 @@ Respond ONLY with valid JSON matching:
 - `GET /api/risk-state/:orgId`: Returns current risk scores and status (`NOMINAL`, `ELEVATED`, `CRITICAL`) for every supplier node. Polled by frontend every 3–5 seconds.
 - `POST /api/disruption/trigger`: Manually or automatically activates a disruption event against a node.
 - `POST /api/mitigation/:supplierId`: Generates an autonomous Procurement Switch Memo.
+- `GET /api/analytics/spofs/:orgId`: NetworkX graph analytics detecting cut vertices (SPOFs), bridges, and betweenness centrality.
+
+---
+
+## 7. Python Intelligence Stack (FastAPI + NetworkX + Pydantic v2)
+
+For advanced mathematical graph analytics and low-latency algorithmic risk modeling, a dedicated Python engine is available under `backend/python/`:
+
+- **Framework**: FastAPI with automatic interactive documentation (`http://localhost:8000/docs`).
+- **Graph Analytics Engine**: NetworkX `DiGraph` analysis:
+  - Articulation points / Cut vertices: true Single Points of Failure whose failure disconnects upstream raw materials from downstream assembly.
+  - Bridge edges: single transit corridors without alternate routing.
+  - Betweenness Centrality: identifying structural supply bottlenecks.
+- **Data Validation**: Strict Pydantic v2 models mirroring `types/supply-chain.ts`.
+- **Database Access**: Threaded connection pool against PostgreSQL using recursive CTE queries.
+
+---
+
+## 8. Development & Testing Commands
+
+### Node.js / TypeScript Backend (Port 5000)
+```bash
+cd backend
+npm install
+npm run dev                # Start Express dev server on port 5000
+npm test                   # Run automated security & API suite (14/14 tests)
+```
+
+### Python FastAPI Intelligence Backend (Port 8000)
+```bash
+# Set up virtual environment
+python -m venv backend/.venv
+backend/.venv/Scripts/pip install -r backend/requirements.txt
+
+# Start FastAPI server on port 8000
+python backend/python/run_server.py
+# Or via npm shortcut in backend/:
+npm run start:python
+
+# Run Pytest suite
+npm run test:python
+# Or directly:
+backend/.venv/Scripts/pytest backend/python/tests/test_python_backend.py -v
+```
+

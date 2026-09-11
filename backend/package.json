@@ -10,7 +10,9 @@
     "start": "node dist/server.js",
     "test:cte": "tsx test/test-backend.ts",
     "test:security": "tsx test/test-security-and-edge-cases.ts",
-    "test": "tsx test/test-security-and-edge-cases.ts"
+    "test": "tsx test/test-security-and-edge-cases.ts",
+    "start:python": ".venv/Scripts/python backend/python/run_server.py",
+    "test:python": ".venv/Scripts/pytest backend/python/tests/test_python_backend.py -v"
   },
   "dependencies": {
     "cors": "^2.8.5",
