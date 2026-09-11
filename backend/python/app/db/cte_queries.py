@@ -140,6 +140,10 @@ def propagate_risk_upstream(
             """, (risk, status, node["supplier_id"]))
 
             cur.execute("""
+                DELETE FROM risk_scores WHERE supplier_id = %s
+            """, (node["supplier_id"],))
+
+            cur.execute("""
                 INSERT INTO risk_scores (supplier_id, probability, severity, confidence, rationale, computed_at)
                 VALUES (%s, %s, %s, 0.95, %s, NOW())
             """, (
@@ -212,6 +216,16 @@ def reset_risk_state(org_id: str):
 
         cur.execute("""
             DELETE FROM disruption_events 
+            WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = %s)
+        """, (org_id,))
+
+        cur.execute("""
+            DELETE FROM mitigation_memos 
+            WHERE disrupted_supplier_id IN (SELECT id FROM suppliers WHERE org_id = %s)
+        """, (org_id,))
+
+        cur.execute("""
+            DELETE FROM risk_scores 
             WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = %s)
         """, (org_id,))
 

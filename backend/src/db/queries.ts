@@ -119,7 +119,9 @@ export async function propagateRiskUpstream(
       [risk, status, node.supplier_id]
     );
 
-    // Record / upsert into risk_scores table
+    // Upsert into risk_scores: clean existing record for this supplier first
+    await query(`DELETE FROM risk_scores WHERE supplier_id = $1`, [node.supplier_id]);
+
     await query(
       `INSERT INTO risk_scores (supplier_id, probability, severity, confidence, rationale, computed_at)
        VALUES ($1, $2, $3, 0.95, $4, NOW())`,
@@ -150,6 +152,18 @@ export async function resetRiskState(orgId: string) {
 
   await query(
     `DELETE FROM disruption_events 
+     WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`,
+    [orgId]
+  );
+
+  await query(
+    `DELETE FROM mitigation_memos 
+     WHERE disrupted_supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`,
+    [orgId]
+  );
+
+  await query(
+    `DELETE FROM risk_scores 
      WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`,
     [orgId]
   );
@@ -296,17 +310,23 @@ export async function getSPOFAnalytics(orgId: string) {
   );
 
   const bridgeResult = await query(
-    `SELECT 
+    `WITH component_counts AS (
+      SELECT parent_supplier_id, component_name, COUNT(*) as supplier_count
+      FROM supplier_edges
+      GROUP BY parent_supplier_id, component_name
+    )
+    SELECT 
       e.child_supplier_id AS "childSupplierId",
       c.name AS "childName",
       e.parent_supplier_id AS "parentSupplierId",
       p.name AS "parentName",
       e.component_name AS "component",
-      'Single transit corridor: no alternate pathway exists between these nodes.' AS "rationale"
+      'Single transit corridor: no alternate pathway exists for this component.' AS "rationale"
     FROM supplier_edges e
     JOIN suppliers p ON p.id = e.parent_supplier_id
     JOIN suppliers c ON c.id = e.child_supplier_id
-    WHERE p.org_id = $1
+    JOIN component_counts cc ON cc.parent_supplier_id = e.parent_supplier_id AND cc.component_name = e.component_name
+    WHERE p.org_id = $1 AND (cc.supplier_count = 1 OR c.is_spof = TRUE)
     ORDER BY p.tier ASC, e.spend_usd DESC`,
     [orgId]
   );

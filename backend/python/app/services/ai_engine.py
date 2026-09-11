@@ -111,11 +111,26 @@ def generate_mitigation_memo(supplier_id: str) -> MitigationMemo:
 
     if not alternates:
         # Fallback alternate if specific replacement record not seeded
-        alt_name = "Nordic Clean Logistics Oy" if "Logistics" in s_material else f"Patagonia Sustainable {s_material} SpA"
+        is_logistics = any(k in s_material.lower() for k in ("logistics", "maritime", "shipping"))
+        alt_name = "Nordic Clean Logistics Oy" if is_logistics else f"Patagonia Sustainable {s_material} SpA"
+        alt_country = "Norway" if is_logistics else "Chile"
+        alt_country_code = "NOR" if is_logistics else "CHL"
         alt_id = str(uuid4())
         price_index = 1.042
         alt_lead_time = max(5, s_lead_time - 3)
-        alt_emissions = 1.45
+        alt_emissions = 0.72 if is_logistics else 1.45
+        alt_certs = ["IMO 2020 Clean Fuel", "SBTi Net-Zero"] if is_logistics else ["ISO 14001", "IRMA Verified", "RMI Audited"]
+
+        with get_db_cursor(commit=True) as cur:
+            cur.execute("""
+                INSERT INTO alternate_suppliers (
+                    id, replaces_supplier_id, name, country, country_code,
+                    price_index, lead_time_days, emissions_factor, certifications
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                alt_id, supplier_id, alt_name, alt_country, alt_country_code,
+                price_index, alt_lead_time, alt_emissions, alt_certs
+            ))
     else:
         # Pick the lowest emissions factor / best qualified alternate
         best_alt = sorted(alternates, key=lambda x: (x.emissionsFactor, x.priceIndex))[0]
@@ -129,14 +144,22 @@ def generate_mitigation_memo(supplier_id: str) -> MitigationMemo:
     price_variance_pct = round((price_index - 1.0) * 100, 2)
     lead_time_delta = alt_lead_time - s_lead_time
     # Avoided Scope-3 CO2 calculation: benchmark maritime diversion adds ~1,420 tCO2e per transit
-    avoided_scope3 = 1420.0 if "Logistics" in s_material else round(max(350.0, s_spend * 2.8), 2)
+    is_logistics = any(k in s_material.lower() for k in ("logistics", "maritime", "shipping"))
+    avoided_scope3 = 1420.0 if is_logistics else round(max(350.0, s_spend * 2.8), 2)
 
     # Compliance rationale anchor (SDG 8 & SDG 12)
-    compliance_rationale = (
-        f"Switch to {alt_name} eliminates Bab-el-Mandeb chokepoint exposure. "
-        f"Guarantees compliance with Uyghur Forced Labor Prevention Act (UFLPA) and "
-        f"delivers audited carbon reduction in accordance with GHG Protocol Scope-3."
-    )
+    if is_logistics:
+        compliance_rationale = (
+            f"Re-routing maritime transit away from Bab-el-Mandeb conflict corridor to {alt_name}'s EU-monitored fleet. "
+            f"Carrier holds SBTi Net-Zero verification and 100% compliant crew welfare under ILO Maritime Labour Convention (MLC 2006), "
+            f"directly upholding UN SDG 8 (Decent Work) and avoiding unvetted black-market bunker fuel."
+        )
+    else:
+        compliance_rationale = (
+            f"Switch to {alt_name} eliminates high-risk conflict corridor exposure. "
+            f"Guarantees compliance with Uyghur Forced Labor Prevention Act (UFLPA) and Responsible Minerals Initiative (RMI), "
+            f"directly upholding UN SDG 8 (Decent Work) and reducing carbon intensity per ton (SDG 12 Responsible Production)."
+        )
 
     # Executive memo formatted for terminal typewriter CRT display
     terminal_memo = (

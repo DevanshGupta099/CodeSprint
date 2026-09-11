@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, status, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any, Optional, List
 
@@ -177,36 +177,50 @@ def get_candidate_alternates(supplier_id: str):
 
 
 @app.post("/api/ingest", tags=["BOM Ingestion"])
-async def ingest_bom(
-    file: Optional[UploadFile] = File(None),
-    org_id: Optional[str] = Form(None)
-):
+async def ingest_bom(request: Request):
     """
-    Ingests BOM data via multipart CSV upload, reconstructs supplier hierarchy and edges,
-    and returns the updated DAG.
+    Ingests BOM data via multipart CSV upload or JSON lineItems payload,
+    reconstructs supplier hierarchy and edges, and returns the updated DAG.
     """
-    target_org_id = org_id or "00000000-0000-0000-0000-000000000001"
-    try:
-        if not file:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please upload a CSV file as form-data (field: 'file')"
-            )
+    content_type = request.headers.get("content-type", "")
+    target_org_id = "00000000-0000-0000-0000-000000000001"
+    items = []
 
-        content = await file.read()
-        csv_text = content.decode("utf-8")
-        items, errors = parse_bom_csv(csv_text)
-        if not items:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"No valid BOM line items found: {errors}"
-            )
+    try:
+        if "application/json" in content_type:
+            body = await request.json()
+            target_org_id = body.get("orgId") or body.get("org_id") or target_org_id
+            items = body.get("lineItems") or body.get("line_items") or []
+            if not items:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No valid lineItems array found in JSON payload"
+                )
+        else:
+            form = await request.form()
+            target_org_id = form.get("orgId") or form.get("org_id") or target_org_id
+            upload = form.get("file")
+            if not upload or not hasattr(upload, "read"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Please upload a CSV file as form-data (field: 'file') or provide a JSON array 'lineItems'"
+                )
+            content = await upload.read()
+            csv_text = content.decode("utf-8")
+            items, errors = parse_bom_csv(csv_text)
+            if not items:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"No valid BOM line items found: {errors}"
+                )
 
         result = ingest_bom_items(target_org_id, items)
         return {
             "message": f"Successfully ingested {result['ingestedSuppliersCount']} suppliers and linked {result['linkedEdgesCount']} edges",
             "dag": result["dag"]
         }
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
