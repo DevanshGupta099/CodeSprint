@@ -100,7 +100,8 @@ def propagate_risk_upstream(
                 %s::float AS probability, 
                 %s::float AS severity, 
                 1.0::float AS decay,
-                (%s::float * %s::float)::float AS current_impact
+                (%s::float * %s::float)::float AS current_impact,
+                ARRAY[%s::uuid] AS path
             
             UNION ALL
             
@@ -109,9 +110,12 @@ def propagate_risk_upstream(
                 r.probability,
                 r.severity,
                 (r.decay * 0.7)::float AS decay,
-                (r.probability * r.severity * (r.decay * 0.7))::float AS current_impact
+                (r.probability * r.severity * (r.decay * 0.7))::float AS current_impact,
+                r.path || e.parent_supplier_id AS path
             FROM supplier_edges e
             JOIN risk_up r ON r.supplier_id = e.child_supplier_id
+            WHERE NOT (e.parent_supplier_id = ANY(r.path))
+              AND r.decay > 0.01
         )
         SELECT 
             supplier_id, 
@@ -121,7 +125,7 @@ def propagate_risk_upstream(
     """
     with get_db_cursor(commit=True) as cur:
         cur.execute(cte_query, (
-            disrupted_supplier_id, probability, severity, probability, severity
+            disrupted_supplier_id, probability, severity, probability, severity, disrupted_supplier_id
         ))
         rows = cur.fetchall()
         impacted_nodes = [{"supplier_id": str(r[0]), "propagated_risk": float(r[1])} for r in rows]
@@ -170,10 +174,20 @@ def get_risk_state(org_id: str) -> RiskStateResponse:
                 isSPOF=is_spof
             ))
 
-        cur.execute("SELECT COALESCE(SUM(avoided_scope3_tco2e), 0) FROM mitigation_memos")
+        cur.execute("""
+            SELECT COALESCE(SUM(m.avoided_scope3_tco2e), 0) 
+            FROM mitigation_memos m
+            JOIN suppliers s ON s.id = m.disrupted_supplier_id
+            WHERE s.org_id = %s
+        """, (org_id,))
         avoided_co2 = float(cur.fetchone()[0])
 
-        cur.execute("SELECT COUNT(*) FROM disruption_events")
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM disruption_events d
+            JOIN suppliers s ON s.id = d.supplier_id
+            WHERE s.org_id = %s
+        """, (org_id,))
         active_disruptions = int(cur.fetchone()[0])
 
         return RiskStateResponse(
@@ -194,6 +208,11 @@ def reset_risk_state(org_id: str):
             UPDATE suppliers 
             SET risk_score = 0.05, status = 'NOMINAL' 
             WHERE org_id = %s
+        """, (org_id,))
+
+        cur.execute("""
+            DELETE FROM disruption_events 
+            WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = %s)
         """, (org_id,))
 
 

@@ -74,7 +74,8 @@ export async function propagateRiskUpstream(
         $2::float AS probability, 
         $3::float AS severity, 
         1.0::float AS decay,
-        ($2::float * $3::float)::float AS current_impact
+        ($2::float * $3::float)::float AS current_impact,
+        ARRAY[$1::uuid] AS path
       
       UNION ALL
       
@@ -84,9 +85,12 @@ export async function propagateRiskUpstream(
         r.probability,
         r.severity,
         (r.decay * 0.7)::float AS decay,
-        (r.probability * r.severity * (r.decay * 0.7))::float AS current_impact
+        (r.probability * r.severity * (r.decay * 0.7))::float AS current_impact,
+        r.path || e.parent_supplier_id AS path
       FROM supplier_edges e
       JOIN risk_up r ON r.supplier_id = e.child_supplier_id
+      WHERE NOT (e.parent_supplier_id = ANY(r.path))
+        AND r.decay > 0.01
     )
     SELECT 
       supplier_id, 
@@ -134,13 +138,19 @@ export async function propagateRiskUpstream(
 }
 
 /**
- * Resets all suppliers in an organization to nominal state
+ * Resets all suppliers in an organization to nominal state and clears active disruption records
  */
 export async function resetRiskState(orgId: string) {
   await query(
     `UPDATE suppliers 
      SET risk_score = 0.05, status = 'NOMINAL' 
      WHERE org_id = $1`,
+    [orgId]
+  );
+
+  await query(
+    `DELETE FROM disruption_events 
+     WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`,
     [orgId]
   );
 }
@@ -169,13 +179,20 @@ export async function getRiskState(orgId: string): Promise<RiskStateResponse> {
   }
 
   const memoResult = await query(
-    `SELECT COALESCE(SUM(avoided_scope3_tco2e), 0)::float AS total_avoided_co2 
-     FROM mitigation_memos`
+    `SELECT COALESCE(SUM(m.avoided_scope3_tco2e), 0)::float AS total_avoided_co2 
+     FROM mitigation_memos m
+     JOIN suppliers s ON s.id = m.disrupted_supplier_id
+     WHERE s.org_id = $1`,
+    [orgId]
   );
   const avoidedScope3Tco2e = memoResult.rows[0]?.total_avoided_co2 || 0;
 
   const disruptionCountResult = await query(
-    `SELECT COUNT(*)::int AS count FROM disruption_events`
+    `SELECT COUNT(*)::int AS count 
+     FROM disruption_events d
+     JOIN suppliers s ON s.id = d.supplier_id
+     WHERE s.org_id = $1`,
+    [orgId]
   );
   const activeDisruptionsCount = disruptionCountResult.rows[0]?.count || 0;
 

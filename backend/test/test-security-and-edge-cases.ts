@@ -230,10 +230,36 @@ async function runAllTests() {
     const stateRes = await fetch(`${BASE_URL}/api/risk-state`);
     const stateData = await stateRes.json();
     const spend = stateData.portfolioMetrics?.totalSpendAtRiskUSD || 0;
-    const passed = res.status === 200 && spend === 0;
+    const activeDisruptions = stateData.portfolioMetrics?.activeDisruptionsCount || 0;
+    const passed = res.status === 200 && spend === 0 && activeDisruptions === 0;
     return {
       passed,
-      actual: `Reset confirmed. Spend at Risk: $${spend}`,
+      actual: `Reset confirmed. Spend at Risk: $${spend}, Active Disruptions: ${activeDisruptions}`,
+    };
+  });
+
+  // Test 15: Graph SPOF Hazard & Bottleneck Analytics
+  await assertTest('15. Graph SPOF Hazard & Bottleneck Analytics', 'Returns articulation points and bridges', async () => {
+    const res = await fetch(`${BASE_URL}/api/analytics/spofs`);
+    const data = await res.json();
+    const hasSpofs = Array.isArray(data.singlePointsOfFailure) && data.singlePointsOfFailure.length > 0;
+    const hasBridges = Array.isArray(data.bridgeEdges) && data.bridgeEdges.length > 0;
+    const passed = res.status === 200 && hasSpofs && hasBridges;
+    return {
+      passed,
+      actual: `HTTP ${res.status}: Found ${data.singlePointsOfFailure?.length || 0} SPOFs, ${data.bridgeEdges?.length || 0} Bridge Corridors`,
+    };
+  });
+
+  // Test 16: Candidate Alternate Suppliers Endpoint
+  await assertTest('16. Candidate Alternate Suppliers for Red Sea Chokepoint', 'Returns Nordic Horn Maritime Lines', async () => {
+    const res = await fetch(`${BASE_URL}/api/alternates/30000000-0000-0000-0000-000000000001`);
+    const data = await res.json();
+    const hasNordic = data.alternates && data.alternates.some((a: any) => a.name === 'Nordic Horn Maritime Lines');
+    const passed = res.status === 200 && hasNordic;
+    return {
+      passed,
+      actual: `HTTP ${res.status}: Found ${data.alternates?.length || 0} candidate alternates (${data.alternates?.[0]?.name})`,
     };
   });
 
