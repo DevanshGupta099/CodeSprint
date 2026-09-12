@@ -10,7 +10,8 @@ import {
 } from '../types/supply-chain';
 import { INITIAL_DAG_DATA, ALTERNATES_MAP, SCENARIO_PRESETS } from '../data/seed-graph';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim();
+const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/$/, '')}/api`;
 
 // In-memory simulation state for instant zero-dependency client execution
 class SupplyChainSimulator {
