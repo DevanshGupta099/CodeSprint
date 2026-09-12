@@ -1,303 +1,230 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { WebGLGridCanvas } from '../components/canvas/WebGLGridCanvas';
-import { TopBar } from '../components/telemetry/TopBar';
-import { FlowCanvas } from '../components/graph/FlowCanvas';
-import { DisruptionControlDeck } from '../components/controls/DisruptionControlDeck';
+import React, { useState, useEffect, useCallback } from 'react';
+import { GlobalHeader, ZentraTab } from '../components/zentra/GlobalHeader';
+import { SubHeaderToolbar } from '../components/zentra/SubHeaderToolbar';
+import { MaterialFlowFunnelCard } from '../components/zentra/MaterialFlowFunnelCard';
+import { ValueAtRiskCard } from '../components/zentra/ValueAtRiskCard';
+import { SteppedVolatilityCard } from '../components/zentra/SteppedVolatilityCard';
+import { DualEqualizerHistogramCard } from '../components/zentra/DualEqualizerHistogramCard';
+import { HeroSunsetMeshCard } from '../components/zentra/HeroSunsetMeshCard';
+import { SVGDefs } from '../components/zentra/SVGDefs';
+import { ZentraDetailModal } from '../components/zentra/ZentraDetailModal';
+import { SupplyWorkflowStudio } from '../components/graph/SupplyWorkflowStudio';
 import { ProcurementSwitchMemo } from '../components/terminal/ProcurementSwitchMemo';
 import { SupplierDetailDrawer } from '../components/graph/SupplierDetailDrawer';
-import { AnalyticsDashboard } from '../components/dashboard/AnalyticsDashboard';
-import { BOMUploadModal } from '../components/ingestion/BOMUploadModal';
+import { INITIAL_DAG_DATA } from '../data/seed-graph';
+import { SupplyChainDAGResponse, Supplier, MitigationMemo } from '../types/supply-chain';
 import { api } from '../services/api';
-import { 
-  SupplyChainDAGResponse, 
-  RiskStateResponse, 
-  MitigationMemo, 
-  Supplier, 
-  DisruptionScenario,
-  PortfolioBreakdownResponse,
-  AlternateSupplier
-} from '../types/supply-chain';
 
-export default function CommandCenterPage() {
-  const [dag, setDag] = useState<SupplyChainDAGResponse | null>(null);
-  const [riskState, setRiskState] = useState<RiskStateResponse | null>(null);
+export default function VeritasSupplyDashboard() {
+  const [activeTab, setActiveTab] = useState<ZentraTab>('overview');
+  const [isDisrupted, setIsDisrupted] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [dagData, setDagData] = useState<SupplyChainDAGResponse>(INITIAL_DAG_DATA);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-  const [selectedSupplierAlternates, setSelectedSupplierAlternates] = useState<AlternateSupplier[]>([]);
   const [activeMemo, setActiveMemo] = useState<MitigationMemo | null>(null);
-  const [scenarios, setScenarios] = useState<DisruptionScenario[]>([]);
-  const [selectedScenarioKey, setSelectedScenarioKey] = useState<string>('red-sea');
-  const [activeTierFilter, setActiveTierFilter] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isExecutingReroute, setIsExecutingReroute] = useState(false);
-  
-  // Modals & Panels
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [isIngestOpen, setIsIngestOpen] = useState(false);
-  const [portfolioData, setPortfolioData] = useState<PortfolioBreakdownResponse | null>(null);
+  const [avoidedCo2Total, setAvoidedCo2Total] = useState<number>(0);
 
-  // Initialize data on mount
+  // Fetch initial DAG from backend API (or fallback to simulator)
   useEffect(() => {
     let isMounted = true;
-    const init = async () => {
-      try {
-        const [initialDag, initialRisk, scenarioList] = await Promise.all([
-          api.getSupplyChainDAG(),
-          api.getRiskState(),
-          api.getScenarios(),
-        ]);
-        if (isMounted) {
-          setDag(initialDag);
-          setRiskState(initialRisk);
-          setScenarios(scenarioList);
-        }
-      } catch (err) {
-        console.error('Failed to initialize supply chain data:', err);
+    api.getSupplyChainDAG().then((data) => {
+      if (isMounted && data && data.nodes) {
+        setDagData(data);
       }
-    };
-    init();
-    return () => {
-      isMounted = false;
-    };
+    }).catch(console.error);
+    return () => { isMounted = false; };
   }, []);
 
-  // Poll risk telemetry every 3 seconds to reflect live CTE state
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const updatedRisk = await api.getRiskState();
-        setRiskState(updatedRisk);
-      } catch (err) {
-        // Fallback gracefully without throwing
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // When selected supplier changes, fetch its alternates
-  useEffect(() => {
-    if (!selectedSupplier) {
-      setSelectedSupplierAlternates([]);
-      return;
-    }
-    const alternates = (api as any).getAlternates
-      ? (api as any).getAlternates(selectedSupplier.id)
-      : [];
-    setSelectedSupplierAlternates(alternates);
-  }, [selectedSupplier]);
-
-  // Filter DAG nodes based on active Tier filter (T0 - T4)
-  const filteredDAG = useMemo<SupplyChainDAGResponse | null>(() => {
-    if (!dag) return null;
-    if (activeTierFilter === null) return dag;
-
-    const filteredNodes = dag.nodes.filter((n) => n.tier === activeTierFilter);
-    const filteredNodeIds = new Set(filteredNodes.map((n) => n.id));
-    const filteredEdges = dag.edges.filter(
-      (e) => filteredNodeIds.has(e.childSupplierId) && filteredNodeIds.has(e.parentSupplierId)
-    );
-
-    return {
-      organization: dag.organization,
-      nodes: filteredNodes,
-      edges: filteredEdges,
-    };
-  }, [dag, activeTierFilter]);
-
-  // Is any critical node active?
-  const isDisrupted = useMemo(() => {
-    return dag?.nodes.some((n) => n.status === 'CRITICAL') || false;
-  }, [dag]);
-
-  // Active scenario details
-  const currentScenario = useMemo(() => {
-    return scenarios.find((s) => s.key === selectedScenarioKey) || scenarios[0];
-  }, [scenarios, selectedScenarioKey]);
-
-  // 1. Simulate Disruption Action (Disruption Sentinel)
-  const handleSimulateDisruption = useCallback(
-    async (scenarioKey: string) => {
-      if (!dag) return;
-      setIsProcessing(true);
-
-      const scenario = scenarios.find((s) => s.key === scenarioKey) || scenarios[0];
-      const targetNode =
-        dag.nodes.find((n) => n.code === scenario?.targetSupplierCode) ||
-        dag.nodes.find((n) => n.materialCategory.includes('Shipping') || n.name.includes('Apex Maritime')) ||
-        dag.nodes[0];
-
-      try {
-        const result = await api.triggerDisruption(
-          targetNode.id,
-          scenario?.severity || 0.95,
-          scenario?.disruptionType || 'GEOPOLITICAL_BLOCKADE'
-        );
-        setDag(result.dag);
-        setActiveMemo(result.memo);
-        const updatedRisk = await api.getRiskState();
-        setRiskState(updatedRisk);
-      } catch (err) {
-        console.error('Disruption simulation error:', err);
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [dag, scenarios]
-  );
-
-  // 2. Reset Disruption State Action
-  const handleReset = useCallback(async () => {
+  // 1. Trigger Disruption Sentinel (e.g. [SIMULATE RED SEA BLOCKADE])
+  const handleTriggerRedSeaBlockade = useCallback(async () => {
     setIsProcessing(true);
     try {
-      const nominalDag = await api.resetRiskState();
-      setDag(nominalDag);
-      setActiveMemo(null);
-      setSelectedSupplier(null);
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
+      // AML-YEM node (Apex Maritime Logistics)
+      const targetSupplierId = '10000000-0000-0000-0000-000000000007'; // Apex Maritime Logistics in seed-graph
+      const res = await api.triggerDisruption(targetSupplierId, 0.94, 'GEOPOLITICAL_BLOCKADE');
+      
+      setIsDisrupted(true);
+      if (res && res.dag) {
+        setDagData(res.dag);
+      }
+
+      // Generate or set mitigation memo
+      const memo: MitigationMemo = res?.memo || {
+        id: '60000000-0000-0000-0000-000000000001',
+        disruptedSupplierId: targetSupplierId,
+        alternateSupplierId: '50000000-0000-0000-0000-000000000001',
+        alternateName: 'Nordic Horn Maritime Lines (Norway Cape Route)',
+        priceVariancePct: 4.2,
+        leadTimeDeltaDays: -3,
+        avoidedScope3Tco2e: 1420.5,
+        complianceRationale: 'Full compliance with UN SDG 12 (Responsible Production) & SDG 8. Bypasses Bab-el-Mandeb conflict zone utilizing low-sulfur dual-fuel fleet along South Atlantic corridor.',
+        executiveSummary: 
+          `CRITICAL DISRUPTION ALERT // AUTONOMOUS MITIGATION DIRECTIVE\n` +
+          `Target Node [Apex Maritime Logistics] compromised by maritime security blockade at Bab-el-Mandeb Strait.\n` +
+          `Recursive CTE risk wave propagated upstream: Tier-2 Voltaic Cell Dynamics and Tier-1 Apex PowerSystems GmbH.\n` +
+          `Autonomous Recommendation: Execute split-order rerouting to Nordic Horn Maritime Lines (Cape Route) and secondary packaging in Vietnam & Mexico. Price variance contained to +4.2%, transit reduced by 3 days, avoiding 1,420.5 tCO2e in Scope-3 carbon emissions.`,
+        generatedAt: new Date().toISOString(),
+      };
+
+      setActiveMemo(memo);
     } catch (err) {
-      console.error('Reset error:', err);
+      console.error('Trigger disruption error:', err);
+      setIsDisrupted(true);
     } finally {
       setIsProcessing(false);
     }
   }, []);
 
-  // 3. Execute Autonomous Reroute Action
+  // 2. Execute Reroute Action
   const handleExecuteReroute = useCallback(async () => {
     if (!activeMemo) return;
-    setIsExecutingReroute(true);
+    setIsProcessing(true);
 
     try {
-      const response = await api.executeReroute(
+      const res = await api.executeReroute(
         activeMemo.disruptedSupplierId,
-        activeMemo.alternateSupplierId
+        activeMemo.alternateSupplierId,
+        activeMemo.id
       );
 
-      if (response.updatedDAG) {
-        setDag(response.updatedDAG);
-      } else {
-        // Fallback DAG update
-        const freshDag = await api.getSupplyChainDAG();
-        setDag(freshDag);
+      if (res && res.updatedDAG) {
+        setDagData(res.updatedDAG);
       }
 
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
+      setIsDisrupted(false);
+      setAvoidedCo2Total((prev) => prev + activeMemo.avoidedScope3Tco2e);
       setActiveMemo(null);
-      setSelectedSupplier(null);
     } catch (err) {
       console.error('Execute reroute error:', err);
+      setIsDisrupted(false);
+      setActiveMemo(null);
     } finally {
-      setIsExecutingReroute(false);
+      setIsProcessing(false);
     }
   }, [activeMemo]);
 
-  // 4. Open Analytics Drawer
-  const handleOpenAnalytics = useCallback(async () => {
+  // 3. Reset Baseline State
+  const handleResetBaseline = useCallback(async () => {
+    setIsProcessing(true);
     try {
-      const data = await api.getPortfolioAnalytics();
-      setPortfolioData(data);
-      setIsAnalyticsOpen(true);
+      const resetDag = await api.resetRiskState();
+      if (resetDag && resetDag.nodes) {
+        setDagData(resetDag);
+      }
+      setIsDisrupted(false);
+      setActiveMemo(null);
+      setSelectedSupplier(null);
     } catch (err) {
-      console.error('Analytics load error:', err);
-    }
-  }, []);
-
-  // 5. Handle BOM Upload Success
-  const handleUploadSuccess = useCallback(async () => {
-    try {
-      const freshDag = await api.getSupplyChainDAG();
-      setDag(freshDag);
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
-    } catch (err) {
-      console.error('Post-upload refresh error:', err);
+      console.error('Reset error:', err);
+      setIsDisrupted(false);
+    } finally {
+      setIsProcessing(false);
     }
   }, []);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex flex-col bg-[#07090E] select-none font-mono">
-      {/* Background Atmosphere & Ambient WebGL Canvas */}
-      <div className="hud-bg-ambient" />
-      <WebGLGridCanvas
+    <div className="min-h-screen w-full tactile-canvas text-neutral-900 font-sans antialiased pb-20 flex flex-col">
+      {/* GLOBAL SVG PATTERNS: 45-degree Candy Stripes & 3D Gradients */}
+      <SVGDefs />
+
+      {/* 1. HEADER & NAVIGATION: Floating Rounded Pill Nav Bar + [SIMULATE RED SEA BLOCKADE] */}
+      <GlobalHeader
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenSearch={() => setActiveTab('suppliers')}
+        onSimulateRedSea={isDisrupted ? handleResetBaseline : handleTriggerRedSeaBlockade}
         isDisrupted={isDisrupted}
-        disruptionLabel={currentScenario?.title}
-      />
-
-      {/* Top Bar Telemetry HUD */}
-      <TopBar
-        riskState={riskState}
-        onReset={handleReset}
-        onOpenAnalytics={handleOpenAnalytics}
-        onOpenIngest={() => setIsIngestOpen(true)}
         isProcessing={isProcessing}
-        activeTierFilter={activeTierFilter}
-        onSelectTierFilter={setActiveTierFilter}
       />
 
-      {/* Main Interactive React Flow Command Canvas */}
-      <main className="relative flex-1 w-full h-full overflow-hidden z-10 pt-14 pb-20">
-        {filteredDAG ? (
-          <FlowCanvas
-            dag={filteredDAG}
+      {/* 2. SUB-HEADER ACTION BAR: "Overview" (36px) & Segmented Date Selectors */}
+      <SubHeaderToolbar
+        title={
+          activeTab === 'overview'
+            ? 'Overview'
+            : activeTab === 'graph'
+            ? 'Supply Dependency DAG'
+            : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+        }
+        onAddWidget={() => handleTriggerRedSeaBlockade()}
+      />
+
+      {/* 3. MAIN WORKSPACE CONTAINER */}
+      <main className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 flex-1 flex flex-col gap-6">
+        {/* VIEW A: OVERVIEW TAB (ZENTRA BENTO GRID) */}
+        {activeTab === 'overview' && (
+          <>
+            {/* ROW 1: TOP HERO (65% / 35%) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              {/* TOP LEFT (65% -> 8 cols): 3D Isometric Material Flow Funnel with AI Dock */}
+              <div className="lg:col-span-8 flex flex-col">
+                <MaterialFlowFunnelCard
+                  onExplorePrompt={(prompt) => handleTriggerRedSeaBlockade()}
+                  onSelectStage={(stageId) => setActiveTab('graph')}
+                />
+              </div>
+
+              {/* TOP RIGHT (35% -> 4 cols): Value at Risk ($41,540,000 & 3 Striped Progress Bars) */}
+              <div className="lg:col-span-4 flex flex-col">
+                <ValueAtRiskCard />
+              </div>
+            </div>
+
+            {/* ROW 2: BOTTOM 3-COLUMN BENTO */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+              {/* Bottom Left: Stepped Volatility Area Chart ("Retention" Style) */}
+              <SteppedVolatilityCard />
+
+              {/* Bottom Center: Dual Equalizer Histogram Card ("Transactions & Customers" Style) */}
+              <DualEqualizerHistogramCard />
+
+              {/* Bottom Right: Hero Sunset Gradient AI Insight Card */}
+              <HeroSunsetMeshCard
+                onExploreMitigation={() => handleTriggerRedSeaBlockade()}
+              />
+            </div>
+          </>
+        )}
+
+        {/* VIEW B: SUPPLY GRAPH TAB (SUPPLY WORKFLOW STUDIO) */}
+        {activeTab === 'graph' && (
+          <SupplyWorkflowStudio
+            dag={dagData}
+            onTriggerDisruption={handleTriggerRedSeaBlockade}
+            onResetBaseline={handleResetBaseline}
+            isDisrupted={isDisrupted}
+            isProcessing={isProcessing}
+            selectedSupplier={selectedSupplier}
             onSelectSupplier={setSelectedSupplier}
-            selectedSupplierId={selectedSupplier?.id}
+            avoidedCo2Total={avoidedCo2Total}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center font-mono text-cyan-400 text-xs">
-            <span className="animate-pulse tracking-widest uppercase font-bold">
-              [CONSTRUCTING RECURSIVE POSTGRESQL CTE GRAPH...]
-            </span>
-          </div>
         )}
       </main>
 
-      {/* Disruption Control Deck (Bottom Center Anchor) */}
-      <DisruptionControlDeck
-        scenarios={scenarios}
-        selectedScenarioKey={selectedScenarioKey}
-        onSelectScenario={setSelectedScenarioKey}
-        onSimulate={handleSimulateDisruption}
-        isProcessing={isProcessing}
-        isDisrupted={isDisrupted}
-        onReset={handleReset}
+      {/* TAB DETAIL MODAL (SUPPLIERS, DISRUPTIONS, SANCTIONS, ESG, REPORTS) */}
+      <ZentraDetailModal
+        activeTab={activeTab}
+        onClose={() => setActiveTab('overview')}
+        onTriggerDisruption={(id) => handleTriggerRedSeaBlockade()}
       />
 
-      {/* Terminal Typewriter Procurement Switch Memo */}
+      {/* SUPPLIER DETAIL INSPECTION DRAWER (WHEN NODE CLICKED ON OVERVIEW) */}
+      {activeTab !== 'graph' && (
+        <SupplierDetailDrawer
+          supplier={selectedSupplier}
+          onClose={() => setSelectedSupplier(null)}
+          onSimulateDisruptionOnNode={(id: string) => handleTriggerRedSeaBlockade()}
+        />
+      )}
+
+      {/* THE TERMINAL TYPEWRITER PROCUREMENT SWITCH MEMO ([EXECUTE_REROUTE]) */}
       <ProcurementSwitchMemo
         memo={activeMemo}
         onExecuteReroute={handleExecuteReroute}
-        isExecuting={isExecutingReroute}
+        isExecuting={isProcessing}
         onClose={() => setActiveMemo(null)}
-      />
-
-      {/* Node Detail Inspector Drawer */}
-      <SupplierDetailDrawer
-        supplier={selectedSupplier}
-        alternates={selectedSupplierAlternates}
-        onClose={() => setSelectedSupplier(null)}
-        onSimulateDisruptionOnNode={(id) => {
-          if (!dag) return;
-          api.triggerDisruption(id, 0.95, 'GEOPOLITICAL_BLOCKADE').then((res) => {
-            setDag(res.dag);
-            setActiveMemo(res.memo);
-          });
-        }}
-      />
-
-      {/* Executive Portfolio Analytics Modal */}
-      <AnalyticsDashboard
-        isOpen={isAnalyticsOpen}
-        data={portfolioData}
-        onClose={() => setIsAnalyticsOpen(false)}
-      />
-
-      {/* BOM Ingestion Modal */}
-      <BOMUploadModal
-        isOpen={isIngestOpen}
-        onClose={() => setIsIngestOpen(false)}
-        onUploadSuccess={handleUploadSuccess}
       />
     </div>
   );

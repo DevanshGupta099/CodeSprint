@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { MitigationMemo } from '../../types/supply-chain';
-import { Terminal, ShieldCheck, ArrowRight, Zap, X, CheckCircle2, AlertTriangle, Scale } from 'lucide-react';
+import { 
+  Sparkles, 
+  ShieldCheck, 
+  ArrowRight, 
+  X, 
+  CheckCircle2, 
+  RotateCcw
+} from 'lucide-react';
 
 interface ProcurementSwitchMemoProps {
   memo: MitigationMemo | null;
@@ -20,7 +27,6 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
   const [displayedText, setDisplayedText] = useState('');
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
-  // Typewriter effect simulating CRT telemetry stream
   useEffect(() => {
     if (!memo) {
       setDisplayedText('');
@@ -34,7 +40,7 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
     setIsTypingComplete(false);
 
     const interval = setInterval(() => {
-      index += 3;
+      index += 5;
       if (index <= fullText.length) {
         setDisplayedText(fullText.substring(0, index));
       } else {
@@ -50,114 +56,127 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
   if (!memo) return null;
 
   return (
-    <aside className="fixed bottom-16 sm:bottom-20 right-2 sm:right-6 w-full sm:w-[480px] max-w-[calc(100vw-1rem)] bg-[#070D14]/95 border-2 border-cyan-500/50 p-4 z-40 font-mono text-xs shadow-[0_20px_60px_rgba(0,0,0,0.9)] backdrop-blur-2xl crt-overlay crosshair-corner">
-      {/* Corner crosshairs */}
-      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-cyan-400 pointer-events-none" />
-      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-cyan-400 pointer-events-none" />
-      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-cyan-400 pointer-events-none" />
-      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-cyan-400 pointer-events-none" />
+    <aside className="fixed top-20 right-6 bottom-6 w-[440px] max-w-[calc(100vw-3rem)] z-50 rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-7 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.22)] flex flex-col justify-between overflow-y-auto animate-in fade-in slide-in-from-right-4 duration-200 select-none font-sans">
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.06]">
+          <div className="flex items-center gap-3">
+            {/* Amber brand gradient emblem matching the Veritas logo */}
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 flex items-center justify-center text-white shadow-xs shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-base text-neutral-900 tracking-tight leading-none">
+                  Autonomous Mitigation Advisory
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-neutral-100 text-neutral-700 border border-black/[0.06]">
+                  AI ENGINE
+                </span>
+              </div>
+              <span className="text-xs text-neutral-400 font-medium block mt-1">
+                {new Date(memo.generatedAt).toLocaleTimeString()} · Closed-Loop Reroute Synthesis
+              </span>
+            </div>
+          </div>
 
-      {/* Terminal Title Bar */}
-      <div className="flex items-center justify-between pb-2 border-b border-cyan-500/30 text-[10px]">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-cyan-400 animate-pulse" />
-          <span className="font-display font-extrabold text-white uppercase tracking-wider">
-            [AUTONOMOUS_PROCUREMENT_SENTINEL // MITIGATION_MEMO]
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-cyan-400/70">
-            {new Date(memo.generatedAt).toLocaleTimeString()}
-          </span>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-0.5 text-slate-400 hover:text-white cursor-pointer"
+              className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer"
+              title="Close"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
-      </div>
 
-      {/* Monospace Typewriter Stream Box */}
-      <div className="my-3 p-3 bg-black/70 border border-cyan-500/20 max-h-[130px] overflow-y-auto leading-relaxed text-slate-200 text-[11px]">
-        <div className="text-[9px] text-cyan-400/60 uppercase mb-1">
-          {'// EXECUTIVE REROUTE DIRECTIVE:'}
-        </div>
-        <div className="font-mono whitespace-pre-wrap">
-          {displayedText}
-          {!isTypingComplete && (
-            <span className="inline-block w-2 h-3.5 bg-cyan-400 ml-1 animate-blink-cursor" />
-          )}
-        </div>
-      </div>
-
-      {/* Trade-Off Matrix Table */}
-      <div className="mb-3 p-2.5 bg-[#0A121D] border border-white/10 text-[10px]">
-        <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-white/10 text-slate-400 uppercase tracking-widest font-bold">
-          <span className="flex items-center gap-1.5 text-white">
-            <Scale className="w-3 h-3 text-cyan-400" />
-            [TRADE-OFF DELTA ANALYSIS]
-          </span>
-          <span className="text-cyan-400 font-mono">TARGET: {memo.alternateName}</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 text-center">
-          {/* Cost Delta */}
-          <div className="p-1.5 bg-black/40 border border-white/8">
-            <span className="text-slate-500 block text-[8px] uppercase">PRICE DELTA</span>
-            <span className="text-amber-400 font-bold text-xs font-mono">
-              +{memo.priceVariancePct}%
+        {/* Executive Sourcing Directive Terminal (Sleek Obsidian Console matching UI color theme) */}
+        <div className="my-4 p-4 rounded-2xl bg-[#0F172A] border border-slate-800 text-xs shadow-inner">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+            <span className="text-[10px] uppercase font-bold tracking-wider font-mono text-sky-400">
+              EXECUTIVE SOURCING DIRECTIVE // RECURSIVE CTE
             </span>
-            <span className="text-[8px] text-slate-400 block mt-0.5">Insurance offset</span>
+            <span className="text-[10px] font-mono text-slate-400">
+              SDG 8 & 12 VERIFIED
+            </span>
           </div>
 
-          {/* Lead Time Delta */}
-          <div className="p-1.5 bg-black/40 border border-white/8">
-            <span className="text-slate-500 block text-[8px] uppercase">LEAD TIME</span>
-            <span className="text-emerald-400 font-bold text-xs font-mono">
-              {memo.leadTimeDeltaDays} Days
-            </span>
-            <span className="text-[8px] text-slate-400 block mt-0.5">39d vs 42d route</span>
-          </div>
-
-          {/* Avoided Carbon Delta (SDG 12 Anchor) */}
-          <div className="p-1.5 bg-emerald-950/30 border border-emerald-500/40">
-            <span className="text-emerald-400 block text-[8px] uppercase">AVOIDED SCOPE-3</span>
-            <span className="text-emerald-300 font-bold text-xs font-mono">
-              -{memo.avoidedScope3Tco2e}
-            </span>
-            <span className="text-[8px] text-emerald-400/80 block mt-0.5">tCO2e (SDG 12)</span>
-          </div>
+          <p className="whitespace-pre-wrap font-mono text-slate-200 leading-relaxed font-normal text-[11px] sm:text-xs">
+            {displayedText}
+            {!isTypingComplete && (
+              <span className="inline-block w-1.5 h-3.5 bg-sky-400 ml-1 animate-pulse align-middle" />
+            )}
+          </p>
         </div>
 
-        {/* ESG & Sanctions Compliance Clearance (SDG 8 Anchor) */}
-        <div className="mt-2 pt-1.5 border-t border-white/8 flex items-center justify-between text-[9px] text-slate-400">
-          <span className="flex items-center gap-1 text-emerald-400 font-bold">
-            <ShieldCheck className="w-3 h-3" />
-            SDG 8 / FORCED LABOR COMPLIANT
-          </span>
-          <span className="text-slate-400">ISO 14001 · RBA Gold</span>
+        {/* Trade-Off Impact Grid (Tactile White Cards matching UI theme) */}
+        <div className="mb-4 p-4 rounded-2xl bg-neutral-50 border border-black/[0.05]">
+          <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-black/[0.06] text-xs">
+            <span className="font-bold text-neutral-800 uppercase tracking-tight font-mono text-[11px]">
+              Trade-Off Impact Analysis
+            </span>
+            <span className="text-xs text-blue-700 font-bold truncate max-w-[220px]">
+              Target: {memo.alternateName}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2.5 text-center">
+            {/* Cost Delta */}
+            <div className="p-3 rounded-xl bg-white border border-black/[0.06] shadow-xs">
+              <span className="text-neutral-500 block text-[11px] font-semibold">Cost Delta</span>
+              <span className="text-amber-600 font-extrabold font-mono text-base mt-0.5 block">
+                +{memo.priceVariancePct}%
+              </span>
+              <span className="text-[10px] text-neutral-400 block mt-0.5">Insurance offset</span>
+            </div>
+
+            {/* Lead Time Delta */}
+            <div className="p-3 rounded-xl bg-white border border-black/[0.06] shadow-xs">
+              <span className="text-neutral-500 block text-[11px] font-semibold">Lead Time</span>
+              <span className="text-neutral-900 font-extrabold font-mono text-base mt-0.5 block">
+                {memo.leadTimeDeltaDays} Days
+              </span>
+              <span className="text-[10px] text-neutral-400 block mt-0.5">Saved vs delay</span>
+            </div>
+
+            {/* Avoided Scope-3 Carbon */}
+            <div className="p-3 rounded-xl bg-white border border-black/[0.06] shadow-xs">
+              <span className="text-neutral-500 block text-[11px] font-semibold">Avoided CO₂</span>
+              <span className="text-neutral-900 font-extrabold font-mono text-base mt-0.5 block">
+                -{memo.avoidedScope3Tco2e}
+              </span>
+              <span className="text-[10px] text-neutral-400 block mt-0.5 font-medium">tCO2e (SDG 12)</span>
+            </div>
+          </div>
+
+          {/* ESG & Compliance Clearance */}
+          <div className="mt-3 pt-2.5 border-t border-black/[0.05] flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1.5 text-neutral-700 font-semibold text-[11px]">
+              <ShieldCheck className="w-4 h-4 text-sky-600" />
+              <span>SDG 8 & 12 Clearance Verified</span>
+            </span>
+            <span className="text-neutral-400 text-[11px] font-mono">ISO 14001 · RBA Gold</span>
+          </div>
         </div>
       </div>
 
-      {/* Autonomous Action CTA */}
+      {/* Autonomous Action Button (UI-themed dark carbon pill with amber accent) */}
       <button
         onClick={onExecuteReroute}
         disabled={isExecuting}
-        className="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-black font-display font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-[0_0_25px_rgba(0,255,157,0.45)] hover:shadow-[0_0_35px_rgba(0,255,157,0.7)] cursor-pointer disabled:opacity-60"
+        className="w-full py-3.5 px-5 rounded-full bg-neutral-900 hover:bg-black text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-neutral-900/15 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
       >
         {isExecuting ? (
           <>
-            <Zap className="w-4 h-4 animate-spin text-black" />
-            <span>[EXECUTING REROUTE // UPDATING DAG CTE...]</span>
+            <RotateCcw className="w-4 h-4 animate-spin text-amber-400" />
+            <span>Executing Autonomous Reroute...</span>
           </>
         ) : (
           <>
-            <CheckCircle2 className="w-4 h-4 text-black" />
-            <span>[CONFIRM & EXECUTE AUTONOMOUS REROUTE]</span>
-            <ArrowRight className="w-4 h-4 text-black" />
+            <CheckCircle2 className="w-4 h-4 text-amber-400" />
+            <span>Confirm & Execute Autonomous Reroute</span>
+            <ArrowRight className="w-4 h-4 text-white ml-1" />
           </>
         )}
       </button>

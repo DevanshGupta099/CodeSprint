@@ -266,6 +266,7 @@ class SupplyChainSimulator {
   }
 }
 
+
 // Global simulator singleton
 const simulator = new SupplyChainSimulator();
 
@@ -306,11 +307,34 @@ export const api = {
         body: JSON.stringify({ supplierId, severity, type }),
         signal: AbortSignal.timeout(2500)
       });
+      
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+
+      // Fetch fresh DAG from backend CTE
+      const freshDag = await this.getSupplyChainDAG();
+
+      // Fetch AI mitigation memo for target node
+      let memo: MitigationMemo | null = null;
+      try {
+        const memoRes = await fetch(`${API_BASE}/mitigation/${supplierId}`, {
+          method: 'POST',
+          signal: AbortSignal.timeout(2500)
+        });
+        if (memoRes.ok) {
+          memo = await memoRes.json();
+        }
+      } catch {
+        // Fallback handled below
+      }
+
+      if (!memo) {
+        const sim = simulator.triggerDisruption(supplierId, severity, type);
+        memo = sim.memo;
+      }
+
       return {
-        dag: data.updatedDAG || simulator.getDAG(),
-        memo: data.mitigationMemo,
+        dag: freshDag,
+        memo,
       };
     } catch {
       return simulator.triggerDisruption(supplierId, severity, type);
@@ -332,20 +356,30 @@ export const api = {
   },
 
   // 5. Execute Reroute
-  async executeReroute(supplierId: string, alternateId: string): Promise<RerouteExecutionResponse> {
+  async executeReroute(supplierId: string, alternateId: string, memoId?: string): Promise<RerouteExecutionResponse> {
     try {
       const res = await fetch(`${API_BASE}/mitigation/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ supplierId, alternateId }),
+        body: JSON.stringify({ 
+          memoId: memoId || '60000000-0000-0000-0000-000000000001',
+          supplierId, 
+          alternateId 
+        }),
         signal: AbortSignal.timeout(2500)
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      const data = await res.json();
+      const freshDag = await this.getSupplyChainDAG();
+      return {
+        ...data,
+        updatedDAG: freshDag,
+      };
     } catch {
       return simulator.executeReroute();
     }
   },
+
 
   // 6. Get Portfolio Analytics
   async getPortfolioAnalytics(orgId: string = '00000000-0000-0000-0000-000000000001'): Promise<PortfolioBreakdownResponse> {
