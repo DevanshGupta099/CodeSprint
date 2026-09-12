@@ -2,153 +2,172 @@
 
 import React from 'react';
 import { 
-  AlertOctagon, 
   RotateCcw, 
   BarChart3, 
   Upload, 
   ShieldAlert, 
   Leaf, 
   DollarSign,
-  Activity
+  Activity,
+  Layers,
+  ShieldCheck
 } from 'lucide-react';
-import { RiskStateResponse, DisruptionScenario } from '../../types/supply-chain';
+import { RiskStateResponse } from '../../types/supply-chain';
 
 interface TopBarProps {
   riskState: RiskStateResponse | null;
-  onSimulateDisruption: (scenarioKey: string) => void;
   onReset: () => void;
   onOpenAnalytics: () => void;
   onOpenIngest: () => void;
-  scenarios: DisruptionScenario[];
-  selectedScenarioKey: string;
-  onSelectScenario: (key: string) => void;
   isProcessing: boolean;
+  activeTierFilter: number | null;
+  onSelectTierFilter: (tier: number | null) => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
   riskState,
-  onSimulateDisruption,
   onReset,
   onOpenAnalytics,
   onOpenIngest,
-  scenarios,
-  selectedScenarioKey,
-  onSelectScenario,
   isProcessing,
+  activeTierFilter,
+  onSelectTierFilter,
 }) => {
   const activeDisruptions = riskState?.portfolioMetrics?.activeDisruptionsCount || 0;
   const spendAtRisk = riskState?.portfolioMetrics?.totalSpendAtRiskUSD || 0;
   const avoidedScope3 = riskState?.portfolioMetrics?.avoidedScope3Tco2e || 0;
+  const isCritical = activeDisruptions > 0;
 
   return (
-    <header className="w-full bg-[#07090E]/95 border-b border-white/10 backdrop-blur-md px-4 py-2.5 z-20 flex flex-wrap items-center justify-between gap-3 font-mono">
-      {/* Brand & System Status */}
-      <div className="flex items-center gap-4">
+    <header className="fixed top-0 inset-x-0 z-30 bg-[#07090E]/95 border-b border-white/12 backdrop-blur-xl px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5 font-mono shadow-[0_4px_25px_rgba(0,0,0,0.8)]">
+      {/* Brand & Defense Posture */}
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 bg-cyan-400 rounded-none animate-pulse" />
-          <h1 className="font-display font-extrabold text-lg text-white tracking-tighter uppercase">
-            Veritas<span className="text-cyan-400">Supply</span>
+          <div className={`w-2.5 h-2.5 ${isCritical ? 'bg-rose-500 animate-ping' : 'bg-cyan-400 animate-pulse'}`} />
+          <h1 className="font-display font-black text-sm sm:text-base text-white tracking-tighter uppercase">
+            VERITAS<span className="text-cyan-400">SUPPLY</span>
           </h1>
-          <span className="hidden sm:inline-block text-[10px] text-slate-500 tracking-wider">
-            [TIER-N INTEL ENGINE]
-          </span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] tracking-wider">
-          <Activity className="w-3 h-3 animate-spin" />
-          <span>[SYS_ONLINE // LIVE_CTE]</span>
+        {/* Defense Posture Badge */}
+        <div
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 border text-[10px] tracking-wider uppercase font-bold ${
+            isCritical
+              ? 'border-rose-500/80 bg-rose-500/20 text-rose-300 animate-pulse'
+              : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-400'
+          }`}
+        >
+          {isCritical ? (
+            <>
+              <ShieldAlert className="w-3 h-3 text-rose-400" />
+              <span>[DEFCON 1 // CHOKEPOINT DISRUPTED]</span>
+            </>
+          ) : (
+            <>
+              <Activity className="w-3 h-3 text-cyan-400" />
+              <span>[POSTURE // SECURE · 0.7x CTE ONLINE]</span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Telemetry Metric Badges */}
-      <div className="flex items-center gap-3 text-xs">
-        {/* Avoided Scope-3 Emissions Counter (SDG 12 Anchor) */}
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400">
-          <Leaf className="w-3.5 h-3.5" />
-          <span className="text-[10px] text-emerald-300/80">AVOIDED SCOPE-3:</span>
-          <span className="font-bold text-white text-xs">
-            {avoidedScope3.toLocaleString()} <span className="text-[10px] text-emerald-400 font-normal">tCO2e</span>
-          </span>
+      {/* Tier Filters (T4 -> T0) */}
+      <div className="hidden lg:flex items-center border border-white/10 bg-black/40 text-[10px]">
+        <button
+          onClick={() => onSelectTierFilter(null)}
+          className={`px-2.5 py-1 uppercase tracking-wider transition-colors cursor-pointer ${
+            activeTierFilter === null
+              ? 'bg-cyan-500/20 text-cyan-300 font-bold border-r border-white/10'
+              : 'text-slate-400 hover:text-white border-r border-white/10'
+          }`}
+        >
+          ALL TIERS
+        </button>
+        {[4, 3, 2, 1, 0].map((tier) => (
+          <button
+            key={tier}
+            onClick={() => onSelectTierFilter(tier === activeTierFilter ? null : tier)}
+            className={`px-2 py-1 transition-colors cursor-pointer ${
+              tier > 0 ? 'border-r border-white/10' : ''
+            } ${
+              activeTierFilter === tier
+                ? 'bg-cyan-500/20 text-cyan-300 font-bold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            T{tier}
+          </button>
+        ))}
+      </div>
+
+      {/* Primary Telemetry Metrics */}
+      <div className="flex items-center gap-2 sm:gap-3 text-xs">
+        {/* Avoided Scope-3 Carbon (SDG 12) */}
+        <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-emerald-950/40 border border-emerald-500/50 text-emerald-400">
+          <Leaf className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <div className="flex flex-col text-left">
+            <span className="text-[7px] sm:text-[8px] text-emerald-300/80 tracking-widest uppercase">
+              AVOIDED CO2
+            </span>
+            <span className="font-bold text-white text-[11px] sm:text-xs">
+              {avoidedScope3.toLocaleString()} <span className="text-[9px] text-emerald-400 font-normal">tCO2e</span>
+            </span>
+          </div>
         </div>
 
         {/* Spend at Risk */}
-        <div className={`flex items-center gap-1.5 px-3 py-1 border transition-colors ${
-          spendAtRisk > 0 
-            ? 'bg-rose-500/15 border-rose-500/60 text-rose-300' 
-            : 'bg-slate-900 border-white/10 text-slate-400'
-        }`}>
-          <DollarSign className="w-3.5 h-3.5" />
-          <span className="text-[10px]">SPEND AT RISK:</span>
-          <span className={`font-bold text-xs ${spendAtRisk > 0 ? 'text-rose-400 font-mono' : 'text-slate-300'}`}>
-            ${spendAtRisk.toFixed(1)}M
-          </span>
+        <div
+          className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 border transition-all ${
+            spendAtRisk > 0
+              ? 'bg-rose-950/60 border-rose-500 text-rose-300 shadow-[0_0_15px_rgba(255,46,84,0.3)]'
+              : 'bg-black/40 border-white/10 text-slate-400'
+          }`}
+        >
+          <DollarSign className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex flex-col text-left">
+            <span className="text-[7px] sm:text-[8px] tracking-widest uppercase text-slate-400">
+              SPEND AT RISK
+            </span>
+            <span
+              className={`font-bold text-[11px] sm:text-xs ${
+                spendAtRisk > 0 ? 'text-rose-400' : 'text-white'
+              }`}
+            >
+              ${spendAtRisk.toFixed(1)}M
+            </span>
+          </div>
         </div>
 
-        {/* Active Disruptions Count */}
-        <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 border ${
-          activeDisruptions > 0
-            ? 'bg-rose-950/70 border-rose-500 text-rose-400 animate-pulse font-bold'
-            : 'bg-slate-900 border-white/10 text-slate-400'
-        }`}>
-          <ShieldAlert className="w-3.5 h-3.5" />
-          <span className="text-[10px] uppercase">
-            [{activeDisruptions} DISRUPTIONS ACTIVE]
-          </span>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1">
+          {/* Reset button */}
+          <button
+            onClick={onReset}
+            disabled={isProcessing}
+            title="Reset DAG to nominal"
+            className="p-1.5 sm:p-2 bg-black/60 hover:bg-cyan-500/20 border border-white/12 text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Analytics Dashboard Trigger */}
+          <button
+            onClick={onOpenAnalytics}
+            title="Open Portfolio Risk Analytics"
+            className="p-1.5 sm:p-2 bg-black/60 hover:bg-cyan-500/20 border border-white/12 text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer"
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Ingestion Trigger */}
+          <button
+            onClick={onOpenIngest}
+            title="Ingest Bill of Materials (BOM CSV)"
+            className="p-1.5 sm:p-2 bg-black/60 hover:bg-cyan-500/20 border border-white/12 text-slate-300 hover:text-cyan-400 transition-colors cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5" />
+          </button>
         </div>
-      </div>
-
-      {/* Action Controls & Disruption Sentinel Trigger */}
-      <div className="flex items-center gap-2">
-        {/* Scenario Selector */}
-        <select
-          value={selectedScenarioKey}
-          onChange={(e) => onSelectScenario(e.target.value)}
-          className="bg-black/60 border border-white/20 text-slate-200 text-xs px-2.5 py-1.5 outline-none focus:border-cyan-400 hover:border-white/40 cursor-pointer font-mono"
-        >
-          {scenarios.map((sc) => (
-            <option key={sc.key} value={sc.key} className="bg-[#0B0F19] text-white">
-              {sc.key.toUpperCase()}: {sc.title.substring(0, 24)}...
-            </option>
-          ))}
-        </select>
-
-        {/* Primary [SIMULATE RED SEA BLOCKADE] Button */}
-        <button
-          onClick={() => onSimulateDisruption(selectedScenarioKey)}
-          disabled={isProcessing}
-          className="relative group px-3.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/40 border border-rose-500 text-rose-300 hover:text-white transition-all text-xs font-bold tracking-wider uppercase flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,46,84,0.3)] hover:shadow-[0_0_25px_rgba(255,46,84,0.6)] disabled:opacity-50 cursor-pointer"
-        >
-          <AlertOctagon className="w-3.5 h-3.5 text-rose-400 group-hover:animate-spin" />
-          <span>[SIMULATE DISRUPTION]</span>
-        </button>
-
-        {/* Reset Button */}
-        <button
-          onClick={onReset}
-          disabled={isProcessing}
-          title="Reset graph to nominal"
-          className="p-1.5 bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
-
-        {/* Analytics Modal Trigger */}
-        <button
-          onClick={onOpenAnalytics}
-          title="View Portfolio Risk Dashboards"
-          className="p-1.5 bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
-          <BarChart3 className="w-4 h-4" />
-        </button>
-
-        {/* BOM Ingest Trigger */}
-        <button
-          onClick={onOpenIngest}
-          title="Ingest BOM CSV"
-          className="p-1.5 bg-slate-900/80 hover:bg-slate-800 border border-white/10 text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"
-        >
-          <Upload className="w-4 h-4" />
-        </button>
       </div>
     </header>
   );

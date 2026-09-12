@@ -350,7 +350,10 @@ export const api = {
   // 6. Get Portfolio Analytics
   async getPortfolioAnalytics(orgId: string = '00000000-0000-0000-0000-000000000001'): Promise<PortfolioBreakdownResponse> {
     try {
-      const res = await fetch(`${API_BASE}/analytics/portfolio/${orgId}`, { signal: AbortSignal.timeout(1500) });
+      let res = await fetch(`${API_BASE}/analytics/portfolio-breakdown/${orgId}`, { signal: AbortSignal.timeout(1500) });
+      if (!res.ok) {
+        res = await fetch(`${API_BASE}/analytics/portfolio/${orgId}`, { signal: AbortSignal.timeout(1500) });
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
@@ -358,7 +361,19 @@ export const api = {
     }
   },
 
-  // 7. Scenarios list
+  // 7. Get Candidate Alternates for a Disrupted Node
+  async getAlternates(supplierId: string): Promise<AlternateSupplier[]> {
+    try {
+      const res = await fetch(`${API_BASE}/alternates/${supplierId}`, { signal: AbortSignal.timeout(1500) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      return data.alternates || [];
+    } catch {
+      return simulator.getAlternates(supplierId);
+    }
+  },
+
+  // 8. Scenarios list
   getScenarios(): DisruptionScenario[] {
     return simulator.getScenarios();
   }
