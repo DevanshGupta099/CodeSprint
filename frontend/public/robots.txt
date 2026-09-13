@@ -1,0 +1,7 @@
+# User-agent directives for VeritasSupply
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://veritassupply.ai/sitemap.xml
