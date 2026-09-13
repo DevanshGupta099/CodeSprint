@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { ThemeProvider } from '../context/ThemeContext';
+import { ThemeTransitionOverlay } from '../components/common/ThemeTransitionOverlay';
 
 const sans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -27,11 +29,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sans.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[#F6F7F9] text-neutral-900 min-h-screen antialiased font-sans selection:bg-blue-500/20 selection:text-blue-900">
-        {children}
+    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        {/* Anti-FOUC immediate theme hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var stored = localStorage.getItem('veritas_theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (stored === 'dark' || (!stored && prefersDark)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-[#EBECEF] dark:bg-[#07090E] text-neutral-900 dark:text-slate-100 min-h-screen antialiased font-sans selection:bg-blue-500/20 selection:text-blue-900 dark:selection:bg-cyan-500/30 dark:selection:text-cyan-200">
+        <ThemeProvider>
+          <ThemeTransitionOverlay />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-
