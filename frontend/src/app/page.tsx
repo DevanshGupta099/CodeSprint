@@ -11,17 +11,17 @@ import TrustCompliance from '../components/landing/TrustCompliance';
 import Footer from '../components/landing/Footer';
 
 // ============================================================================
-// VERITAS SUPPLY — HIGH-PERFORMANCE ARCHITECTURE & SEMANTIC COLORS:
+// VERITAS SUPPLY — HIGH-PERFORMANCE ARCHITECTURE & MONOCHROME HUD PALETTE:
 //
-// 1. RUST / WARM AMBER (#B45309 / #D97706 / text-amber-800)
-//    -> Editorial / Narrative Voice: Used in Scene 01 ("surface", "ROT AT TIER-4").
+// 1. VOID CARBON / OBSIDIAN (#000000 / #05070A / #07090E)
+//    -> Background void surfaces and glassmorphic cards.
 //
-// 2. CRIMSON / ROSE PINK (#EF4444 / #F43F5E / text-rose-400)
-//    -> Danger / Bottleneck / Empirical Statistic: Used in Scene 02.
+// 2. CRISP MONOCHROME WHITE (#FFFFFF / text-white / border-white/20)
+//    -> Normal operational state, active indicators, verified routes, and typography.
 //
-// 3. EMERALD / TEAL (#10B981 / #34D399 / #22D3EE / text-emerald-400)
-//    -> Live System State / Autonomous Mitigation: Used in Scene 03-06.
-//
+// 3. PURE RED / DANGER ACCENT (#EF4444 / text-red-500 / bg-red-950/40)
+//    -> Bottlenecks, chokepoints, anomalies, and financial value-at-risk.
+// ============================================================================
 // PERFORMANCE ARCHITECTURE:
 // - Zero root-level scroll re-renders (Scroll listener isolated to TopInstrumentRuler).
 // - Declarative GPU-accelerated Framer Motion whileInView (runs once, zero frame thrash).
@@ -57,13 +57,13 @@ const TopInstrumentRuler: React.FC = () => {
     <div className="pointer-events-auto hidden md:flex items-center gap-4 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg select-none">
       {/* Scene Index Tick Marks */}
       <div className="flex items-center gap-1.5 text-[9px] font-mono tracking-wider">
-        <span className={fraction < 0.22 ? 'text-amber-400 font-bold' : 'text-neutral-500'}>01</span>
+        <span className={fraction < 0.22 ? 'text-white font-bold' : 'text-neutral-500'}>01</span>
         <span className="text-neutral-600">/</span>
-        <span className={fraction >= 0.22 && fraction < 0.48 ? 'text-rose-400 font-bold' : 'text-neutral-500'}>02</span>
+        <span className={fraction >= 0.22 && fraction < 0.48 ? 'text-white font-bold' : 'text-neutral-500'}>02</span>
         <span className="text-neutral-600">/</span>
-        <span className={fraction >= 0.48 && fraction < 0.72 ? 'text-rose-400 font-bold' : 'text-neutral-500'}>03</span>
+        <span className={fraction >= 0.48 && fraction < 0.72 ? 'text-white font-bold' : 'text-neutral-500'}>03</span>
         <span className="text-neutral-600">/</span>
-        <span className={fraction >= 0.72 ? 'text-cyan-400 font-bold' : 'text-neutral-500'}>04</span>
+        <span className={fraction >= 0.72 ? 'text-white font-bold' : 'text-neutral-500'}>04</span>
       </div>
 
       {/* Millimeter Hashes Ruler */}
@@ -79,12 +79,12 @@ const TopInstrumentRuler: React.FC = () => {
         })}
         {/* Absolute indicator pip bound to scroll fraction */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-rose-400 rounded-full transition-transform duration-75 shadow-[0_0_8px_#fb7185]"
+          className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full transition-transform duration-75"
           style={{ transform: `translateX(${Math.min(136, Math.max(0, fraction * 136))}px) translateY(-50%)` }}
         />
       </div>
 
-      <span className="font-mono text-[10px] tracking-widest text-rose-400 font-bold min-w-[32px]">
+      <span className="font-mono text-[10px] tracking-widest text-white font-bold min-w-[32px]">
         {String(Math.round(fraction * 100)).padStart(3, '0')}%
       </span>
     </div>
@@ -146,25 +146,25 @@ const SupplyGraphMechanism: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="w-full max-w-4xl mx-auto my-8 p-6 sm:p-10 border border-emerald-500/20 bg-[#060A08]/90 rounded-none backdrop-blur-md relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
+      className="w-full max-w-4xl mx-auto my-8 p-6 sm:p-10 border border-white/20 bg-[#06080A]/90 rounded-none backdrop-blur-md relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.8)]"
     >
       {/* Structural Corner Crosshairs */}
-      <div className="absolute top-2 left-2 text-[9px] font-mono text-emerald-500/40 select-none">+</div>
-      <div className="absolute top-2 right-2 text-[9px] font-mono text-emerald-500/40 select-none">+</div>
-      <div className="absolute bottom-2 left-2 text-[9px] font-mono text-emerald-500/40 select-none">+</div>
-      <div className="absolute bottom-2 right-2 text-[9px] font-mono text-emerald-500/40 select-none">+</div>
+      <div className="absolute top-2 left-2 text-[9px] font-mono text-white/40 select-none">+</div>
+      <div className="absolute top-2 right-2 text-[9px] font-mono text-white/40 select-none">+</div>
+      <div className="absolute bottom-2 left-2 text-[9px] font-mono text-white/40 select-none">+</div>
+      <div className="absolute bottom-2 right-2 text-[9px] font-mono text-white/40 select-none">+</div>
 
       {/* Header Telemetry */}
-      <div className="flex flex-wrap items-center justify-between pb-6 border-b border-emerald-500/20 font-mono text-xs text-emerald-400/80">
+      <div className="flex flex-wrap items-center justify-between pb-6 border-b border-white/10 font-mono text-xs text-neutral-400">
         <div className="flex items-center gap-2">
-          <span className="text-emerald-400 font-bold">RECURSIVE CTE RECONSTRUCTION // TIER-0 DOWN TO TIER-4</span>
+          <span className="text-white font-bold">RECURSIVE CTE RECONSTRUCTION // TIER-0 DOWN TO TIER-4</span>
         </div>
-        <div className="text-[11px] text-emerald-500/80 tracking-wider uppercase flex items-center gap-2">
-          <span className={eventTriggered ? 'text-rose-400 font-bold' : 'text-neutral-500'}>
+        <div className="text-[11px] text-neutral-400 tracking-wider uppercase flex items-center gap-2">
+          <span className={eventTriggered ? 'text-red-500 font-bold' : 'text-neutral-500'}>
             {eventTriggered ? 'ANOMALY DETECTED' : 'MONITORING'}
           </span>
           <span className="text-neutral-600">{"//"}</span>
-          <span className={rerouteDrawn ? 'text-emerald-400 font-bold' : 'text-neutral-500'}>
+          <span className={rerouteDrawn ? 'text-white font-bold' : 'text-neutral-500'}>
             {rerouteDrawn ? 'AUTONOMOUS BYPASS ACTIVE' : 'UPSTREAM SYNTHESIS'}
           </span>
         </div>
@@ -174,98 +174,81 @@ const SupplyGraphMechanism: React.FC = () => {
       <svg
         viewBox="0 0 800 460"
         className="w-full h-auto mt-6 select-none font-mono"
-        style={{ filter: 'drop-shadow(0 0 1px rgba(16, 185, 129, 0.2))' }}
       >
         <defs>
           <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#34D399" stopOpacity="0.4" />
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.4" />
           </linearGradient>
         </defs>
 
-        {/* STEP 1: TIER-0 ENTERPRISE APEX HUB (Always 100% visible) */}
+        {/* STEP 1: TIER-0 ENTERPRISE APEX HUB (Always 100% visible: White) */}
         <g>
-          <circle cx="100" cy="230" r="28" fill="#0A1813" stroke="#10B981" strokeWidth="2" />
-          <circle cx="100" cy="230" r="36" fill="none" stroke="#10B981" strokeWidth="1" strokeDasharray="3 3" className="animate-spin" style={{ transformOrigin: '100px 230px' }} />
-          <text x="100" y="278" textAnchor="middle" fill="#ECFDF5" fontSize="10" fontWeight="bold" letterSpacing="0.1em">
+          <circle cx="100" cy="230" r="28" fill="#0E1118" stroke="#FFFFFF" strokeWidth="2" />
+          <circle cx="100" cy="230" r="36" fill="none" stroke="#FFFFFF" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" style={{ transformOrigin: '100px 230px' }} />
+          <text x="100" y="278" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="bold" letterSpacing="0.1em">
             [TIER-0 // APEX OEM]
           </text>
-          <text x="100" y="292" textAnchor="middle" fill="#6EE7B7" fontSize="8">
+          <text x="100" y="292" textAnchor="middle" fill="#A3A3A3" fontSize="8">
             FINISHED PRODUCT
           </text>
         </g>
 
-        {/* STEP 2: ORTHOGONAL LINKS TO 3 TIER-1 FACILITIES (Always 100% visible) */}
+        {/* STEP 2: ORTHOGONAL LINKS TO 3 TIER-1 FACILITIES (Always 100% visible: White) */}
         <g>
           <path d="M 128 230 H 220 V 110 H 300" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
           <path d="M 128 230 H 300" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
           <path d="M 128 230 H 220 V 350 H 300" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
 
-          <rect x="300" y="94" width="130" height="32" fill="#0E211A" stroke="#10B981" strokeWidth="1.2" />
-          <text x="312" y="114" fill="#ECFDF5" fontSize="9" fontWeight="bold">T1 // APEX POWERSYS</text>
+          <rect x="300" y="94" width="130" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
+          <text x="312" y="114" fill="#FFFFFF" fontSize="9" fontWeight="bold">T1 // APEX POWERSYS</text>
 
-          <rect x="300" y="214" width="130" height="32" fill="#0E211A" stroke="#10B981" strokeWidth="1.2" />
-          <text x="312" y="234" fill="#ECFDF5" fontSize="9" fontWeight="bold">T1 // VOLTAIC CELL DYN</text>
+          <rect x="300" y="214" width="130" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
+          <text x="312" y="234" fill="#FFFFFF" fontSize="9" fontWeight="bold">T1 // VOLTAIC CELL DYN</text>
 
-          <rect x="300" y="334" width="130" height="32" fill="#0E211A" stroke="#10B981" strokeWidth="1.2" />
-          <text x="312" y="354" fill="#ECFDF5" fontSize="9" fontWeight="bold">T1 // DRIVE INVERTER EU</text>
+          <rect x="300" y="334" width="130" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
+          <text x="312" y="354" fill="#FFFFFF" fontSize="9" fontWeight="bold">T1 // DRIVE INVERTER EU</text>
         </g>
 
-        {/* STEP 3: SECONDARY LINKS TO TIER-3 SMELTERS & TIER-4 EXTRACTORS (Always 100% visible) */}
+        {/* STEP 3: SECONDARY LINKS TO TIER-3 SMELTERS & TIER-4 EXTRACTORS */}
         <g>
-          <path d="M 430 110 H 490 V 60 H 550" fill="none" stroke="#10B981" strokeWidth="1.2" opacity="0.7" />
-          <path d="M 430 110 H 490 V 160 H 550" fill="none" stroke="#10B981" strokeWidth="1.2" opacity="0.7" />
+          <path d="M 430 110 H 490 V 60 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
+          <path d="M 430 110 H 490 V 160 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
           <path
             d="M 430 230 H 490 V 230 H 550"
             fill="none"
-            stroke={eventTriggered ? '#EF4444' : '#10B981'}
+            stroke={eventTriggered ? '#EF4444' : '#FFFFFF'}
             strokeWidth={eventTriggered ? '2' : '1.2'}
             strokeDasharray={eventTriggered ? '4 4' : 'none'}
-            className={eventTriggered ? 'animate-pulse' : ''}
           />
-          <path d="M 430 350 H 490 V 300 H 550" fill="none" stroke="#10B981" strokeWidth="1.2" opacity="0.7" />
-          <path d="M 430 350 H 490 V 400 H 550" fill="none" stroke="#10B981" strokeWidth="1.2" opacity="0.7" />
+          <path d="M 430 350 H 490 V 300 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
+          <path d="M 430 350 H 490 V 400 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
 
           {/* T4 Lithium */}
-          <rect x="550" y="46" width="180" height="28" fill="#0A1612" stroke="#059669" strokeWidth="1" />
-          <text x="560" y="64" fill="#6EE7B7" fontSize="8.5">T4 // ATACAMA LITHIUM REFINER</text>
+          <rect x="550" y="46" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="64" fill="#E5E5E5" fontSize="8.5">T4 // ATACAMA LITHIUM REFINER</text>
 
           {/* T3 Smelter */}
-          <rect x="550" y="146" width="180" height="28" fill="#0A1612" stroke="#059669" strokeWidth="1" />
-          <text x="560" y="164" fill="#6EE7B7" fontSize="8.5">T3 // JIANGXI SILICON SMELTER</text>
+          <rect x="550" y="146" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="164" fill="#E5E5E5" fontSize="8.5">T3 // JIANGXI SILICON SMELTER</text>
 
-          {/* T3 Disrupted Node (Bab-el-Mandeb Maritime Chokepoint) */}
-          {shockPulse && (
-            <rect
-              x="546"
-              y="212"
-              width="188"
-              height="36"
-              fill="none"
-              stroke="#EF4444"
-              strokeWidth="2"
-              className="animate-ping"
-              style={{ transformOrigin: '640px 230px' }}
-            />
-          )}
+          {/* T3 Disrupted Node (Bab-el-Mandeb Maritime Chokepoint: DANGER RED) */}
           <rect
             x="550"
             y="216"
             width="180"
             height="28"
-            fill={eventTriggered ? '#380E0E' : '#0A1612'}
-            stroke={eventTriggered ? '#EF4444' : '#059669'}
+            fill={eventTriggered ? '#380E0E' : '#0E1118'}
+            stroke={eventTriggered ? '#EF4444' : 'rgba(255,255,255,0.4)'}
             strokeWidth={eventTriggered ? '2' : '1'}
-            className={eventTriggered ? 'animate-pulse' : ''}
             style={{
               transition: 'fill 0.3s ease, stroke 0.3s ease',
-              filter: eventTriggered ? 'drop-shadow(0 0 10px rgba(239, 68, 68, 0.6))' : 'none',
             }}
           />
           <text
             x="560"
             y="234"
-            fill={eventTriggered ? '#FCA5A5' : '#6EE7B7'}
+            fill={eventTriggered ? '#EF4444' : '#E5E5E5'}
             fontSize="8.5"
             fontWeight={eventTriggered ? 'bold' : 'normal'}
           >
@@ -273,26 +256,25 @@ const SupplyGraphMechanism: React.FC = () => {
           </text>
 
           {/* T4 Cobalt */}
-          <rect x="550" y="286" width="180" height="28" fill="#0A1612" stroke="#059669" strokeWidth="1" />
-          <text x="560" y="304" fill="#6EE7B7" fontSize="8.5">T4 // KATANGA COBALT MINE</text>
+          <rect x="550" y="286" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="304" fill="#E5E5E5" fontSize="8.5">T4 // KATANGA COBALT MINE</text>
 
           {/* T4 Copper */}
-          <rect x="550" y="386" width="180" height="28" fill="#0A1612" stroke="#059669" strokeWidth="1" />
-          <text x="560" y="404" fill="#6EE7B7" fontSize="8.5">T4 // ZAMBIA COPPER SMELTER</text>
+          <rect x="550" y="386" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="404" fill="#E5E5E5" fontSize="8.5">T4 // ZAMBIA COPPER SMELTER</text>
         </g>
 
-        {/* STEP 4: AUTONOMOUS BYPASS REROUTE (Triggered dynamically on scroll) */}
+        {/* STEP 4: AUTONOMOUS BYPASS REROUTE (White corridor) */}
         {eventTriggered && (
           <g>
             <path
               d="M 430 230 C 470 230, 480 180, 520 180 H 550"
               fill="none"
-              stroke="#34D399"
+              stroke="#FFFFFF"
               strokeWidth="2.5"
               strokeDasharray="300"
               strokeDashoffset={rerouteDrawn ? 0 : 300}
               style={{
-                filter: 'drop-shadow(0 0 8px #10B981)',
                 transition: 'stroke-dashoffset 650ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             />
@@ -303,17 +285,16 @@ const SupplyGraphMechanism: React.FC = () => {
                 y="166"
                 width="200"
                 height="30"
-                fill="#062D1F"
-                stroke="#34D399"
+                fill="#181B22"
+                stroke="#FFFFFF"
                 strokeWidth="1.5"
-                style={{ filter: 'drop-shadow(0 0 10px rgba(52, 211, 153, 0.4))' }}
               />
               <text x="560" y="185" fill="#FFFFFF" fontSize="9" fontWeight="bold">
                 ✓ NORDIC HORN (CAPE ROUTE)
               </text>
 
-              <rect x="550" y="200" width="195" height="15" fill="#041E15" stroke="#34D399" strokeWidth="0.5" />
-              <text x="554" y="211" fill="#34D399" fontSize="7.5" fontWeight="bold">
+              <rect x="550" y="200" width="195" height="15" fill="#0E1118" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
+              <text x="554" y="211" fill="#FFFFFF" fontSize="7.5" fontWeight="bold">
                 {typedText}
                 {typedText.length < fullText.length && (
                   <tspan className="animate-pulse" fill="#FFFFFF">▮</tspan>
@@ -325,11 +306,11 @@ const SupplyGraphMechanism: React.FC = () => {
       </svg>
 
       {/* Footer Diagnostic Readout */}
-      <div className="mt-4 pt-4 border-t border-emerald-500/20 flex flex-wrap items-center justify-between font-mono text-[10px] text-emerald-400/70">
+      <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between font-mono text-[10px] text-neutral-400">
         <div>
           ATTENUATION: <span className="text-white font-bold">0.7x DECAY / HOP</span> • ALGORITHM: <span className="text-white font-bold">POSTGRES RECURSIVE CTE</span>
         </div>
-        <div className="text-emerald-300">
+        <div className="text-white font-semibold">
           STATUS: {eventTriggered ? 'AUTONOMOUS REROUTE VERIFIED' : 'MAP ACCURACY: 99.4%'}
         </div>
       </div>
@@ -437,11 +418,7 @@ export default function VeritasEditorialLanding() {
           {/* Top-Right: Persistent Ambient Telemetry Pill */}
           <div className="pointer-events-auto flex items-center gap-3">
             <div className="font-mono text-xs text-white/80 flex items-center gap-2 px-3 py-1 border border-white/20 rounded-full bg-black/30 backdrop-blur-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400" />
-              </span>
-              <span className="tracking-widest text-rose-400 font-semibold">{monitoredNodes.toLocaleString()} NODES</span>
+              <span className="tracking-widest text-neutral-300 font-semibold">{monitoredNodes.toLocaleString()} NODES MONITORED</span>
             </div>
           </div>
         </header>
@@ -453,14 +430,10 @@ export default function VeritasEditorialLanding() {
           <button
             onClick={() => router.push('/dashboard')}
             aria-label="Launch Tactical Sentinel Engine"
-            className="group flex items-center gap-2.5 bg-[#090C10]/95 hover:bg-neutral-950 text-white border border-white/20 hover:border-rose-400/60 px-4 py-2.5 rounded-full text-xs font-mono tracking-wider backdrop-blur-xl transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_0_20px_rgba(251,113,133,0.3)] hover:scale-105 active:scale-95 cursor-pointer"
+            className="group flex items-center gap-2.5 bg-[#090C10]/95 hover:bg-neutral-950 text-white border border-white/20 hover:border-white/60 px-4 py-2.5 rounded-full text-xs font-mono tracking-wider backdrop-blur-xl transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:scale-105 active:scale-95 cursor-pointer"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400" />
-            </span>
             <span className="text-neutral-200 group-hover:text-white font-medium">Sentinel Engine</span>
-            <span className="text-rose-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform font-bold">↗</span>
+            <span className="text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform font-bold">↗</span>
           </button>
         </div>
 
@@ -485,10 +458,9 @@ export default function VeritasEditorialLanding() {
           {/* Top Metadata */}
           <div className="relative z-10 flex justify-between items-center font-mono text-xs text-[#1A1917]/60 tracking-wider uppercase border-b border-[#1A1917]/10 pb-4">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-700" />
               <span className="font-semibold text-[#1A1917]">PROLOGUE // SCENE 01</span>
             </div>
-            <span className="text-amber-800 font-semibold">EST. LATENCY: ZERO-TOLERANCE</span>
+            <span className="text-neutral-800 font-semibold">EST. LATENCY: ZERO-TOLERANCE</span>
           </div>
 
           {/* Asymmetric Bottom-Heavy Editorial Title Card (GPU Accelerated Reveal) */}
@@ -572,10 +544,9 @@ export default function VeritasEditorialLanding() {
           {/* Header Telemetry */}
           <div className="relative z-10 flex justify-between items-center font-mono text-xs text-neutral-400 tracking-wider uppercase border-b border-white/10 pb-4">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               <span className="text-white font-semibold">THE EMPIRICAL BEAT // SCENE 02</span>
             </div>
-            <span className="text-rose-400 font-semibold">EMPIRICAL RISK RATIOS</span>
+            <span className="text-white font-semibold">EMPIRICAL RISK RATIOS</span>
           </div>
 
           {/* Title Block with Declarative Reveal */}
@@ -588,7 +559,7 @@ export default function VeritasEditorialLanding() {
           >
             <h2 className="font-headline font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-[-0.04em] text-white">
               The blind spot is{' '}
-              <span className="font-serif italic text-rose-400 font-normal inline-block px-1">
+              <span className="font-serif italic text-white font-normal inline-block px-1">
                 exponential.
               </span>
             </h2>
@@ -601,7 +572,7 @@ export default function VeritasEditorialLanding() {
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 border-t border-b border-white/10 divide-y md:divide-y-0 md:divide-x divide-white/10">
             {/* Metric A */}
             <div className="py-8 md:px-6 flex flex-col justify-between">
-              <span className="font-mono text-xs text-rose-400 font-semibold tracking-wider uppercase">
+              <span className="font-mono text-xs text-white font-semibold tracking-wider uppercase">
                 [ METRIC A // UPSTREAM HAZARD ]
               </span>
               <div className="my-4">
@@ -619,7 +590,7 @@ export default function VeritasEditorialLanding() {
 
             {/* Metric B */}
             <div className="py-8 md:px-6 flex flex-col justify-between">
-              <span className="font-mono text-xs text-rose-400 font-semibold tracking-wider uppercase">
+              <span className="font-mono text-xs text-white font-semibold tracking-wider uppercase">
                 [ METRIC B // VISIBILITY GAP ]
               </span>
               <div className="my-4">
@@ -637,11 +608,11 @@ export default function VeritasEditorialLanding() {
 
             {/* Metric C */}
             <div className="py-8 md:px-6 flex flex-col justify-between">
-              <span className="font-mono text-xs text-rose-400 font-semibold tracking-wider uppercase">
+              <span className="font-mono text-xs text-white font-semibold tracking-wider uppercase">
                 [ METRIC C // ENTERPRISE LOSS ]
               </span>
               <div className="my-4">
-                <div className="font-headline font-black text-6xl sm:text-7xl lg:text-8xl text-rose-300 tracking-tighter">
+                <div className="font-headline font-black text-6xl sm:text-7xl lg:text-8xl text-red-500 tracking-tighter">
                   <AnimatedStat prefix="$" target={4.8} suffix="M" decimals={1} />
                 </div>
                 <p className="font-sans text-sm sm:text-base text-neutral-300 mt-2 leading-snug">
@@ -661,18 +632,18 @@ export default function VeritasEditorialLanding() {
         </section>
 
         {/* ===================================================================== */}
-        {/* SCENE 3: THE MECHANISM (Deep Forest Obsidian Grade)                    */}
+        {/* SCENE 3: THE MECHANISM (Pitch Void Grade)                              */}
         {/* ===================================================================== */}
         <section
           id="scene-03"
-          className="relative min-h-screen w-full bg-[#0A0F0D] text-[#ECFDF5] flex flex-col justify-between py-24 px-6 sm:px-12 md:px-16"
+          className="relative min-h-screen w-full bg-[#07090E] text-[#FFFFFF] flex flex-col justify-between py-24 px-6 sm:px-12 md:px-16"
         >
           {/* Header Telemetry */}
-          <div className="flex justify-between items-center font-mono text-xs text-rose-400/60 tracking-wider uppercase border-b border-rose-500/20 pb-4">
+          <div className="flex justify-between items-center font-mono text-xs text-neutral-400 tracking-wider uppercase border-b border-white/10 pb-4">
             <div className="flex items-center gap-2">
               <span className="text-white font-semibold">THE MECHANISM // SCENE 03</span>
             </div>
-            <span className="text-rose-300 font-semibold">AUTONOMOUS VECTOR GRAPH ENGINE</span>
+            <span className="text-white font-semibold">AUTONOMOUS VECTOR GRAPH ENGINE</span>
           </div>
 
           {/* Section Headline */}
@@ -685,11 +656,11 @@ export default function VeritasEditorialLanding() {
           >
             <h2 className="font-headline font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-[-0.04em] text-white">
               Autonomous{' '}
-              <span className="font-serif italic text-rose-300 font-normal inline-block px-1">
+              <span className="font-serif italic text-white font-normal inline-block px-1">
                 reconstruction.
               </span>
             </h2>
-            <p className="font-sans text-base sm:text-lg text-rose-100/70 mt-4 leading-relaxed">
+            <p className="font-sans text-base sm:text-lg text-neutral-300 mt-4 leading-relaxed">
               Watch the recursive PostgreSQL Common Table Expression rebuild multi-tier dependency paths, identify latent chokepoints, and dynamically synthesize clean trade vectors.
             </p>
           </motion.div>
@@ -698,7 +669,7 @@ export default function VeritasEditorialLanding() {
           <SupplyGraphMechanism />
 
           {/* Bottom Readout */}
-          <div className="pt-6 border-t border-rose-500/20 flex flex-wrap justify-between font-mono text-xs text-rose-400/60">
+          <div className="pt-6 border-t border-white/10 flex flex-wrap justify-between font-mono text-xs text-neutral-400">
             <span>SDG 12: RESPONSIBLE PRODUCTION (AVOIDED SCOPE-3: -1,420 tCO2e)</span>
             <span>SDG 8: DECENT WORK / UFLPA FORCED LABOR DEFENSE</span>
           </div>
@@ -714,10 +685,9 @@ export default function VeritasEditorialLanding() {
           {/* Top Minimal Telemetry */}
           <div className="flex justify-between items-center font-mono text-xs text-neutral-500 tracking-wider uppercase border-b border-white/10 pb-4">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-400" />
               <span className="text-white font-semibold">TERMINAL // SCENE 04</span>
             </div>
-            <span className="text-rose-400 font-semibold">OPERATIONAL READY</span>
+            <span className="text-white font-semibold">OPERATIONAL READY</span>
           </div>
 
           {/* Massive Centered Monolith Typography */}
@@ -730,7 +700,7 @@ export default function VeritasEditorialLanding() {
           >
             <h2 className="font-headline font-black text-[9vw] sm:text-[10vw] md:text-[11vw] leading-[0.88] tracking-[-0.04em] uppercase text-white select-none">
               SEE THE{' '}
-              <span className="font-serif italic text-rose-400 font-normal lowercase inline-block px-2">
+              <span className="font-serif italic text-white font-normal lowercase inline-block px-2">
                 invisible.
               </span>
               <br />

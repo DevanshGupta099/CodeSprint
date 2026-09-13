@@ -27,7 +27,7 @@ export const Footer: React.FC<FooterProps> = ({ monitoredNodes }) => {
 
           <button
             onClick={() => router.push('/dashboard')}
-            className="group px-6 py-3.5 bg-white text-black hover:bg-rose-400 font-mono text-xs font-bold rounded-full transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
+            className="group px-6 py-3.5 bg-white text-black hover:bg-neutral-200 font-mono text-xs font-bold rounded-full transition-all flex items-center gap-2 cursor-pointer shadow-lg active:scale-95"
           >
             <span>INITIALIZE TACTICAL COMMAND</span>
             <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -45,18 +45,18 @@ export const Footer: React.FC<FooterProps> = ({ monitoredNodes }) => {
               <li>
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="hover:text-rose-400 transition-colors text-left"
+                  className="hover:text-white transition-colors text-left"
                 >
                   Tactical Command Dashboard
                 </button>
               </li>
               <li>
-                <a href="#scene-03" className="hover:text-rose-400 transition-colors">
+                <a href="#scene-03" className="hover:text-white transition-colors">
                   CTE Dependency Graph Engine
                 </a>
               </li>
               <li>
-                <a href="#scene-02" className="hover:text-rose-400 transition-colors">
+                <a href="#scene-02" className="hover:text-white transition-colors">
                   Upstream Disruption Sentinel
                 </a>
               </li>
@@ -131,12 +131,8 @@ export const Footer: React.FC<FooterProps> = ({ monitoredNodes }) => {
         </div>
 
         {/* Persistent Live System Status Line */}
-        <div className="pt-8 border-t border-white/10 flex items-center justify-between font-mono text-[11px] text-rose-400 bg-black/40 p-4 border border-white/10">
+        <div className="pt-8 border-t border-white/10 flex items-center justify-between font-mono text-[11px] text-neutral-300 bg-black/40 p-4 border border-white/10">
           <div className="flex items-center gap-3">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400" />
-            </span>
             <span className="tracking-wider">
               [ SYSTEM STATUS: OPERATIONAL // {monitoredNodes.toLocaleString()} NODES MONITORED // UPTIME 99.98% ]
             </span>
@@ -161,7 +157,7 @@ export const Footer: React.FC<FooterProps> = ({ monitoredNodes }) => {
             </a>
             <button
               onClick={() => router.push('/dashboard')}
-              className="hover:text-rose-400 transition-colors"
+              className="hover:text-white transition-colors"
             >
               [ ENTER APEX DASHBOARD → ]
             </button>
