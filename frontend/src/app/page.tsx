@@ -59,9 +59,9 @@ const TopInstrumentRuler: React.FC = () => {
       <div className="flex items-center gap-1.5 text-[9px] font-mono tracking-wider">
         <span className={fraction < 0.22 ? 'text-white font-bold' : 'text-neutral-500'}>01</span>
         <span className="text-neutral-600">/</span>
-        <span className={fraction >= 0.22 && fraction < 0.48 ? 'text-white font-bold' : 'text-neutral-500'}>02</span>
+        <span className={fraction >= 0.22 && fraction < 0.48 ? 'text-rose-400 font-bold' : 'text-neutral-500'}>02</span>
         <span className="text-neutral-600">/</span>
-        <span className={fraction >= 0.48 && fraction < 0.72 ? 'text-white font-bold' : 'text-neutral-500'}>03</span>
+        <span className={fraction >= 0.48 && fraction < 0.72 ? 'text-rose-400 font-bold' : 'text-neutral-500'}>03</span>
         <span className="text-neutral-600">/</span>
         <span className={fraction >= 0.72 ? 'text-white font-bold' : 'text-neutral-500'}>04</span>
       </div>
@@ -79,12 +79,12 @@ const TopInstrumentRuler: React.FC = () => {
         })}
         {/* Absolute indicator pip bound to scroll fraction */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full transition-transform duration-75"
+          className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-rose-400 rounded-full transition-transform duration-75"
           style={{ transform: `translateX(${Math.min(136, Math.max(0, fraction * 136))}px) translateY(-50%)` }}
         />
       </div>
 
-      <span className="font-mono text-[10px] tracking-widest text-white font-bold min-w-[32px]">
+      <span className="font-mono text-[10px] tracking-widest text-rose-400 font-bold min-w-[32px]">
         {String(Math.round(fraction * 100)).padStart(3, '0')}%
       </span>
     </div>
@@ -418,7 +418,7 @@ export default function VeritasEditorialLanding() {
           {/* Top-Right: Persistent Ambient Telemetry Pill */}
           <div className="pointer-events-auto flex items-center gap-3">
             <div className="font-mono text-xs text-white/80 flex items-center gap-2 px-3 py-1 border border-white/20 rounded-full bg-black/30 backdrop-blur-sm">
-              <span className="tracking-widest text-neutral-300 font-semibold">{monitoredNodes.toLocaleString()} NODES MONITORED</span>
+              <span className="tracking-widest text-rose-400 font-semibold">{monitoredNodes.toLocaleString()} NODES</span>
             </div>
           </div>
         </header>
@@ -430,10 +430,10 @@ export default function VeritasEditorialLanding() {
           <button
             onClick={() => router.push('/dashboard')}
             aria-label="Launch Tactical Sentinel Engine"
-            className="group flex items-center gap-2.5 bg-[#090C10]/95 hover:bg-neutral-950 text-white border border-white/20 hover:border-white/60 px-4 py-2.5 rounded-full text-xs font-mono tracking-wider backdrop-blur-xl transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:scale-105 active:scale-95 cursor-pointer"
+            className="group flex items-center gap-2.5 bg-[#090C10]/95 hover:bg-neutral-950 text-white border border-white/20 hover:border-rose-400/60 px-4 py-2.5 rounded-full text-xs font-mono tracking-wider backdrop-blur-xl transition-all duration-300 shadow-[0_8px_30px_rgba(0,0,0,0.7)] hover:shadow-[0_0_20px_rgba(251,113,133,0.3)] hover:scale-105 active:scale-95 cursor-pointer"
           >
             <span className="text-neutral-200 group-hover:text-white font-medium">Sentinel Engine</span>
-            <span className="text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform font-bold">↗</span>
+            <span className="text-rose-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform font-bold">↗</span>
           </button>
         </div>
 
@@ -546,7 +546,7 @@ export default function VeritasEditorialLanding() {
             <div className="flex items-center gap-2">
               <span className="text-white font-semibold">THE EMPIRICAL BEAT // SCENE 02</span>
             </div>
-            <span className="text-white font-semibold">EMPIRICAL RISK RATIOS</span>
+            <span className="text-rose-400 font-semibold">EMPIRICAL RISK RATIOS</span>
           </div>
 
           {/* Title Block with Declarative Reveal */}
@@ -559,7 +559,7 @@ export default function VeritasEditorialLanding() {
           >
             <h2 className="font-headline font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-[-0.04em] text-white">
               The blind spot is{' '}
-              <span className="font-serif italic text-white font-normal inline-block px-1">
+              <span className="font-serif italic text-rose-400 font-normal inline-block px-1">
                 exponential.
               </span>
             </h2>
@@ -572,7 +572,7 @@ export default function VeritasEditorialLanding() {
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 border-t border-b border-white/10 divide-y md:divide-y-0 md:divide-x divide-white/10">
             {/* Metric A */}
             <div className="py-8 md:px-6 flex flex-col justify-between">
-              <span className="font-mono text-xs text-white font-semibold tracking-wider uppercase">
+              <span className="font-mono text-xs text-rose-400 font-semibold tracking-wider uppercase">
                 [ METRIC A // UPSTREAM HAZARD ]
               </span>
               <div className="my-4">
@@ -590,7 +590,7 @@ export default function VeritasEditorialLanding() {
 
             {/* Metric B */}
             <div className="py-8 md:px-6 flex flex-col justify-between">
-              <span className="font-mono text-xs text-white font-semibold tracking-wider uppercase">
+              <span className="font-mono text-xs text-rose-400 font-semibold tracking-wider uppercase">
                 [ METRIC B // VISIBILITY GAP ]
               </span>
               <div className="my-4">
@@ -608,11 +608,11 @@ export default function VeritasEditorialLanding() {
 
             {/* Metric C */}
             <div className="py-8 md:px-6 flex flex-col justify-between">
-              <span className="font-mono text-xs text-white font-semibold tracking-wider uppercase">
+              <span className="font-mono text-xs text-rose-400 font-semibold tracking-wider uppercase">
                 [ METRIC C // ENTERPRISE LOSS ]
               </span>
               <div className="my-4">
-                <div className="font-headline font-black text-6xl sm:text-7xl lg:text-8xl text-red-500 tracking-tighter">
+                <div className="font-headline font-black text-6xl sm:text-7xl lg:text-8xl text-rose-300 tracking-tighter">
                   <AnimatedStat prefix="$" target={4.8} suffix="M" decimals={1} />
                 </div>
                 <p className="font-sans text-sm sm:text-base text-neutral-300 mt-2 leading-snug">
@@ -656,7 +656,7 @@ export default function VeritasEditorialLanding() {
           >
             <h2 className="font-headline font-black text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-[-0.04em] text-white">
               Autonomous{' '}
-              <span className="font-serif italic text-white font-normal inline-block px-1">
+              <span className="font-serif italic text-rose-300 font-normal inline-block px-1">
                 reconstruction.
               </span>
             </h2>
@@ -669,7 +669,7 @@ export default function VeritasEditorialLanding() {
           <SupplyGraphMechanism />
 
           {/* Bottom Readout */}
-          <div className="pt-6 border-t border-white/10 flex flex-wrap justify-between font-mono text-xs text-neutral-400">
+          <div className="pt-6 border-t border-white/10 flex flex-wrap justify-between font-mono text-xs text-rose-400/70">
             <span>SDG 12: RESPONSIBLE PRODUCTION (AVOIDED SCOPE-3: -1,420 tCO2e)</span>
             <span>SDG 8: DECENT WORK / UFLPA FORCED LABOR DEFENSE</span>
           </div>
@@ -687,7 +687,7 @@ export default function VeritasEditorialLanding() {
             <div className="flex items-center gap-2">
               <span className="text-white font-semibold">TERMINAL // SCENE 04</span>
             </div>
-            <span className="text-white font-semibold">OPERATIONAL READY</span>
+            <span className="text-rose-400 font-semibold">OPERATIONAL READY</span>
           </div>
 
           {/* Massive Centered Monolith Typography */}
@@ -700,7 +700,7 @@ export default function VeritasEditorialLanding() {
           >
             <h2 className="font-headline font-black text-[9vw] sm:text-[10vw] md:text-[11vw] leading-[0.88] tracking-[-0.04em] uppercase text-white select-none">
               SEE THE{' '}
-              <span className="font-serif italic text-white font-normal lowercase inline-block px-2">
+              <span className="font-serif italic text-rose-400 font-normal lowercase inline-block px-2">
                 invisible.
               </span>
               <br />

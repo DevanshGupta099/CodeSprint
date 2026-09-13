@@ -79,9 +79,9 @@ export const TrustCompliance: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-6 sm:p-8 bg-white/[0.02] border border-white/10 flex flex-col justify-between">
+          <div className="p-6 sm:p-8 bg-white/[0.02] border border-rose-500/20 flex flex-col justify-between">
             <div className="flex items-center justify-between font-mono text-xs text-neutral-400 mb-4">
-              <span className="text-white font-bold">[ UNITED NATIONS SDG 12.2 ]</span>
+              <span className="text-rose-400 font-bold">[ UNITED NATIONS SDG 12.2 ]</span>
               <span className="text-[11px] text-neutral-500">CARBON OPTIMIZATION</span>
             </div>
             <h3 className="font-headline font-bold text-2xl text-white">
@@ -90,8 +90,8 @@ export const TrustCompliance: React.FC = () => {
             <p className="font-sans text-sm text-neutral-300 mt-3 leading-relaxed">
               When physical disruptions necessitate supplier rerouting, Veritas calculates the exact delta in Scope-3 Category 4 transportation emissions. Manufacturers select alternatives that minimize carbon intensity while preserving delivery lead time.
             </p>
-            <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 font-mono text-xs text-neutral-300">
-              <CheckCircle2 className="w-4 h-4 text-white" />
+            <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 font-mono text-xs text-rose-300">
+              <CheckCircle2 className="w-4 h-4 text-rose-400" />
               <span>GHG PROTOCOL CERTIFIED MULTI-MODAL LOGISTICS EMISSION COEFFICIENTS</span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export const TrustCompliance: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between font-mono text-xs mb-2">
                     <span className="text-white font-bold">{mark.code}</span>
-                    <span className="text-[10px] text-neutral-400 font-semibold">{mark.status}</span>
+                    <span className="text-[10px] text-rose-400 font-semibold">{mark.status}</span>
                   </div>
                   <h4 className="font-mono text-xs font-semibold text-white tracking-tight uppercase">
                     {mark.name}
