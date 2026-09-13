@@ -48,21 +48,21 @@ export const CaseSnapshot: React.FC = () => {
         {/* 2-Column Comparison Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Left: Mini Chokepoint -> Reroute Diagram (Small Scale) */}
-          <div className="lg:col-span-6 p-6 sm:p-8 bg-[#04080B] border border-rose-500/30 flex flex-col justify-between">
+          <div className="lg:col-span-6 p-6 sm:p-8 bg-[#04080B] border border-white/10 flex flex-col justify-between">
             <div className="flex items-center justify-between pb-4 border-b border-white/10 font-mono text-xs">
               <span className="text-neutral-400">[ AUTONOMOUS GRAPH RECONSTRUCTION ]</span>
-              <span className="text-rose-400 font-semibold font-mono">EXECUTION: 4.2 SECONDS</span>
+              <span className="text-white font-semibold font-mono">EXECUTION: 4.2 SECONDS</span>
             </div>
 
             {/* Mini SVG Diagram */}
             <div className="my-6 py-4">
               <svg viewBox="0 0 480 180" className="w-full h-auto font-mono select-none">
-                {/* Tier-0 Assembly Node */}
-                <rect x="20" y="70" width="100" height="40" fill="#1C0E12" stroke="#FB7185" strokeWidth="1.2" />
+                {/* Tier-0 Assembly Node (White box and lines) */}
+                <rect x="20" y="70" width="100" height="40" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
                 <text x="70" y="88" fill="#FFFFFF" fontSize="8" fontWeight="bold" textAnchor="middle">
                   NORTHWIND OEM
                 </text>
-                <text x="70" y="100" fill="#FDA4AF" fontSize="6.5" textAnchor="middle">
+                <text x="70" y="100" fill="#A3A3A3" fontSize="6.5" textAnchor="middle">
                   TIER-0 ASSEMBLY
                 </text>
 
@@ -76,13 +76,13 @@ export const CaseSnapshot: React.FC = () => {
                   STATUS: HIGH RISK (+14.2 DAYS)
                 </text>
 
-                {/* Autonomous Reroute Spline (#FB7185) */}
-                <path d="M 120 100 H 180 V 135 H 240" fill="none" stroke="#FB7185" strokeWidth="2" />
-                <rect x="240" y="115" width="150" height="40" fill="#290B13" stroke="#FB7185" strokeWidth="1.5" />
+                {/* Autonomous Reroute Spline (White line & White box) */}
+                <path d="M 120 100 H 180 V 135 H 240" fill="none" stroke="#FFFFFF" strokeWidth="2" />
+                <rect x="240" y="115" width="150" height="40" fill="#181B22" stroke="#FFFFFF" strokeWidth="1.5" />
                 <text x="250" y="132" fill="#FFFFFF" fontSize="7.5" fontWeight="bold">
                   ✓ NORDIC HORN MARITIME
                 </text>
-                <text x="250" y="145" fill="#FDA4AF" fontSize="6.5">
+                <text x="250" y="145" fill="#A3A3A3" fontSize="6.5">
                   STATUS: VERIFIED BYPASS
                 </text>
               </svg>
@@ -90,7 +90,7 @@ export const CaseSnapshot: React.FC = () => {
 
             <div className="pt-4 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-neutral-400">
               <span>ALGORITHM: POSTGRES RECURSIVE CTE</span>
-              <span className="text-rose-400 font-semibold">ZERO DOWNTIME OBSERVED</span>
+              <span className="text-white font-semibold font-mono">ZERO DOWNTIME OBSERVED</span>
             </div>
           </div>
 

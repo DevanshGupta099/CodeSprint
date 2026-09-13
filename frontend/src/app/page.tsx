@@ -225,18 +225,18 @@ const SupplyGraphMechanism: React.FC = () => {
           <path d="M 430 350 H 490 V 400 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
 
           {/* T4 Lithium */}
-          <rect x="550" y="46" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-          <text x="560" y="64" fill="#E5E5E5" fontSize="8.5">T4 // ATACAMA LITHIUM REFINER</text>
+          <rect x="550" y="46" width="215" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="64" fill="#E5E5E5" fontSize="8">T4 // ATACAMA LITHIUM REFINER</text>
 
           {/* T3 Smelter */}
-          <rect x="550" y="146" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-          <text x="560" y="164" fill="#E5E5E5" fontSize="8.5">T3 // JIANGXI SILICON SMELTER</text>
+          <rect x="550" y="146" width="215" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="164" fill="#E5E5E5" fontSize="8">T3 // JIANGXI SILICON SMELTER</text>
 
           {/* T3 Disrupted Node (Bab-el-Mandeb Maritime Chokepoint: DANGER RED) */}
           <rect
             x="550"
             y="216"
-            width="180"
+            width="215"
             height="28"
             fill={eventTriggered ? '#380E0E' : '#0E1118'}
             stroke={eventTriggered ? '#EF4444' : 'rgba(255,255,255,0.4)'}
@@ -246,22 +246,22 @@ const SupplyGraphMechanism: React.FC = () => {
             }}
           />
           <text
-            x="560"
+            x="558"
             y="234"
             fill={eventTriggered ? '#EF4444' : '#E5E5E5'}
-            fontSize="8.5"
+            fontSize="7.8"
             fontWeight={eventTriggered ? 'bold' : 'normal'}
           >
             {eventTriggered ? '⚠ T3 // APEX MARITIME [CHOKEPOINT]' : 'T3 // APEX MARITIME LOGISTICS'}
           </text>
 
           {/* T4 Cobalt */}
-          <rect x="550" y="286" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-          <text x="560" y="304" fill="#E5E5E5" fontSize="8.5">T4 // KATANGA COBALT MINE</text>
+          <rect x="550" y="286" width="215" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="304" fill="#E5E5E5" fontSize="8">T4 // KATANGA COBALT MINE</text>
 
           {/* T4 Copper */}
-          <rect x="550" y="386" width="180" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-          <text x="560" y="404" fill="#E5E5E5" fontSize="8.5">T4 // ZAMBIA COPPER SMELTER</text>
+          <rect x="550" y="386" width="215" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+          <text x="560" y="404" fill="#E5E5E5" fontSize="8">T4 // ZAMBIA COPPER SMELTER</text>
         </g>
 
         {/* STEP 4: AUTONOMOUS BYPASS REROUTE (White corridor) */}
@@ -283,7 +283,7 @@ const SupplyGraphMechanism: React.FC = () => {
               <rect
                 x="550"
                 y="166"
-                width="200"
+                width="215"
                 height="30"
                 fill="#181B22"
                 stroke="#FFFFFF"
@@ -293,7 +293,7 @@ const SupplyGraphMechanism: React.FC = () => {
                 ✓ NORDIC HORN (CAPE ROUTE)
               </text>
 
-              <rect x="550" y="200" width="195" height="15" fill="#0E1118" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
+              <rect x="550" y="200" width="210" height="15" fill="#0E1118" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
               <text x="554" y="211" fill="#FFFFFF" fontSize="7.5" fontWeight="bold">
                 {typedText}
                 {typedText.length < fullText.length && (
