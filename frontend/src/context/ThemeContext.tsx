@@ -34,14 +34,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem('veritas_theme') as Theme | null;
-    if (stored === 'dark' || stored === 'light') {
-      setThemeState(stored);
-      applyThemeToDOM(stored);
+    if (stored === 'dark') {
+      setThemeState('dark');
+      applyThemeToDOM('dark');
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme: Theme = prefersDark ? 'dark' : 'light';
-      setThemeState(initialTheme);
-      applyThemeToDOM(initialTheme);
+      // Default to light mode explicitly
+      setThemeState('light');
+      applyThemeToDOM('light');
     }
   }, []);
 

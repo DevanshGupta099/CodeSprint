@@ -37,8 +37,7 @@ export default function RootLayout({
             __html: `
               try {
                 var stored = localStorage.getItem('veritas_theme');
-                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (stored === 'dark' || (!stored && prefersDark)) {
+                if (stored === 'dark') {
                   document.documentElement.classList.add('dark');
                 } else {
                   document.documentElement.classList.remove('dark');

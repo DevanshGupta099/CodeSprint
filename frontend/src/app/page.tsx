@@ -4,11 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, useInView } from 'framer-motion';
 
-import SmoothScroll from '@/components/landing/SmoothScroll';
-import Hero3DBackground from '@/components/landing/Hero3DBackground';
-import CaseSnapshot from '@/components/landing/CaseSnapshot';
-import TrustCompliance from '@/components/landing/TrustCompliance';
-import Footer from '@/components/landing/Footer';
+import SmoothScroll from '../components/landing/SmoothScroll';
+import Hero3DBackground from '../components/landing/Hero3DBackground';
+import CaseSnapshot from '../components/landing/CaseSnapshot';
+import TrustCompliance from '../components/landing/TrustCompliance';
+import Footer from '../components/landing/Footer';
 
 // ============================================================================
 // VERITAS SUPPLY — HIGH-PERFORMANCE ARCHITECTURE & SEMANTIC COLORS:
