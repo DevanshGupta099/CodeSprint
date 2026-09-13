@@ -48,10 +48,10 @@ export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = ({
 
       {/* CARD CONTENT (Z-10) */}
       <div className="relative z-10 flex flex-col justify-between h-full">
-        {/* Top Pill: Frosted glass capsule with lightbulb icon 💡 AI Sentinel Insight */}
+        {/* Top Pill: Frosted glass capsule with Lightbulb icon - AI Sentinel Insight */}
         <div className="flex items-center justify-between">
           <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/30 text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-            <span>💡</span>
+            <Lightbulb className="w-3.5 h-3.5 text-amber-200" />
             <span>AI Sentinel Insight</span>
           </div>
 

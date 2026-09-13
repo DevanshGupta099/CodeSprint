@@ -1,10 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@144,900&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  --font-fraunces: 'Fraunces', Georgia, serif;
+  --font-instrument: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
   --bg-canvas: #EBECEF;
   --card-surface: #FFFFFF;
+  --text-primary: #18181B;
+  --text-secondary: #71717A;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+}
+
+.dark {
+  --bg-canvas: #07090E;
+  --card-surface: #0B0F19;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --border-subtle: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -16,26 +32,66 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #EBECEF;
-  color: #18181B;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
 }
 
-/* Soft Tactile Canvas */
+/* View Transitions Pseudo-elements for Radial Expansion */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+.dark::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* Soft Tactile Canvas (Light & Dark) */
 .tactile-canvas {
   background-color: #EBECEF;
   background-image: radial-gradient(circle at 50% 0%, #F5F6F8 0%, #EBECEF 100%);
+  transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1), background-image 0.45s ease;
 }
 
-/* Dashboard Card Shell: Pure #FFFFFF, border-radius: 28px, multi-layered soft ambient shadow */
+.dark .tactile-canvas {
+  background-color: #07090E;
+  background-image: radial-gradient(circle at 50% 0%, #0F172A 0%, #07090E 100%), 
+                    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px;
+}
+
+/* Dashboard Card Shell */
 .tactile-card {
   background-color: #FFFFFF;
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05), 0 0 1px 1px rgba(0, 0, 0, 0.03);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
+}
+
+.dark .tactile-card {
+  background-color: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.04);
+  color: #F8FAFC;
 }
 
 .tactile-card-interactive:hover {
@@ -43,12 +99,24 @@ html, body {
   box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.07), 0 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-/* Floating Badges / Tooltips: Pure white with tactile drop shadow & inner highlight */
+.dark .tactile-card-interactive:hover {
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.9), 0 0 20px rgba(56, 189, 248, 0.12), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Floating Badges / Tooltips */
 .tactile-badge {
   background: #FFFFFF;
   box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
   border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .tactile-badge {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
 }
 
 /* Tactile Buttons (Inset Pill Style) */
@@ -57,7 +125,14 @@ html, body {
   box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.04), 0 2px 5px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 14px;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .tactile-pill-btn {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+  box-shadow: inset 0 -1px 2px rgba(255, 255, 255, 0.04), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .tactile-pill-btn:hover {
@@ -66,16 +141,31 @@ html, body {
   box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.03), 0 3px 7px rgba(0, 0, 0, 0.08);
 }
 
+.dark .tactile-pill-btn:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  box-shadow: inset 0 -1px 2px rgba(255, 255, 255, 0.08), 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
 .tactile-pill-btn:active {
   transform: scale(0.98);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-/* Embossed 3D Micro-Capsule (For Stage Headers) */
+/* Embossed 3D Micro-Capsule */
 .micro-capsule-3d {
   background: linear-gradient(180deg, #FFFFFF 0%, #F1F2F5 100%);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 #FFFFFF;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.dark .micro-capsule-3d {
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #E2E8F0;
 }
 
 /* Hero Sunset Gradient AI Card */
@@ -104,7 +194,15 @@ html, body {
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.12);
   border-radius: 9999px;
+  transition: background-color 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.22);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
 }

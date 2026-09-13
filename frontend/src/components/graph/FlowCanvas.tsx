@@ -17,6 +17,7 @@ import '@xyflow/react/dist/style.css';
 import { CustomSupplierNode } from './CustomSupplierNode';
 import { getTieredLayout } from '../../utils/graphLayout';
 import { SupplyChainDAGResponse, Supplier } from '../../types/supply-chain';
+import { useTheme } from '../../context/ThemeContext';
 
 interface FlowCanvasProps {
   dag: SupplyChainDAGResponse;
@@ -35,6 +36,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   selectedSupplierId,
   direction = 'LR',
 }) => {
+  const { isDark } = useTheme();
   // Map domain suppliers to React Flow nodes
   const initialNodes: Node[] = useMemo(() => {
     return dag.nodes.map((supplier) => ({
@@ -140,7 +142,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, [onSelectSupplier]);
 
   return (
-    <div className="w-full h-full relative bg-[#F8FAFC]">
+    <div className="w-full h-full relative bg-[#F8FAFC] dark:bg-[#07090E] transition-colors duration-300">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -162,22 +164,22 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           variant={BackgroundVariant.Dots}
           gap={28}
           size={1.5}
-          color="#CBD5E1"
+          color={isDark ? '#263346' : '#CBD5E1'}
         />
         <Controls 
           showInteractive={false} 
           position="bottom-left" 
-          className="!bg-white !border !border-black/10 !rounded-2xl !shadow-md !overflow-hidden"
+          className="!bg-white dark:!bg-slate-900 !border !border-black/10 dark:!border-white/10 !rounded-2xl !shadow-md !overflow-hidden"
         />
         <MiniMap
-          className="hidden md:block !bg-white/95 !border !border-black/10 !rounded-2xl !shadow-lg !overflow-hidden"
+          className="hidden md:block !bg-white/95 dark:!bg-[#0B0F19]/95 !border !border-black/10 dark:!border-white/10 !rounded-2xl !shadow-lg !overflow-hidden"
           nodeColor={(n) => {
             const status = (n.data as any)?.status;
             if (status === 'CRITICAL') return '#F43F5E';
             if (status === 'ELEVATED') return '#F59E0B';
-            return '#3B82F6';
+            return '#38BDF8';
           }}
-          maskColor="rgba(241, 245, 249, 0.7)"
+          maskColor={isDark ? 'rgba(7, 9, 14, 0.8)' : 'rgba(241, 245, 249, 0.7)'}
         />
       </ReactFlow>
     </div>

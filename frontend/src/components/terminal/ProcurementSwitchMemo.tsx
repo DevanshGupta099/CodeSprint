@@ -2,13 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { MitigationMemo } from '../../types/supply-chain';
+import { api } from '../../services/api';
 import { 
   Sparkles, 
   ShieldCheck, 
   ArrowRight, 
   X, 
   CheckCircle2, 
-  RotateCcw
+  RotateCcw,
+  Copy,
+  Check,
+  ChevronDown,
+  Leaf
 } from 'lucide-react';
 
 interface ProcurementSwitchMemoProps {
@@ -26,11 +31,17 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [isAiExpanded, setIsAiExpanded] = useState(false);
 
   useEffect(() => {
     if (!memo) {
       setDisplayedText('');
       setIsTypingComplete(false);
+      setAiExplanation(null);
+      setIsAiExpanded(false);
       return;
     }
 
@@ -53,130 +64,172 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
     return () => clearInterval(interval);
   }, [memo]);
 
+  const handleCopyMemo = () => {
+    if (memo && typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(memo.executiveSummary);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleExplainTradeoffs = async () => {
+    if (!memo) return;
+    if (aiExplanation) {
+      setIsAiExpanded(!isAiExpanded);
+      return;
+    }
+
+    setIsLoadingAi(true);
+    setIsAiExpanded(true);
+    try {
+      const explanation = await api.explainMitigationTradeoffsWithAI(memo);
+      setAiExplanation(explanation);
+    } catch (err) {
+      console.error('AI explanation error:', err);
+    } finally {
+      setIsLoadingAi(false);
+    }
+  };
+
   if (!memo) return null;
 
   return (
-    <aside className="fixed top-20 right-6 bottom-6 w-[440px] max-w-[calc(100vw-3rem)] z-50 rounded-[28px] bg-white border border-black/[0.08] p-6 sm:p-7 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.22)] flex flex-col justify-between overflow-y-auto animate-in fade-in slide-in-from-right-4 duration-200 select-none font-sans">
+    <aside className="fixed inset-x-0 bottom-0 sm:inset-x-auto sm:top-20 sm:right-6 sm:bottom-6 w-full sm:w-[440px] max-h-[85vh] sm:max-h-none z-50 rounded-t-[32px] sm:rounded-[28px] bg-white dark:bg-[#0B0F19] border border-black/[0.08] dark:border-white/10 p-5 sm:p-7 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.22)] dark:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] flex flex-col justify-between overflow-y-auto animate-in fade-in slide-in-from-bottom-6 sm:slide-in-from-right-6 duration-200 select-none font-sans text-neutral-900 dark:text-slate-100">
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.06]">
+        <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.06] dark:border-white/10">
           <div className="flex items-center gap-3">
-            {/* Amber brand gradient emblem matching the Veritas logo */}
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 flex items-center justify-center text-white shadow-xs shrink-0">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-base text-neutral-900 tracking-tight leading-none">
-                  Autonomous Mitigation Advisory
+                <h3 className="font-extrabold text-base text-neutral-900 dark:text-white tracking-tight leading-none">
+                  Autonomous Mitigation Directive
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-neutral-100 text-neutral-700 border border-black/[0.06]">
-                  AI ENGINE
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-neutral-100 dark:bg-slate-800 text-neutral-700 dark:text-slate-300 border border-black/[0.06] dark:border-white/10">
+                  AI SENTINEL
                 </span>
               </div>
-              <span className="text-xs text-neutral-400 font-medium block mt-1">
+              <span className="text-xs text-neutral-400 dark:text-slate-500 font-medium block mt-1">
                 {new Date(memo.generatedAt).toLocaleTimeString()} · Closed-Loop Reroute Synthesis
               </span>
             </div>
           </div>
 
-          {onClose && (
+          <div className="flex items-center gap-1">
             <button
-              onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer"
-              title="Close"
+              onClick={handleCopyMemo}
+              className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 text-neutral-400 hover:text-neutral-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              title="Copy memo text"
             >
-              <X className="w-5 h-5" />
+              {copied ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
             </button>
-          )}
+
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 text-neutral-400 hover:text-neutral-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Executive Sourcing Directive Terminal (Sleek Obsidian Console matching UI color theme) */}
+        {/* Executive Sourcing Directive Terminal (Obsidian Console) */}
         <div className="my-4 p-4 rounded-2xl bg-[#0F172A] border border-slate-800 text-xs shadow-inner">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
             <span className="text-[10px] uppercase font-bold tracking-wider font-mono text-sky-400">
               EXECUTIVE SOURCING DIRECTIVE // RECURSIVE CTE
             </span>
             <span className="text-[10px] font-mono text-slate-400">
-              SDG 8 & 12 VERIFIED
+              {isTypingComplete ? '[SYNTHESIS COMPLETE]' : '[SYNTHESIZING...]'}
             </span>
           </div>
 
-          <p className="whitespace-pre-wrap font-mono text-slate-200 leading-relaxed font-normal text-[11px] sm:text-xs">
+          <pre className="font-mono text-[11px] sm:text-xs text-slate-200 whitespace-pre-wrap leading-relaxed min-h-[90px]">
             {displayedText}
             {!isTypingComplete && (
-              <span className="inline-block w-1.5 h-3.5 bg-sky-400 ml-1 animate-pulse align-middle" />
+              <span className="inline-block w-2 h-4 bg-sky-400 animate-pulse ml-0.5" />
             )}
-          </p>
+          </pre>
         </div>
 
-        {/* Trade-Off Impact Grid (Tactile White Cards matching UI theme) */}
-        <div className="mb-4 p-4 rounded-2xl bg-neutral-50 border border-black/[0.05]">
-          <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-black/[0.06] text-xs">
-            <span className="font-bold text-neutral-800 uppercase tracking-tight font-mono text-[11px]">
-              Trade-Off Impact Analysis
+        {/* Trade-off Variance Cards */}
+        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+          <div className="p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40">
+            <span className="text-[10px] uppercase font-bold font-mono text-amber-700 dark:text-amber-400 block">
+              Price Delta
             </span>
-            <span className="text-xs text-blue-700 font-bold truncate max-w-[220px]">
-              Target: {memo.alternateName}
+            <span className="font-extrabold font-mono text-amber-900 dark:text-amber-200 text-sm sm:text-base mt-0.5 block">
+              +{memo.priceVariancePct}%
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5 text-center">
-            {/* Cost Delta */}
-            <div className="p-3 rounded-xl bg-white border border-black/[0.06] shadow-xs">
-              <span className="text-neutral-500 block text-[11px] font-semibold">Cost Delta</span>
-              <span className="text-amber-600 font-extrabold font-mono text-base mt-0.5 block">
-                +{memo.priceVariancePct}%
-              </span>
-              <span className="text-[10px] text-neutral-400 block mt-0.5">Insurance offset</span>
-            </div>
-
-            {/* Lead Time Delta */}
-            <div className="p-3 rounded-xl bg-white border border-black/[0.06] shadow-xs">
-              <span className="text-neutral-500 block text-[11px] font-semibold">Lead Time</span>
-              <span className="text-neutral-900 font-extrabold font-mono text-base mt-0.5 block">
-                {memo.leadTimeDeltaDays} Days
-              </span>
-              <span className="text-[10px] text-neutral-400 block mt-0.5">Saved vs delay</span>
-            </div>
-
-            {/* Avoided Scope-3 Carbon */}
-            <div className="p-3 rounded-xl bg-white border border-black/[0.06] shadow-xs">
-              <span className="text-neutral-500 block text-[11px] font-semibold">Avoided CO₂</span>
-              <span className="text-neutral-900 font-extrabold font-mono text-base mt-0.5 block">
-                -{memo.avoidedScope3Tco2e}
-              </span>
-              <span className="text-[10px] text-neutral-400 block mt-0.5 font-medium">tCO2e (SDG 12)</span>
-            </div>
-          </div>
-
-          {/* ESG & Compliance Clearance */}
-          <div className="mt-3 pt-2.5 border-t border-black/[0.05] flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1.5 text-neutral-700 font-semibold text-[11px]">
-              <ShieldCheck className="w-4 h-4 text-sky-600" />
-              <span>SDG 8 & 12 Clearance Verified</span>
+          <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40">
+            <span className="text-[10px] uppercase font-bold font-mono text-blue-700 dark:text-blue-400 block">
+              Transit Lead Time
             </span>
-            <span className="text-neutral-400 text-[11px] font-mono">ISO 14001 · RBA Gold</span>
+            <span className="font-extrabold font-mono text-blue-900 dark:text-blue-200 text-sm sm:text-base mt-0.5 block">
+              {memo.leadTimeDeltaDays} Days
+            </span>
           </div>
+
+          <div className="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
+            <span className="text-[10px] uppercase font-bold font-mono text-emerald-700 dark:text-emerald-400 block">
+              Scope-3 CO2
+            </span>
+            <span className="font-extrabold font-mono text-emerald-900 dark:text-emerald-200 text-sm sm:text-base mt-0.5 block">
+              +{memo.avoidedScope3Tco2e} t
+            </span>
+          </div>
+        </div>
+
+        {/* AI Trade-Off Explanation Accordion */}
+        <div className="mb-4">
+          <button
+            onClick={handleExplainTradeoffs}
+            disabled={isLoadingAi}
+            className="w-full px-3.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-900 dark:text-sky-200 text-xs font-semibold flex items-center justify-between border border-sky-200 dark:border-sky-800/60 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center gap-1.5">
+              <Sparkles className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 ${isLoadingAi ? 'animate-spin' : ''}`} />
+              <span>{isLoadingAi ? 'Analyzing Trade-Offs...' : 'Ask AI to Explain Trade-Off Rationale'}</span>
+            </div>
+            <ChevronDown className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 transition-transform ${isAiExpanded ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isAiExpanded && aiExplanation && (
+            <div className="mt-2 p-3.5 rounded-2xl bg-slate-900 dark:bg-black/80 text-slate-200 text-xs font-mono leading-relaxed border border-slate-700 dark:border-slate-800 animate-in fade-in duration-150">
+              <pre className="whitespace-pre-wrap text-[11px]">{aiExplanation}</pre>
+            </div>
+          )}
+        </div>
+
+        {/* Compliance Rationale Badge */}
+        <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 border border-black/[0.05] dark:border-white/10 text-xs text-neutral-600 dark:text-slate-300 leading-relaxed mb-4 flex items-start gap-2.5">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+          <span>{memo.complianceRationale}</span>
         </div>
       </div>
 
-      {/* Autonomous Action Button (UI-themed dark carbon pill with amber accent) */}
+      {/* The Execute Reroute Action Button */}
       <button
         onClick={onExecuteReroute}
         disabled={isExecuting}
-        className="w-full py-3.5 px-5 rounded-full bg-neutral-900 hover:bg-black text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-neutral-900/15 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+        className="w-full py-3.5 px-5 rounded-2xl bg-[#18181B] dark:bg-amber-500 dark:text-black dark:hover:bg-amber-400 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all hover:scale-[1.01] cursor-pointer disabled:opacity-50 mt-2"
       >
         {isExecuting ? (
           <>
-            <RotateCcw className="w-4 h-4 animate-spin text-amber-400" />
-            <span>Executing Autonomous Reroute...</span>
+            <RotateCcw className="w-4 h-4 animate-spin text-amber-400 dark:text-black" />
+            <span>COMMITTING AUTONOMOUS REROUTE (POSTGRES CTE)...</span>
           </>
         ) : (
           <>
-            <CheckCircle2 className="w-4 h-4 text-amber-400" />
-            <span>Confirm & Execute Autonomous Reroute</span>
-            <ArrowRight className="w-4 h-4 text-white ml-1" />
+            <span>[EXECUTE_REROUTE] &bull; COMMIT AUTOMATED MITIGATION</span>
+            <ArrowRight className="w-4 h-4 text-amber-400 dark:text-black" />
           </>
         )}
       </button>

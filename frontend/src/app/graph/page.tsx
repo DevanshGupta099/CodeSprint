@@ -126,6 +126,8 @@ export default function GraphWorkflowPage() {
         onSelectTab={(tab) => {
           if (tab === 'overview') {
             router.push('/');
+          } else if (tab !== 'graph') {
+            router.push(`/?tab=${tab}`);
           }
         }}
         onSimulateRedSea={isDisrupted ? handleResetBaseline : handleTriggerRedSeaBlockade}

@@ -1,0 +1,27 @@
+# VeritasSupply
+
+> Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine.
+
+VeritasSupply provides enterprise manufacturers deep visibility beyond direct Tier-1 suppliers down to Tier-4 raw material nodes (lithium refiners, silicon smelters, cobalt extractors, and maritime chokepoints).
+
+## Core Capabilities
+
+- [Tactical Command Center](/dashboard): Real-time interactive React Flow directed acyclic graph (DAG) canvas with tiered Dagre layout.
+- [BOM Ingestion Engine](/dashboard): High-throughput native CSV/XLSX and multi-modal structured extraction for enterprise bills of materials.
+- [Recursive CTE Risk Propagation](/graph): PostgreSQL Common Table Expressions modeling multi-hop upstream risk propagation with 0.7x decay per hop.
+- [Geopolitical Disruption Sentinel](/dashboard): Real-time shock simulation across maritime chokepoints (Taiwan Strait, Bab-el-Mandeb, Suez Canal) and regulatory sanction indices (UFLPA Section 307).
+- [Autonomous Mitigation Engine](/dashboard): Low-temperature LLM structured mitigation reasoning with deterministic trade-off analysis (Lead Time vs Unit Cost vs Avoided Scope-3 Carbon).
+
+## Technical Specifications
+
+- Framework: Next.js 14 App Router, React 18, Tailwind CSS
+- Data Architecture: PostgreSQL recursive Common Table Expressions (CTEs), Zod validation schemas
+- Visualization: React Flow, Three.js WebGL, Framer Motion
+- Compliance Alignment: United Nations SDG 8 (Decent Work / Forced Labor Sanctions) and SDG 12 (Responsible Production / Scope-3 Carbon Avoidance)
+
+## API & Endpoints
+
+- [Health & Diagnostics](/api/health): System status, database latency, and node counts.
+- [Graph Hierarchy Reconstruction](/api/graph/hierarchy): Downward recursive CTE tree query (`bom_tree`).
+- [Upstream Risk Propagation](/api/risk/propagate): Upward recursive CTE risk decay propagation (`risk_up`).
+- [Autonomous Mitigation Generator](/api/mitigation/generate): Structured LLM decision memo synthesizer.
