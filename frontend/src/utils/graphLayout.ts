@@ -12,14 +12,15 @@ export const getTieredLayout = (
   // Configure Dagre layout options
   dagreGraph.setGraph({
     rankdir: direction,
-    ranksep: 130, // Distance between tiers
-    nodesep: 60,  // Distance between nodes in same tier
-    marginx: 40,
-    marginy: 40,
+    ranksep: 220, // Distance between tiers for edge labels
+    nodesep: 90,  // Distance between nodes in same tier
+    marginx: 50,
+    marginy: 50,
   });
 
-  const nodeWidth = 290;
-  const nodeHeight = 175;
+  const nodeWidth = 320;
+  const nodeHeight = 190;
+
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });

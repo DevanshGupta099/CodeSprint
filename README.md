@@ -92,7 +92,7 @@ The codebase enforces a decoupled boundary through a **Shared Data Contract** ([
 | Track | Lead Contributor | Core Responsibilities |
 | :--- | :--- | :--- |
 | **Data & Backend** | **Contributor A (Devansh)** | PostgreSQL schema, DDL migrations, recursive CTEs (`bom_tree` & `risk_up`), ingestion engine, Disruption Sentinel, Mitigation AI agents, seed dataset. |
-| **Graph & Frontend** | **Contributor B** | Next.js App Router shell, Tailwind CSS, React Flow DAG canvas, WebGL coordinate grid canvas, `[SIMULATE RED SEA BLOCKADE]` trigger bar, terminal memo, Recharts dashboards. |
+| **Graph & Frontend** | **Contributor B (Sundar)** | Next.js App Router shell, Tailwind CSS, React Flow DAG canvas, WebGL coordinate grid canvas, `[SIMULATE RED SEA BLOCKADE]` trigger bar, terminal memo, Recharts dashboards. |
 
 ---
 

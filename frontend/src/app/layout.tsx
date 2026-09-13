@@ -1,9 +1,24 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
+const sans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-mono',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'VeritasSupply // Autonomous Tier-N Intel Engine',
-  description: 'Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine',
+  title: 'VeritasSupply — Autonomous Supply Chain Intelligence',
+  description: 'Enterprise AI Tier-N Supply Chain Disruption & ESG Intelligence Platform',
 };
 
 export default function RootLayout({
@@ -12,10 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#07090E] text-slate-100 min-h-screen antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+    <html lang="en" className={`${sans.variable} ${jetbrainsMono.variable}`}>
+      <body className="bg-[#F6F7F9] text-neutral-900 min-h-screen antialiased font-sans selection:bg-blue-500/20 selection:text-blue-900">
         {children}
       </body>
     </html>
   );
 }
+

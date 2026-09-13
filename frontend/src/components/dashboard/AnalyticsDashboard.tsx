@@ -8,12 +8,10 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
+  CartesianGrid
 } from 'recharts';
 import { PortfolioBreakdownResponse } from '../../types/supply-chain';
-import { X, Globe2, Layers, Award } from 'lucide-react';
+import { X, Globe2, Layers, Award, ShieldCheck, DollarSign } from 'lucide-react';
 
 interface AnalyticsDashboardProps {
   isOpen: boolean;
@@ -42,125 +40,121 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   }));
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 flex items-center justify-center p-3 sm:p-6">
-      <div className="relative w-full max-w-4xl zero-card rounded-2xl p-4 sm:p-6 shadow-[0_16px_50px_rgba(0,0,0,0.85)] font-mono max-h-[92vh] overflow-y-auto border-cyan-500/30">
-        {/* Top Specular Micro-Bevel */}
-        <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent pointer-events-none" />
-
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150">
+      <div className="relative w-full max-w-4xl rounded-2xl bg-[#0F1422]/98 border border-white/[0.12] p-6 shadow-2xl shadow-black/90 font-sans max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-white/10 mb-4 sm:mb-6">
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-6">
           <div>
-            <span className="text-[10px] text-cyan-400 tracking-widest uppercase hud-shimmer-text">
-              [ANALYTICS_MODULE // TIER-N PORTFOLIO EXPOSURE]
-            </span>
-            <h2 className="font-display font-black text-lg sm:text-2xl text-white tracking-tight uppercase">
-              Supply Chain Risk Intelligence
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                Executive Risk Audit
+              </span>
+              <span className="text-xs text-slate-400">Tier-N Value-at-Risk</span>
+            </div>
+            <h2 className="font-bold text-xl text-white tracking-tight">
+              Portfolio Disruption & ESG Exposure
             </h2>
           </div>
           <button
             onClick={onClose}
-            type="button"
-            className="p-2 rounded-full border border-white/10 hover:border-cyan-400/60 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer z-10 shrink-0"
-            aria-label="Close Analytics"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Grid Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
           {/* Chart 1: Spend at Risk by Geography */}
-          <div className="p-4 bg-slate-950/80 border border-white/10">
-            <div className="flex items-center gap-2 mb-3 text-cyan-400 text-xs font-bold">
-              <Globe2 className="w-4 h-4" />
-              <span>SPEND AT RISK BY GEOGRAPHY ($M)</span>
+          <div className="p-4 rounded-xl bg-black/30 border border-white/[0.06]">
+            <div className="flex items-center gap-2 mb-4 text-slate-200 text-xs font-semibold">
+              <Globe2 className="w-4 h-4 text-blue-400" />
+              <span>Spend Exposure by Geography ($M)</span>
             </div>
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={countryChartData}>
-                  <XAxis
-                    dataKey="country"
-                    stroke="#64748B"
-                    fontSize={10}
-                    tickLine={false}
+                <BarChart data={countryChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="country" stroke="#64748B" fontSize={11} tickLine={false} />
+                  <YAxis 
+                    stroke="#64748B" 
+                    fontSize={11} 
+                    tickLine={false} 
+                    width={48}
+                    tickFormatter={(val) => `$${val}M`}
                   />
-                  <YAxis stroke="#64748B" fontSize={10} tickLine={false} />
                   <Tooltip
+                    formatter={(value: any) => [`$${value}M`, '']}
                     contentStyle={{
-                      backgroundColor: '#0B0F19',
-                      borderColor: 'rgba(255,255,255,0.2)',
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: 11,
+                      backgroundColor: '#0F1422',
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      borderRadius: '0.75rem',
+                      fontSize: 12,
+                      color: '#F1F5F9',
                     }}
                   />
-                  <Bar dataKey="totalSpend" fill="#00F0FF" opacity={0.6} name="Total Spend ($M)" />
-                  <Bar dataKey="atRiskSpend" fill="#FF2E54" name="At-Risk Spend ($M)" />
+                  <Bar dataKey="totalSpend" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Total Spend" opacity={0.6} />
+                  <Bar dataKey="atRiskSpend" fill="#F43F5E" radius={[4, 4, 0, 0]} name="At-Risk Spend" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Chart 2: Spend by Tier */}
-          <div className="p-4 bg-slate-950/80 border border-white/10">
-            <div className="flex items-center gap-2 mb-3 text-cyan-400 text-xs font-bold">
-              <Layers className="w-4 h-4" />
-              <span>EXPOSURE BY TIER DEPTH</span>
+          {/* Chart 2: Spend & Risk by Tier */}
+          <div className="p-4 rounded-xl bg-black/30 border border-white/[0.06]">
+            <div className="flex items-center gap-2 mb-4 text-slate-200 text-xs font-semibold">
+              <Layers className="w-4 h-4 text-indigo-400" />
+              <span>Value-at-Risk by Tier Depth ($M)</span>
             </div>
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={tierChartData} layout="vertical">
-                  <XAxis type="number" stroke="#64748B" fontSize={10} tickLine={false} />
-                  <YAxis
-                    type="category"
-                    dataKey="tier"
-                    stroke="#64748B"
-                    fontSize={10}
-                    tickLine={false}
-                    width={70}
+                <BarChart data={tierChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="tier" stroke="#64748B" fontSize={11} tickLine={false} />
+                  <YAxis 
+                    stroke="#64748B" 
+                    fontSize={11} 
+                    tickLine={false} 
+                    width={48}
+                    tickFormatter={(val) => `$${val}M`}
                   />
                   <Tooltip
+                    formatter={(value: any) => [`$${value}M`, '']}
                     contentStyle={{
-                      backgroundColor: '#0B0F19',
-                      borderColor: 'rgba(255,255,255,0.2)',
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: 11,
+                      backgroundColor: '#0F1422',
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      borderRadius: '0.75rem',
+                      fontSize: 12,
+                      color: '#F1F5F9',
                     }}
                   />
-                  <Bar dataKey="spend" fill="#00F0FF" name="Total Spend ($M)" />
-                  <Bar dataKey="atRisk" fill="#FFB800" name="At Risk ($M)" />
+                  <Bar dataKey="spend" fill="#6366F1" radius={[4, 4, 0, 0]} name="Tier Spend" opacity={0.6} />
+                  <Bar dataKey="atRisk" fill="#F43F5E" radius={[4, 4, 0, 0]} name="At-Risk Spend" />
+
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
 
-        {/* ESG & SDG Anchors */}
-        <div className="p-4 bg-emerald-950/20 border border-emerald-500/30">
-          <div className="flex items-center gap-2 mb-3 text-emerald-400 text-xs font-bold">
-            <Award className="w-4 h-4" />
-            <span>UN SUSTAINABLE DEVELOPMENT GOAL (SDG) ANCHORS</span>
+        {/* ESG & Sanctions Compliance Card */}
+        <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <Award className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-white text-sm">
+                United Nations SDG 8 & 12 Compliance Index
+              </h4>
+              <p className="text-xs text-emerald-400/80 mt-0.5">
+                Forced Labor Prevention (UFLPA) active · Scope-3 Autonomous Tracking enabled
+              </p>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 bg-black/40 border border-white/5">
-              <div className="text-[10px] text-slate-400">SDG 8: DECENT WORK</div>
-              <div className="font-bold text-white text-sm mt-1">
-                {data.esgCompliance.laborStandardsCertifiedCount} / {data.esgCompliance.totalSuppliers} Nodes
-              </div>
-              <div className="text-[9px] text-slate-500 mt-0.5">RMI & ILO compliant</div>
-            </div>
-            <div className="p-3 bg-black/40 border border-white/5">
-              <div className="text-[10px] text-slate-400">SDG 12: RESPONSIBLE PROD.</div>
-              <div className="font-bold text-white text-sm mt-1">
-                {data.esgCompliance.environmentalCertifiedCount} / {data.esgCompliance.totalSuppliers} Nodes
-              </div>
-              <div className="text-[9px] text-slate-500 mt-0.5">ISO 14001 / IRMA verified</div>
-            </div>
-            <div className="p-3 bg-black/40 border border-white/5">
-              <div className="text-[10px] text-slate-400">PORTFOLIO COMPLIANCE</div>
-              <div className="font-bold text-emerald-400 text-sm mt-1">
-                {data.esgCompliance.compliancePercentage}%
-              </div>
-              <div className="text-[9px] text-slate-500 mt-0.5">Verified ESG coverage</div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+              98.4% Verified
             </div>
           </div>
         </div>

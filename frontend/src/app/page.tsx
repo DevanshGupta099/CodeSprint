@@ -1,299 +1,230 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { WebGLGridCanvas } from '../components/canvas/WebGLGridCanvas';
-import { ZeroHeader } from '../components/telemetry/ZeroHeader';
-import { OrbitalDisruptionTrigger } from '../components/controls/OrbitalDisruptionTrigger';
-import { FlowCanvas } from '../components/graph/FlowCanvas';
+import { GlobalHeader, ZentraTab } from '../components/zentra/GlobalHeader';
+import { SubHeaderToolbar } from '../components/zentra/SubHeaderToolbar';
+import { MaterialFlowFunnelCard } from '../components/zentra/MaterialFlowFunnelCard';
+import { ValueAtRiskCard } from '../components/zentra/ValueAtRiskCard';
+import { SteppedVolatilityCard } from '../components/zentra/SteppedVolatilityCard';
+import { DualEqualizerHistogramCard } from '../components/zentra/DualEqualizerHistogramCard';
+import { HeroSunsetMeshCard } from '../components/zentra/HeroSunsetMeshCard';
+import { SVGDefs } from '../components/zentra/SVGDefs';
+import { ZentraDetailModal } from '../components/zentra/ZentraDetailModal';
+import { SupplyWorkflowStudio } from '../components/graph/SupplyWorkflowStudio';
 import { ProcurementSwitchMemo } from '../components/terminal/ProcurementSwitchMemo';
-import { AnalyticsDashboard } from '../components/dashboard/AnalyticsDashboard';
-import { BOMUploadModal } from '../components/ingestion/BOMUploadModal';
+import { SupplierDetailDrawer } from '../components/graph/SupplierDetailDrawer';
+import { INITIAL_DAG_DATA } from '../data/seed-graph';
+import { SupplyChainDAGResponse, Supplier, MitigationMemo } from '../types/supply-chain';
 import { api } from '../services/api';
-import { 
-  SupplyChainDAGResponse, 
-  RiskStateResponse, 
-  MitigationMemo, 
-  Supplier, 
-  DisruptionScenario,
-  PortfolioBreakdownResponse
-} from '../types/supply-chain';
-import { Shield, MapPin, DollarSign, Clock, Award, X, AlertTriangle } from 'lucide-react';
 
-export default function CommandCenterPage() {
-  const [dag, setDag] = useState<SupplyChainDAGResponse | null>(null);
-  const [riskState, setRiskState] = useState<RiskStateResponse | null>(null);
+export default function VeritasSupplyDashboard() {
+  const [activeTab, setActiveTab] = useState<ZentraTab>('overview');
+  const [isDisrupted, setIsDisrupted] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [dagData, setDagData] = useState<SupplyChainDAGResponse>(INITIAL_DAG_DATA);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [activeMemo, setActiveMemo] = useState<MitigationMemo | null>(null);
-  const [scenarios, setScenarios] = useState<DisruptionScenario[]>([]);
-  const [selectedScenarioKey, setSelectedScenarioKey] = useState<string>('red-sea');
-  const [activeTierFilter, setActiveTierFilter] = useState<number | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isExecutingReroute, setIsExecutingReroute] = useState(false);
-  
-  // Modals
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [isIngestOpen, setIsIngestOpen] = useState(false);
-  const [portfolioData, setPortfolioData] = useState<PortfolioBreakdownResponse | null>(null);
+  const [avoidedCo2Total, setAvoidedCo2Total] = useState<number>(0);
 
-  // Load initial data
+  // Fetch initial DAG from backend API (or fallback to simulator)
   useEffect(() => {
-    const init = async () => {
-      const [initialDag, initialRisk, scenarioList] = await Promise.all([
-        api.getSupplyChainDAG(),
-        api.getRiskState(),
-        api.getScenarios(),
-      ]);
-      setDag(initialDag);
-      setRiskState(initialRisk);
-      setScenarios(scenarioList);
-    };
-    init();
+    let isMounted = true;
+    api.getSupplyChainDAG().then((data) => {
+      if (isMounted && data && data.nodes) {
+        setDagData(data);
+      }
+    }).catch(console.error);
+    return () => { isMounted = false; };
   }, []);
 
-  // Poll risk telemetry every 4 seconds to sync live metrics
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // 1. Simulate Disruption Sentinel Action
-  const handleSimulateDisruption = useCallback(async (scenarioKey: string) => {
-    if (!dag) return;
-    setIsProcessing(true);
-
-    const scenario = scenarios.find(s => s.key === scenarioKey) || scenarios[0];
-    const targetNode = dag.nodes.find(n => n.code === scenario.targetSupplierCode) || dag.nodes[6]; // Bab-el-Mandeb
-
-    try {
-      const result = await api.triggerDisruption(
-        targetNode.id,
-        scenario.severity,
-        scenario.disruptionType
-      );
-      setDag(result.dag);
-      setActiveMemo(result.memo);
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [dag, scenarios]);
-
-  // 2. Reset Disruption State Action
-  const handleReset = useCallback(async () => {
+  // 1. Trigger Disruption Sentinel (e.g. [SIMULATE RED SEA BLOCKADE])
+  const handleTriggerRedSeaBlockade = useCallback(async () => {
     setIsProcessing(true);
     try {
-      const nominalDag = await api.resetRiskState();
-      setDag(nominalDag);
-      setActiveMemo(null);
-      setSelectedSupplier(null);
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
+      // AML-YEM node (Apex Maritime Logistics)
+      const targetSupplierId = '10000000-0000-0000-0000-000000000007'; // Apex Maritime Logistics in seed-graph
+      const res = await api.triggerDisruption(targetSupplierId, 0.94, 'GEOPOLITICAL_BLOCKADE');
+      
+      setIsDisrupted(true);
+      if (res && res.dag) {
+        setDagData(res.dag);
+      }
+
+      // Generate or set mitigation memo
+      const memo: MitigationMemo = res?.memo || {
+        id: '60000000-0000-0000-0000-000000000001',
+        disruptedSupplierId: targetSupplierId,
+        alternateSupplierId: '50000000-0000-0000-0000-000000000001',
+        alternateName: 'Nordic Horn Maritime Lines (Norway Cape Route)',
+        priceVariancePct: 4.2,
+        leadTimeDeltaDays: -3,
+        avoidedScope3Tco2e: 1420.5,
+        complianceRationale: 'Full compliance with UN SDG 12 (Responsible Production) & SDG 8. Bypasses Bab-el-Mandeb conflict zone utilizing low-sulfur dual-fuel fleet along South Atlantic corridor.',
+        executiveSummary: 
+          `CRITICAL DISRUPTION ALERT // AUTONOMOUS MITIGATION DIRECTIVE\n` +
+          `Target Node [Apex Maritime Logistics] compromised by maritime security blockade at Bab-el-Mandeb Strait.\n` +
+          `Recursive CTE risk wave propagated upstream: Tier-2 Voltaic Cell Dynamics and Tier-1 Apex PowerSystems GmbH.\n` +
+          `Autonomous Recommendation: Execute split-order rerouting to Nordic Horn Maritime Lines (Cape Route) and secondary packaging in Vietnam & Mexico. Price variance contained to +4.2%, transit reduced by 3 days, avoiding 1,420.5 tCO2e in Scope-3 carbon emissions.`,
+        generatedAt: new Date().toISOString(),
+      };
+
+      setActiveMemo(memo);
+    } catch (err) {
+      console.error('Trigger disruption error:', err);
+      setIsDisrupted(true);
     } finally {
       setIsProcessing(false);
     }
   }, []);
 
-  // 3. Execute Reroute Action
+  // 2. Execute Reroute Action
   const handleExecuteReroute = useCallback(async () => {
     if (!activeMemo) return;
-    setIsExecutingReroute(true);
+    setIsProcessing(true);
+
     try {
-      const result = await api.executeReroute(
+      const res = await api.executeReroute(
         activeMemo.disruptedSupplierId,
-        activeMemo.alternateSupplierId
+        activeMemo.alternateSupplierId,
+        activeMemo.id
       );
-      if (result.updatedDAG) {
-        setDag(result.updatedDAG);
+
+      if (res && res.updatedDAG) {
+        setDagData(res.updatedDAG);
       }
+
+      setIsDisrupted(false);
+      setAvoidedCo2Total((prev) => prev + activeMemo.avoidedScope3Tco2e);
       setActiveMemo(null);
-      const updatedRisk = await api.getRiskState();
-      setRiskState(updatedRisk);
+    } catch (err) {
+      console.error('Execute reroute error:', err);
+      setIsDisrupted(false);
+      setActiveMemo(null);
     } finally {
-      setIsExecutingReroute(false);
+      setIsProcessing(false);
     }
   }, [activeMemo]);
 
-  // 4. Open Analytics Modal
-  const handleOpenAnalytics = useCallback(async () => {
-    const data = await api.getPortfolioAnalytics();
-    setPortfolioData(data);
-    setIsAnalyticsOpen(true);
+  // 3. Reset Baseline State
+  const handleResetBaseline = useCallback(async () => {
+    setIsProcessing(true);
+    try {
+      const resetDag = await api.resetRiskState();
+      if (resetDag && resetDag.nodes) {
+        setDagData(resetDag);
+      }
+      setIsDisrupted(false);
+      setActiveMemo(null);
+      setSelectedSupplier(null);
+    } catch (err) {
+      console.error('Reset error:', err);
+      setIsDisrupted(false);
+    } finally {
+      setIsProcessing(false);
+    }
   }, []);
 
-  // Filter or highlight nodes by selected tier from timeline ruler
-  const filteredDag = React.useMemo(() => {
-    if (!dag) return null;
-    if (activeTierFilter === null) return dag;
-    // Highlight or filter nodes belonging to activeTierFilter
-    const matchedNode = dag.nodes.find(n => n.tier === activeTierFilter);
-    if (matchedNode && !selectedSupplier) {
-      // Auto select node in that tier
-      setSelectedSupplier(matchedNode);
-    }
-    return dag;
-  }, [dag, activeTierFilter, selectedSupplier]);
-
-  const isDisrupted = (riskState?.portfolioMetrics?.activeDisruptionsCount || 0) > 0;
-
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex flex-col bg-[#07090E]">
-      {/* 1. Ambient Zero Radial Atmosphere */}
-      <div className="zero-bg-ambient" />
+    <div className="min-h-screen w-full tactile-canvas text-neutral-900 font-sans antialiased pb-20 flex flex-col">
+      {/* GLOBAL SVG PATTERNS: 45-degree Candy Stripes & 3D Gradients */}
+      <SVGDefs />
 
-      {/* 2. WebGL Background Coordinate Grid & Shockwave Canvas */}
-      <WebGLGridCanvas isDisrupted={isDisrupted} />
-
-      {/* 3. Floating Zero-Style Pill Header with Scrubbable Timeline Ruler */}
-      <ZeroHeader
-        riskState={riskState}
-        onOpenAnalytics={handleOpenAnalytics}
-        onOpenIngest={() => setIsIngestOpen(true)}
-        onReset={handleReset}
-        activeTierFilter={activeTierFilter}
-        onSelectTier={setActiveTierFilter}
+      {/* 1. HEADER & NAVIGATION: Floating Rounded Pill Nav Bar + [SIMULATE RED SEA BLOCKADE] */}
+      <GlobalHeader
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenSearch={() => setActiveTab('suppliers')}
+        onSimulateRedSea={isDisrupted ? handleResetBaseline : handleTriggerRedSeaBlockade}
+        isDisrupted={isDisrupted}
         isProcessing={isProcessing}
       />
 
-      {/* 4. Main React Flow Canvas Area */}
-      <main className="relative flex-1 w-full h-full overflow-hidden z-10 pt-16 pb-20">
-        {filteredDag ? (
-          <FlowCanvas
-            dag={filteredDag}
-            onSelectSupplier={setSelectedSupplier}
-            selectedSupplierId={selectedSupplier?.id}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center font-mono text-cyan-400 text-xs">
-            <span className="hud-shimmer-text font-bold tracking-widest uppercase">
-              [INITIALIZING RECURSIVE CTE GRAPH PIPELINE...]
-            </span>
-          </div>
-        )}
-
-        {/* 5. Zero-Style Selected Supplier Node Inspector Drawer */}
-        {selectedSupplier && (
-          <div className="absolute max-sm:bottom-0 max-sm:top-auto max-sm:left-0 max-sm:right-0 max-sm:w-full max-sm:rounded-b-none max-sm:rounded-t-2xl max-sm:max-h-[50vh] max-sm:overflow-y-auto sm:top-20 sm:left-6 sm:w-80 zero-card rounded-2xl p-4 shadow-[0_12px_45px_rgba(0,0,0,0.85)] z-20 font-mono text-xs border-white/15">
-            {/* Top Specular Micro-Bevel */}
-            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent pointer-events-none" />
-
-            <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3">
-              <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[9px] text-cyan-300 tracking-wider">
-                TIER {selectedSupplier.tier} NODE
-              </span>
-              <button
-                onClick={() => setSelectedSupplier(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <h2 className="font-display font-black text-base text-white tracking-tight uppercase mb-0.5">
-              {selectedSupplier.name}
-            </h2>
-            <div className="text-[11px] text-slate-400 mb-3">
-              {selectedSupplier.code} · {selectedSupplier.materialCategory}
-            </div>
-
-            {selectedSupplier.isSPOF && (
-              <div className="mb-3 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/50 text-amber-300 font-bold text-[10px] flex items-center gap-1.5 uppercase">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                <span>Single Point of Failure (SPOF)</span>
-              </div>
-            )}
-
-            <div className="space-y-2 pt-2 border-t border-white/10 text-slate-300 text-[11px]">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-cyan-400" /> Geography:
-                </span>
-                <span className="font-semibold text-white">
-                  {selectedSupplier.country} ({selectedSupplier.countryCode})
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <DollarSign className="w-3.5 h-3.5 text-cyan-400" /> Annual Spend:
-                </span>
-                <span className="font-semibold text-white">${selectedSupplier.spend}M</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400" /> Lead Time:
-                </span>
-                <span className="font-semibold text-white">{selectedSupplier.leadTimeDays} days</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400 flex items-center gap-1">
-                  <Shield className="w-3.5 h-3.5 text-cyan-400" /> Current Risk:
-                </span>
-                <span className={`font-bold ${
-                  selectedSupplier.status === 'CRITICAL' ? 'text-rose-400' :
-                  selectedSupplier.status === 'ELEVATED' ? 'text-amber-400' : 'text-cyan-300'
-                }`}>
-                  {Math.round((selectedSupplier.riskScore || 0) * 100)}% [{selectedSupplier.status}]
-                </span>
-              </div>
-            </div>
-
-            {/* Certifications */}
-            {selectedSupplier.certifications && selectedSupplier.certifications.length > 0 && (
-              <div className="mt-3 pt-2.5 border-t border-white/10">
-                <div className="text-[10px] text-slate-400 mb-1.5 flex items-center gap-1">
-                  <Award className="w-3 h-3 text-cyan-400" /> AUDIT CERTIFICATIONS:
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {selectedSupplier.certifications.map((cert) => (
-                    <span
-                      key={cert}
-                      className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-slate-300"
-                    >
-                      {cert}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 6. Orbital Ripple Disruption Trigger */}
-        <OrbitalDisruptionTrigger
-          scenarios={scenarios}
-          selectedScenarioKey={selectedScenarioKey}
-          onSelectScenario={setSelectedScenarioKey}
-          onSimulate={handleSimulateDisruption}
-          isProcessing={isProcessing}
-          isDisrupted={isDisrupted}
-          onReset={handleReset}
-        />
-
-        {/* 7. Zero-Style Floating Terminal Procurement Memo */}
-        <ProcurementSwitchMemo
-          memo={activeMemo}
-          onExecuteReroute={handleExecuteReroute}
-          isExecuting={isExecutingReroute}
-          onClose={() => setActiveMemo(null)}
-        />
-      </main>
-
-      {/* 8. Modals */}
-      <AnalyticsDashboard
-        isOpen={isAnalyticsOpen}
-        data={portfolioData}
-        onClose={() => setIsAnalyticsOpen(false)}
+      {/* 2. SUB-HEADER ACTION BAR: "Overview" (36px) & Segmented Date Selectors */}
+      <SubHeaderToolbar
+        title={
+          activeTab === 'overview'
+            ? 'Overview'
+            : activeTab === 'graph'
+            ? 'Supply Dependency DAG'
+            : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+        }
+        onAddWidget={() => handleTriggerRedSeaBlockade()}
       />
 
-      <BOMUploadModal
-        isOpen={isIngestOpen}
-        onClose={() => setIsIngestOpen(false)}
-        onUploadSuccess={(filename) => {
-          api.getSupplyChainDAG().then(setDag);
-        }}
+      {/* 3. MAIN WORKSPACE CONTAINER */}
+      <main className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 flex-1 flex flex-col gap-6">
+        {/* VIEW A: OVERVIEW TAB (ZENTRA BENTO GRID) */}
+        {activeTab === 'overview' && (
+          <>
+            {/* ROW 1: TOP HERO (65% / 35%) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              {/* TOP LEFT (65% -> 8 cols): 3D Isometric Material Flow Funnel with AI Dock */}
+              <div className="lg:col-span-8 flex flex-col">
+                <MaterialFlowFunnelCard
+                  onExplorePrompt={(prompt) => handleTriggerRedSeaBlockade()}
+                  onSelectStage={(stageId) => setActiveTab('graph')}
+                />
+              </div>
+
+              {/* TOP RIGHT (35% -> 4 cols): Value at Risk ($41,540,000 & 3 Striped Progress Bars) */}
+              <div className="lg:col-span-4 flex flex-col">
+                <ValueAtRiskCard />
+              </div>
+            </div>
+
+            {/* ROW 2: BOTTOM 3-COLUMN BENTO */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+              {/* Bottom Left: Stepped Volatility Area Chart ("Retention" Style) */}
+              <SteppedVolatilityCard />
+
+              {/* Bottom Center: Dual Equalizer Histogram Card ("Transactions & Customers" Style) */}
+              <DualEqualizerHistogramCard />
+
+              {/* Bottom Right: Hero Sunset Gradient AI Insight Card */}
+              <HeroSunsetMeshCard
+                onExploreMitigation={() => handleTriggerRedSeaBlockade()}
+              />
+            </div>
+          </>
+        )}
+
+        {/* VIEW B: SUPPLY GRAPH TAB (SUPPLY WORKFLOW STUDIO) */}
+        {activeTab === 'graph' && (
+          <SupplyWorkflowStudio
+            dag={dagData}
+            onTriggerDisruption={handleTriggerRedSeaBlockade}
+            onResetBaseline={handleResetBaseline}
+            isDisrupted={isDisrupted}
+            isProcessing={isProcessing}
+            selectedSupplier={selectedSupplier}
+            onSelectSupplier={setSelectedSupplier}
+            avoidedCo2Total={avoidedCo2Total}
+          />
+        )}
+      </main>
+
+      {/* TAB DETAIL MODAL (SUPPLIERS, DISRUPTIONS, SANCTIONS, ESG, REPORTS) */}
+      <ZentraDetailModal
+        activeTab={activeTab}
+        onClose={() => setActiveTab('overview')}
+        onTriggerDisruption={(id) => handleTriggerRedSeaBlockade()}
+      />
+
+      {/* SUPPLIER DETAIL INSPECTION DRAWER (WHEN NODE CLICKED ON OVERVIEW) */}
+      {activeTab !== 'graph' && (
+        <SupplierDetailDrawer
+          supplier={selectedSupplier}
+          onClose={() => setSelectedSupplier(null)}
+          onSimulateDisruptionOnNode={(id: string) => handleTriggerRedSeaBlockade()}
+        />
+      )}
+
+      {/* THE TERMINAL TYPEWRITER PROCUREMENT SWITCH MEMO ([EXECUTE_REROUTE]) */}
+      <ProcurementSwitchMemo
+        memo={activeMemo}
+        onExecuteReroute={handleExecuteReroute}
+        isExecuting={isProcessing}
+        onClose={() => setActiveMemo(null)}
       />
     </div>
   );
