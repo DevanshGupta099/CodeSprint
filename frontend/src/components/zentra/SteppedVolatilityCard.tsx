@@ -11,15 +11,15 @@ export const SteppedVolatilityCard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between pb-2">
         <div>
-          <h3 className="text-sm font-bold text-neutral-900 tracking-tight">
+          <h3 className="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">
             Lead-Time Volatility
           </h3>
-          <span className="text-[11px] font-medium text-neutral-400">
+          <span className="text-[11px] font-medium text-neutral-400 dark:text-slate-400">
             Stepped transit risk index
           </span>
         </div>
 
-        <button className="text-neutral-400 hover:text-neutral-700 p-1 cursor-pointer">
+        <button className="text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200 p-1 cursor-pointer">
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </div>
@@ -65,7 +65,7 @@ export const SteppedVolatilityCard: React.FC = () => {
 
         {/* Floating Tactile White Pill Badge 42% anchored to peak step point */}
         <div className="absolute left-[44%] top-0 -translate-x-1/2 -translate-y-2 pointer-events-none">
-          <div className="tactile-badge px-2.5 py-0.5 text-[11px] font-bold font-mono text-neutral-900 flex items-center gap-1.5 shadow-sm">
+          <div className="tactile-badge px-2.5 py-0.5 text-[11px] font-bold font-mono text-neutral-900 dark:text-white flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
             <span>42%</span>
           </div>
@@ -73,7 +73,7 @@ export const SteppedVolatilityCard: React.FC = () => {
       </div>
 
       {/* Bottom Axis Labels: Jan, Feb, Mar, Apr, May, Jun in muted gray */}
-      <div className="flex items-center justify-between pt-2 border-t border-neutral-100 text-[11px] font-medium text-neutral-400 font-mono">
+      <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-white/10 text-[11px] font-medium text-neutral-400 dark:text-slate-500 font-mono">
         {months.map((m) => (
           <span key={m}>{m}</span>
         ))}
