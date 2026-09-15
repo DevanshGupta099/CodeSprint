@@ -91,14 +91,150 @@ Through progressive root-cause isolation and zero-regression refactoring, the ap
 
 ---
 
-## 4. Verification Protocol
+## 4. Complete Code & File Modification Changelog
 
-### 4.1. Local Service Endpoints
+### 4.1. `frontend/public/fonts/` [NEW DIRECTORY & BINARIES]
+- Downloaded exact Google Font `.woff2` binaries:
+  - `fraunces-900.woff2` (16.6 kB) — Fraunces 900 weight display serif with optical size 144.
+  - `instrumentserif-italic.woff2` (22.4 kB) — Instrument Serif Italic 400.
+  - `jetbrainsmono-400.woff2` (31.7 kB) — JetBrains Mono Regular 400.
+
+### 4.2. `frontend/src/app/globals.css` [MODIFIED]
+- **Removed**: External blocking `@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@144,900&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;600&display=swap');`
+- **Added**: Self-hosted local `@font-face` blocks with `font-display: swap`:
+  ```css
+  @font-face {
+    font-family: 'Fraunces';
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    src: url('/fonts/fraunces-900.woff2') format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Instrument Serif';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/instrumentserif-italic.woff2') format('woff2');
+  }
+
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url('/fonts/jetbrainsmono-400.woff2') format('woff2');
+  }
+  ```
+
+### 4.3. `frontend/src/app/layout.tsx` [MODIFIED]
+- **Removed**: External stylesheet links to Google Fonts.
+- **Added**: Font preloads in `<head>` for critical font resources:
+  ```tsx
+  <link rel="preload" href="/fonts/fraunces-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+  <link rel="preload" href="/fonts/instrumentserif-italic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+  <link rel="preload" href="/fonts/jetbrainsmono-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+  ```
+
+### 4.4. `frontend/src/components/landing/SmoothScroll.tsx` [MODIFIED]
+- Added dispatch of custom event `veritas-scroll-progress` directly from Lenis scroll callback:
+  ```tsx
+  lenis.on('scroll', (e: any) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('veritas-scroll-progress', { detail: { progress: e.progress } }));
+    }
+  });
+  ```
+
+### 4.5. `frontend/src/app/page.tsx` [MODIFIED]
+- **Semantic Landmark**: Changed outer container from `<div className="relative w-full ...">` to `<main className="relative w-full ...">`.
+- **Eliminated Scroll Reflow**: `TopInstrumentRuler` listens to `veritas-scroll-progress` and gates fallback scroll with `requestAnimationFrame`.
+- **Isolated Telemetry Tickers**: Extracted `MonitoredNodesTicker` and `LiveLatencyTicker` as leaf components with interaction/timer gating:
+  ```tsx
+  const MonitoredNodesTicker: React.FC = () => {
+    const [nodes, setNodes] = useState(14894);
+    useEffect(() => {
+      let interval: NodeJS.Timeout;
+      const startTicker = () => {
+        if (!interval) {
+          interval = setInterval(() => {
+            setNodes((prev) => prev + Math.floor(Math.random() * 3 + 1));
+          }, 4000);
+        }
+      };
+      window.addEventListener('scroll', startTicker, { passive: true, once: true });
+      window.addEventListener('pointerdown', startTicker, { passive: true, once: true });
+      const timer = setTimeout(startTicker, 15000);
+      return () => {
+        clearTimeout(timer);
+        if (interval) clearInterval(interval);
+        window.removeEventListener('scroll', startTicker);
+        window.removeEventListener('pointerdown', startTicker);
+      };
+    }, []);
+    return <span>{nodes.toLocaleString()} NODES</span>;
+  };
+  ```
+- **Instant LCP via SSR HTML**: Removed Framer Motion `initial={{ opacity: 0 }}` from Scene 1 display title card and staggered word spans:
+  ```tsx
+  <div className="relative z-10 my-auto py-12 max-w-7xl">
+    <div className="font-headline text-2xl sm:text-4xl md:text-5xl font-normal leading-tight tracking-tight text-[#1A1917]">
+      Supply chains don&apos;t break at the{' '}
+      <span className="font-serif italic font-normal text-amber-800 text-3xl sm:text-5xl md:text-6xl inline-block px-1">
+        surface.
+      </span>
+    </div>
+    <h1 className="font-headline font-black uppercase text-[10vw] sm:text-[12vw] leading-[0.85] tracking-[-0.04em] text-[#1A1917] mt-4 select-none flex flex-wrap gap-x-4 sm:gap-x-8">
+      {headlineWords.map((word, idx) => (
+        <span key={idx}>{word}</span>
+      ))}
+    </h1>
+  ...
+  ```
+- **WebP Asset Paths**: Updated `cargo-ship.jpg` to `cargo-ship.webp` and `industrial-facility.jpg` to `industrial-facility.webp`.
+- **SVG Tier-1 Node Geometry**:
+  - Rectangles: Changed `x="300" width="130"` to `x="280" width="165"`.
+  - Text: Changed `x="312" fontSize="9"` to `x="292" fontSize="8"`.
+  - Links: Changed incoming link endpoints from `300` to `280`, and outgoing link start points from `430` to `445`.
+  - Reroute Path: Changed start point from `M 430 230` to `M 445 230`.
+
+### 4.6. `frontend/src/components/landing/Hero3DCanvas.tsx` [NEW COMPONENT]
+- Extracted Three.js `<Canvas>` and `SparseNodeField` implementation:
+  - 85 supplier nodes with additive blended points.
+  - Proximity-based connection line segments.
+  - Slow ambient auto-rotation in RAF loop.
+
+### 4.7. `frontend/src/components/landing/Hero3DBackground.tsx` [MODIFIED]
+- Replaced static Three.js imports with dynamic on-demand loading:
+  ```tsx
+  const Hero3DCanvas = dynamic(() => import('./Hero3DCanvas'), {
+    ssr: false,
+    loading: () => <FallbackStaticBackground />,
+  });
+  ```
+- Gated WebGL initialization to first user interaction (`scroll`, `pointerdown`, `keydown`) or 15s standby timer.
+- Renders lightweight CSS radial gradient `FallbackStaticBackground` immediately with 0 ms main thread overhead.
+
+### 4.8. `frontend/src/components/landing/CaseSnapshot.tsx` [MODIFIED]
+- Updated semiconductor background image path from `semiconductor.jpg` (320 kB) to optimized `semiconductor.webp` (100 kB).
+
+### 4.9. `frontend/public/images/` [ASSETS ADDED]
+- Added compressed progressive WebP images generated via PIL:
+  - `cargo-ship.webp` (103 kB vs 327 kB original)
+  - `industrial-facility.webp` (52 kB vs 123 kB original)
+  - `semiconductor.webp` (100 kB vs 312 kB original)
+
+---
+
+## 5. Verification Protocol
+
+### 5.1. Local Service Endpoints
 - **Frontend**: [`http://localhost:3000`](http://localhost:3000) (Next.js Production Server)
 - **Node.js API**: [`http://localhost:5000/api/health`](http://localhost:5000/api/health)
 - **Python Engine**: [`http://localhost:8000/api/health`](http://localhost:8000/api/health)
 
-### 4.2. Running a Fresh DevTools Audit
+### 5.2. Running a Fresh DevTools Audit
 1. Open Chrome and navigate to [`http://localhost:3000`](http://localhost:3000).
 2. Press `Ctrl + Shift + R` to clear browser cache.
 3. Open DevTools (`F12`) → **Lighthouse** tab.
