@@ -4,11 +4,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, useInView } from 'framer-motion';
 
+import dynamic from 'next/dynamic';
+
 import SmoothScroll from '../components/landing/SmoothScroll';
-import Hero3DBackground from '../components/landing/Hero3DBackground';
-import CaseSnapshot from '../components/landing/CaseSnapshot';
-import TrustCompliance from '../components/landing/TrustCompliance';
 import Footer from '../components/landing/Footer';
+
+// Code-split heavy WebGL Three.js bundle & below-the-fold scenes to drastically reduce TBT & initial JS parse time
+const Hero3DBackground = dynamic(() => import('../components/landing/Hero3DBackground'), { 
+  ssr: false,
+  loading: () => <div className="absolute inset-0 z-0 pointer-events-none" /> 
+});
+const CaseSnapshot = dynamic(() => import('../components/landing/CaseSnapshot'), { ssr: false });
+const TrustCompliance = dynamic(() => import('../components/landing/TrustCompliance'), { ssr: false });
 
 // ============================================================================
 // VERITAS SUPPLY — HIGH-PERFORMANCE ARCHITECTURE & MONOCHROME HUD PALETTE:
@@ -33,24 +40,35 @@ const TopInstrumentRuler: React.FC = () => {
   const [fraction, setFraction] = useState<number>(0);
 
   useEffect(() => {
-    let ticking = false;
+    const handleProgress = (e: Event) => {
+      const customEvent = e as CustomEvent<{ progress: number }>;
+      if (customEvent.detail && typeof customEvent.detail.progress === 'number') {
+        setFraction(customEvent.detail.progress);
+      }
+    };
 
-    const handleScroll = () => {
+    // Passive fallback for direct native scrolling (RAF-gated to prevent forced reflow)
+    let ticking = false;
+    const handleFallbackScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          const scrollY = window.scrollY || window.pageYOffset;
-          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-          const f = maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
-          setFraction(f);
+          const scrollY = window.scrollY || window.pageYOffset || 0;
+          const docHeight = document.body?.clientHeight || 5000;
+          const maxScroll = Math.max(1, docHeight - window.innerHeight);
+          setFraction(Math.min(1, Math.max(0, scrollY / maxScroll)));
           ticking = false;
         });
         ticking = true;
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('veritas-scroll-progress', handleProgress);
+    window.addEventListener('scroll', handleFallbackScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('veritas-scroll-progress', handleProgress);
+      window.removeEventListener('scroll', handleFallbackScroll);
+    };
   }, []);
 
   return (
@@ -196,33 +214,33 @@ const SupplyGraphMechanism: React.FC = () => {
 
         {/* STEP 2: ORTHOGONAL LINKS TO 3 TIER-1 FACILITIES (Always 100% visible: White) */}
         <g>
-          <path d="M 128 230 H 220 V 110 H 300" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
-          <path d="M 128 230 H 300" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
-          <path d="M 128 230 H 220 V 350 H 300" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
+          <path d="M 128 230 H 210 V 110 H 280" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
+          <path d="M 128 230 H 280" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
+          <path d="M 128 230 H 210 V 350 H 280" fill="none" stroke="url(#lineGrad)" strokeWidth="1.5" />
 
-          <rect x="300" y="94" width="130" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
-          <text x="312" y="114" fill="#FFFFFF" fontSize="9" fontWeight="bold">T1 // APEX POWERSYS</text>
+          <rect x="280" y="94" width="165" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
+          <text x="292" y="114" fill="#FFFFFF" fontSize="8" fontWeight="bold">T1 // APEX POWERSYS</text>
 
-          <rect x="300" y="214" width="130" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
-          <text x="312" y="234" fill="#FFFFFF" fontSize="9" fontWeight="bold">T1 // VOLTAIC CELL DYN</text>
+          <rect x="280" y="214" width="165" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
+          <text x="292" y="234" fill="#FFFFFF" fontSize="8" fontWeight="bold">T1 // VOLTAIC CELL DYN</text>
 
-          <rect x="300" y="334" width="130" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
-          <text x="312" y="354" fill="#FFFFFF" fontSize="9" fontWeight="bold">T1 // DRIVE INVERTER EU</text>
+          <rect x="280" y="334" width="165" height="32" fill="#11141C" stroke="#FFFFFF" strokeWidth="1.2" />
+          <text x="292" y="354" fill="#FFFFFF" fontSize="8" fontWeight="bold">T1 // DRIVE INVERTER EU</text>
         </g>
 
         {/* STEP 3: SECONDARY LINKS TO TIER-3 SMELTERS & TIER-4 EXTRACTORS */}
         <g>
-          <path d="M 430 110 H 490 V 60 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
-          <path d="M 430 110 H 490 V 160 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
+          <path d="M 445 110 H 495 V 60 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
+          <path d="M 445 110 H 495 V 160 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
           <path
-            d="M 430 230 H 490 V 230 H 550"
+            d="M 445 230 H 550"
             fill="none"
             stroke={eventTriggered ? '#EF4444' : '#FFFFFF'}
             strokeWidth={eventTriggered ? '2' : '1.2'}
             strokeDasharray={eventTriggered ? '4 4' : 'none'}
           />
-          <path d="M 430 350 H 490 V 300 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
-          <path d="M 430 350 H 490 V 400 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
+          <path d="M 445 350 H 495 V 300 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
+          <path d="M 445 350 H 495 V 400 H 550" fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.4" />
 
           {/* T4 Lithium */}
           <rect x="550" y="46" width="215" height="28" fill="#0E1118" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
@@ -268,7 +286,7 @@ const SupplyGraphMechanism: React.FC = () => {
         {eventTriggered && (
           <g>
             <path
-              d="M 430 230 C 470 230, 480 180, 520 180 H 550"
+              d="M 445 230 C 480 230, 490 180, 520 180 H 550"
               fill="none"
               stroke="#FFFFFF"
               strokeWidth="2.5"
@@ -361,30 +379,67 @@ function AnimatedStat({ prefix = '', target, suffix = '', decimals = 0 }: Animat
   );
 }
 
+// 2. ISOLATED AMBIENT TELEMETRY TICKERS (Isolated to leaf components to prevent whole-page re-renders)
+const MonitoredNodesTicker: React.FC = () => {
+  const [nodes, setNodes] = useState(14894);
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    const startTicker = () => {
+      if (!interval) {
+        interval = setInterval(() => {
+          setNodes((prev) => prev + Math.floor(Math.random() * 3 + 1));
+        }, 4000);
+      }
+    };
+    window.addEventListener('scroll', startTicker, { passive: true, once: true });
+    window.addEventListener('pointerdown', startTicker, { passive: true, once: true });
+    const timer = setTimeout(startTicker, 15000);
+    return () => {
+      clearTimeout(timer);
+      if (interval) clearInterval(interval);
+      window.removeEventListener('scroll', startTicker);
+      window.removeEventListener('pointerdown', startTicker);
+    };
+  }, []);
+  return <span>{nodes.toLocaleString()} NODES</span>;
+};
+
+const LiveLatencyTicker: React.FC = () => {
+  const [latency, setLatency] = useState(18);
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    const startTicker = () => {
+      if (!interval) {
+        interval = setInterval(() => {
+          setLatency(17 + Math.floor(Math.random() * 3));
+        }, 4000);
+      }
+    };
+    window.addEventListener('scroll', startTicker, { passive: true, once: true });
+    window.addEventListener('pointerdown', startTicker, { passive: true, once: true });
+    const timer = setTimeout(startTicker, 15000);
+    return () => {
+      clearTimeout(timer);
+      if (interval) clearInterval(interval);
+      window.removeEventListener('scroll', startTicker);
+      window.removeEventListener('pointerdown', startTicker);
+    };
+  }, []);
+  return <>{latency}ms</>;
+};
+
 // ============================================================================
 // 4. MAIN EDITORIAL LANDING PAGE COMPONENT
 // ============================================================================
 export default function VeritasEditorialLanding() {
   const router = useRouter();
 
-  // Continuous live telemetry ticking (isolated timer)
-  const [monitoredNodes, setMonitoredNodes] = useState(14894);
-  const [liveLatency, setLiveLatency] = useState(18);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMonitoredNodes((prev) => prev + Math.floor(Math.random() * 3 + 1));
-      setLiveLatency(17 + Math.floor(Math.random() * 3));
-    }, 2800);
-    return () => clearInterval(interval);
-  }, []);
-
   // Headline Stagger Words for Scene 01
   const headlineWords = ["THEY", "ROT", "AT", "TIER-4"];
 
   return (
     <SmoothScroll>
-      <div className="relative w-full min-h-screen selection:bg-neutral-900 selection:text-white antialiased font-sans bg-[#050508]">
+      <main className="relative w-full min-h-screen selection:bg-neutral-900 selection:text-white antialiased font-sans bg-[#050508]">
         {/* ===================================================================== */}
         {/* 1. TOP HEADER GRADIENT SCRIM (Prevents typographic collision on scroll) */}
         {/* ===================================================================== */}
@@ -418,7 +473,7 @@ export default function VeritasEditorialLanding() {
           {/* Top-Right: Persistent Ambient Telemetry Pill */}
           <div className="pointer-events-auto flex items-center gap-3">
             <div className="font-mono text-xs text-white/80 flex items-center gap-2 px-3 py-1 border border-white/20 rounded-full bg-black/30 backdrop-blur-sm">
-              <span className="tracking-widest text-rose-400 font-semibold">{monitoredNodes.toLocaleString()} NODES</span>
+              <span className="tracking-widest text-rose-400 font-semibold"><MonitoredNodesTicker /></span>
             </div>
           </div>
         </header>
@@ -451,7 +506,7 @@ export default function VeritasEditorialLanding() {
           <div
             className="absolute inset-0 z-0 pointer-events-none opacity-[0.16] bg-cover bg-center grayscale mix-blend-multiply"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1600&q=80')`,
+              backgroundImage: `url('/images/cargo-ship.webp')`,
             }}
           />
 
@@ -463,14 +518,8 @@ export default function VeritasEditorialLanding() {
             <span className="text-neutral-800 font-semibold">EST. LATENCY: ZERO-TOLERANCE</span>
           </div>
 
-          {/* Asymmetric Bottom-Heavy Editorial Title Card (GPU Accelerated Reveal) */}
-          <motion.div
-            initial={{ opacity: 0, filter: 'blur(10px)', y: 20 }}
-            whileInView={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-            viewport={{ once: true, margin: '-10% 0px' }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 my-auto py-12 max-w-7xl will-change-transform"
-          >
+          {/* Asymmetric Bottom-Heavy Editorial Title Card (Direct SSR Paint for instant LCP) */}
+          <div className="relative z-10 my-auto py-12 max-w-7xl">
             <div className="font-headline text-2xl sm:text-4xl md:text-5xl font-normal leading-tight tracking-tight text-[#1A1917]">
               Supply chains don&apos;t break at the{' '}
               <span className="font-serif italic font-normal text-amber-800 text-3xl sm:text-5xl md:text-6xl inline-block px-1">
@@ -478,17 +527,12 @@ export default function VeritasEditorialLanding() {
               </span>
             </div>
 
-            {/* Word-by-word stagger animation on headline */}
+            {/* High-Impact Editorial Display Headline */}
             <h1 className="font-headline font-black uppercase text-[10vw] sm:text-[12vw] leading-[0.85] tracking-[-0.04em] text-[#1A1917] mt-4 select-none flex flex-wrap gap-x-4 sm:gap-x-8">
               {headlineWords.map((word, idx) => (
-                <motion.span
-                  key={idx}
-                  initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  transition={{ duration: 0.7, delay: idx * 0.12, ease: [0.16, 1, 0.3, 1] }}
-                >
+                <span key={idx}>
                   {word}
-                </motion.span>
+                </span>
               ))}
             </h1>
 
@@ -511,7 +555,7 @@ export default function VeritasEditorialLanding() {
                 Skip to Graph Mechanism ↓
               </a>
             </div>
-          </motion.div>
+          </div>
 
           {/* Minimal Monospace Callout (Bottom Bar) */}
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-end justify-between pt-8 border-t border-[#1A1917]/10 gap-4">
@@ -519,7 +563,7 @@ export default function VeritasEditorialLanding() {
               VERITAS ARCHITECTURE // AUTONOMOUS AI SENTINEL
             </div>
             <div className="font-mono text-xs sm:text-sm font-semibold text-amber-900 tracking-widest uppercase">
-              LATENCY // {liveLatency}ms ACTIVE MONITORING • 42 DAYS TO DISCOVER UPSTREAM SANCTIONS
+              LATENCY // <LiveLatencyTicker /> ACTIVE MONITORING • 42 DAYS TO DISCOVER UPSTREAM SANCTIONS
             </div>
           </div>
         </section>
@@ -535,7 +579,7 @@ export default function VeritasEditorialLanding() {
           <div
             className="absolute right-0 top-0 bottom-0 w-1/3 z-0 pointer-events-none opacity-[0.18] bg-cover bg-center grayscale mix-blend-luminosity hidden lg:block"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80')`,
+              backgroundImage: `url('/images/industrial-facility.webp')`,
               maskImage: 'linear-gradient(to right, transparent, black)',
               WebkitMaskImage: 'linear-gradient(to right, transparent, black)',
             }}
@@ -762,8 +806,8 @@ export default function VeritasEditorialLanding() {
         {/* ===================================================================== */}
         {/* SCENE 7: FULL EDITORIAL FOOTER                                        */}
         {/* ===================================================================== */}
-        <Footer monitoredNodes={monitoredNodes} />
-      </div>
+        <Footer monitoredNodes={14894} />
+      </main>
     </SmoothScroll>
   );
 }

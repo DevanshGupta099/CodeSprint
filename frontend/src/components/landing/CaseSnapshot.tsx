@@ -10,7 +10,7 @@ export const CaseSnapshot: React.FC = () => {
       <div
         className="absolute inset-0 z-0 pointer-events-none opacity-[0.14] bg-cover bg-center grayscale mix-blend-luminosity"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1600&q=80')`,
+          backgroundImage: `url('/images/semiconductor.webp')`,
         }}
       />
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#070B0E] via-[#070B0E]/90 to-[#070B0E] pointer-events-none" />

@@ -20,6 +20,12 @@ export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
       wheelMultiplier: 1.0,
     });
 
+    lenis.on('scroll', (e: any) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('veritas-scroll-progress', { detail: { progress: e.progress } }));
+      }
+    });
+
     let rafId: number;
 
     const raf = (time: number) => {

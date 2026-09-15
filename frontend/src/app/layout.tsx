@@ -31,6 +31,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${sans.variable} ${jetbrainsMono.variable}`}>
       <head>
+        {/* Preload critical self-hosted exact font binaries for instant zero-latency rendering */}
+        <link rel="preload" href="/fonts/fraunces-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/instrumentserif-italic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/jetbrainsmono-400.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Anti-FOUC immediate theme hydration */}
         <script
           dangerouslySetInnerHTML={{
