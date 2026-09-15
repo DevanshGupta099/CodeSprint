@@ -10,6 +10,7 @@ import {
 } from '../types/supply-chain';
 import { AICopilotResponse, SupplierAIAudit } from '../types/ai';
 import { INITIAL_DAG_DATA, ALTERNATES_MAP, SCENARIO_PRESETS } from '../data/seed-graph';
+import { BOM_PRESETS_CATALOG, BOM_DAG_MAP, BOMPresetInfo } from '../data/bom-presets';
 
 const rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim();
 const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/$/, '')}/api`;
@@ -18,6 +19,7 @@ const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/$/, 
 // In-memory simulation state for instant zero-dependency client execution
 class SupplyChainSimulator {
   private dag: SupplyChainDAGResponse;
+  private activeBOMKey: string = 'EV_BATTERY_PACK';
   private activeDisruptions: { supplierId: string; type: string; severity: number }[] = [];
   private avoidedScope3: number = 0;
   private currentMemo: MitigationMemo | null = null;
@@ -28,6 +30,19 @@ class SupplyChainSimulator {
 
   public getDAG(): SupplyChainDAGResponse {
     return JSON.parse(JSON.stringify(this.dag));
+  }
+
+  public loadBOM(presetKey: string): SupplyChainDAGResponse {
+    const template = BOM_DAG_MAP[presetKey] || INITIAL_DAG_DATA;
+    this.activeBOMKey = presetKey;
+    this.dag = JSON.parse(JSON.stringify(template));
+    this.activeDisruptions = [];
+    this.currentMemo = null;
+    return this.getDAG();
+  }
+
+  public getActiveBOMKey(): string {
+    return this.activeBOMKey;
   }
 
   public getScenarios(): DisruptionScenario[] {
@@ -501,6 +516,6 @@ export const api = {
       `3. SCOPE-3 DECARBONIZATION (+${memo.avoidedScope3Tco2e} tCO2e):\n` +
       `   Prevents bunker fuel idle burn in high-risk zones, delivering audited Scope-3 GHG compliance for EU CSRD & SEC climate reporting disclosure.`
     );
-  }
-};
+  },
 
+};
