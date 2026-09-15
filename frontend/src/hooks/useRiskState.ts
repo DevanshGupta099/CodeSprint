@@ -55,5 +55,25 @@ export function useRiskState({
     }
   }, [orgId]);
 
-  return { riskState, lastPolledAt, isPolling, error, refreshNow: poll };
+  useEffect(() => {
+    if (!enabled) return;
+
+    // Initial poll
+    poll();
+
+    // 3–5s polling interval
+    const interval = setInterval(() => {
+      poll();
+    }, intervalMs);
+
+    return () => clearInterval(interval);
+  }, [enabled, intervalMs, poll]);
+
+  return {
+    riskState,
+    lastPolledAt,
+    isPolling,
+    error,
+    refreshNow: poll,
+  };
 }
