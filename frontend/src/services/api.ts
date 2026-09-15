@@ -518,4 +518,64 @@ export const api = {
     );
   },
 
+  // 12. Multi-BOM Presets Catalog
+  async getBOMPresets(): Promise<BOMPresetInfo[]> {
+    try {
+      const res = await fetch(`${API_BASE}/scenarios/boms`, { signal: AbortSignal.timeout(1500) });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.presets && Array.isArray(data.presets)) {
+          return data.presets.map((p: any) => ({
+            ...BOM_PRESETS_CATALOG[p.key],
+            ...p,
+          }));
+        }
+      }
+    } catch {
+      // Fallback below
+    }
+    return Object.values(BOM_PRESETS_CATALOG);
+  },
+
+  // 13. Load Multi-BOM Architecture Preset
+  async loadBOMPreset(
+    presetKey: string,
+    orgId: string = '00000000-0000-0000-0000-000000000001'
+  ): Promise<{ dag: SupplyChainDAGResponse; message: string; preset: BOMPresetInfo }> {
+    const presetInfo = BOM_PRESETS_CATALOG[presetKey] || BOM_PRESETS_CATALOG.EV_BATTERY_PACK;
+    try {
+      const res = await fetch(`${API_BASE}/scenarios/boms/${presetKey}/load`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orgId }),
+        signal: AbortSignal.timeout(2500),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const freshDag = await this.getSupplyChainDAG(orgId);
+        simulator.loadBOM(presetKey);
+        return {
+          dag: freshDag && freshDag.nodes?.length > 0 ? freshDag : simulator.getDAG(),
+          message: data.message || `Activated ${presetInfo.title}`,
+          preset: presetInfo,
+        };
+      }
+    } catch {
+      // Fallback below
+    }
+
+    const dag = simulator.loadBOM(presetKey);
+    return {
+      dag,
+      message: `Active BOM: ${presetInfo.title} (${presetInfo.nodeCount} nodes)`,
+      preset: presetInfo,
+    };
+  },
+
+  getActiveBOMKey(): string {
+    return simulator.getActiveBOMKey();
+  }
 };
+
+
