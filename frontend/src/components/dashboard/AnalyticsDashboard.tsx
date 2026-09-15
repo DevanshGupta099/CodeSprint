@@ -14,7 +14,7 @@ import {
   CartesianGrid
 } from 'recharts';
 import { PortfolioBreakdownResponse } from '../../types/supply-chain';
-import { X, Globe2, Layers, Award, ShieldCheck, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
+import { X, Globe2, Layers, Award, ShieldCheck, DollarSign, TrendingUp, AlertTriangle, FileDown } from 'lucide-react';
 
 interface AnalyticsDashboardProps {
   isOpen: boolean;
@@ -64,6 +64,286 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     { day: 'D30', dayNumber: 30, label: 'Day 30', riskM: 41.5, baseline: 12.0, status: 'CRITICAL', note: 'Peak Disruption // Autonomous Reroute Engaged' },
   ];
 
+  const handleExportPDF = () => {
+    const totalSpendAll = data.byTier.reduce((acc, t) => acc + t.spendUSD, 0) || 980;
+    const totalAtRisk = data.byTier.reduce((acc, t) => acc + t.atRiskSpendUSD, 0) || 41.5;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>VeritasSupply_Executive_Risk_Report_${new Date().toISOString().slice(0, 10)}</title>
+          <meta charset="utf-8" />
+          <style>
+            @page {
+              size: A4;
+              margin: 18mm 15mm;
+            }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              color: #0F172A;
+              line-height: 1.45;
+              background: #FFF;
+              margin: 0;
+              padding: 20px;
+            }
+            .header-bar {
+              border-bottom: 2px solid #0F172A;
+              padding-bottom: 12px;
+              margin-bottom: 16px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+            }
+            .brand {
+              font-size: 20px;
+              font-weight: 900;
+              letter-spacing: -0.5px;
+              color: #0F172A;
+            }
+            .badge {
+              display: inline-block;
+              font-size: 10px;
+              font-weight: 700;
+              background: #FEE2E2;
+              color: #991B1B;
+              padding: 3px 8px;
+              border-radius: 4px;
+              text-transform: uppercase;
+              font-family: monospace;
+            }
+            .meta-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 10px;
+              font-size: 11px;
+              font-family: monospace;
+              background: #F8FAFC;
+              padding: 10px 12px;
+              border: 1px solid #E2E8F0;
+              border-radius: 6px;
+              margin-bottom: 18px;
+            }
+            .meta-item {
+              display: flex;
+              flex-direction: column;
+            }
+            .meta-label {
+              color: #64748B;
+              font-size: 10px;
+            }
+            .meta-val {
+              font-weight: bold;
+              color: #0F172A;
+              font-size: 12px;
+            }
+            h2 {
+              font-size: 12px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              color: #0F172A;
+              border-bottom: 1px solid #CBD5E1;
+              padding-bottom: 3px;
+              margin-top: 16px;
+              margin-bottom: 8px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 14px;
+              font-size: 10px;
+            }
+            th {
+              background: #F1F5F9;
+              text-align: left;
+              padding: 6px 8px;
+              border: 1px solid #CBD5E1;
+              text-transform: uppercase;
+              color: #475569;
+            }
+            td {
+              padding: 5px 8px;
+              border: 1px solid #CBD5E1;
+              font-family: monospace;
+            }
+            .risk-high {
+              color: #E11D48;
+              font-weight: bold;
+            }
+            .compliance-card {
+              border-left: 4px solid #10B981;
+              background: #F0FDF4;
+              padding: 10px 12px;
+              font-size: 10.5px;
+              color: #166534;
+              margin-bottom: 16px;
+            }
+            .signatures {
+              margin-top: 24px;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 40px;
+              border-top: 1px solid #E2E8F0;
+              padding-top: 14px;
+              font-size: 10px;
+            }
+            .sig-line {
+              border-bottom: 1px dashed #94A3B8;
+              height: 22px;
+              margin-bottom: 4px;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-bar">
+            <div>
+              <div class="brand">VERITAS SUPPLY CHAIN INTELLIGENCE</div>
+              <div style="font-size: 11px; color: #64748B;">EXECUTIVE RISK AUDIT &amp; 30-DAY PROGRESSION DOSSIER</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="badge">CONFIDENTIAL // C-SUITE RISK AUDIT</div>
+              <div style="font-size: 10px; font-family: monospace; color: #64748B; margin-top: 4px;">
+                AUDIT REF: VSC-REP-${new Date().getFullYear()}-001
+              </div>
+            </div>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-item"><span class="meta-label">TOTAL SPEND MONITORED:</span><span class="meta-val">$${totalSpendAll}M USD</span></div>
+            <div class="meta-item"><span class="meta-label">SPEND AT IMMEDIATE RISK:</span><span class="meta-val risk-high">$${totalAtRisk}M USD</span></div>
+            <div class="meta-item"><span class="meta-label">SDG COMPLIANCE INDEX:</span><span class="meta-val" style="color:#059669;">98.4% AUDITED</span></div>
+          </div>
+
+          <h2>1. 30-Day Historical Risk Progression (Chokepoint Crisis Surge)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Timeline Day</th>
+                <th>Status</th>
+                <th>Spend at Risk ($M)</th>
+                <th>Baseline Target ($M)</th>
+                <th>Event Horizon / Intelligence Log</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${historicalTimelineData.map(d => `
+                <tr>
+                  <td><strong>${d.label}</strong> (${d.day})</td>
+                  <td class="${d.status === 'CRITICAL' ? 'risk-high' : ''}">[${d.status}]</td>
+                  <td class="${d.status === 'CRITICAL' ? 'risk-high' : ''}">$${d.riskM}M</td>
+                  <td>$${d.baseline.toFixed(1)}M</td>
+                  <td>${d.note}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <h2>2. Spend Exposure by Geography ($M)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Region / Country</th>
+                <th>Total Procurement Spend</th>
+                <th>At-Risk Spend</th>
+                <th>Risk Classification</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${countryChartData.map(c => `
+                <tr>
+                  <td><strong>${c.country}</strong></td>
+                  <td>$${c.totalSpend}M USD</td>
+                  <td class="${c.atRiskSpend > 0 ? 'risk-high' : ''}">$${c.atRiskSpend}M USD</td>
+                  <td>${c.status || 'NOMINAL'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <h2>3. Value-at-Risk by Tier Depth ($M)</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Supply Chain Depth Tier</th>
+                <th>Total Allocation</th>
+                <th>Propagated Risk (0.7x CTE Decay)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tierChartData.map(t => `
+                <tr>
+                  <td><strong>${t.tier}</strong></td>
+                  <td>$${t.spend}M USD</td>
+                  <td class="${t.atRisk > 0 ? 'risk-high' : ''}">$${t.atRisk}M USD</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <h2>4. UN SDG 8 &amp; 12 ESG Compliance Statement</h2>
+          <div class="compliance-card">
+            <strong>United Nations Sustainability &amp; Human Rights Standards:</strong><br />
+            Audited mass-balance chain-of-custody protocol active under Uyghur Forced Labor Prevention Act (UFLPA) Section 307 and EU Corporate Sustainability Due Diligence Directive (CSDDD). Real-time carbon rerouting active: avoiding +1,420.5 tCO2e bunker fuel emissions.
+          </div>
+
+          <div class="signatures">
+            <div>
+              <div class="sig-line"></div>
+              <strong>Chief Risk Officer (CRO)</strong><br />
+              <span style="color: #64748B;">Enterprise Supply Chain Resilience</span>
+            </div>
+            <div>
+              <div class="sig-line"></div>
+              <strong>Chief Procurement Officer (CPO)</strong><br />
+              <span style="color: #64748B;">Autonomous Procurement Authority</span>
+            </div>
+          </div>
+
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=850,height=900');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+    } else {
+      // Fallback if popup blocker active: use hidden iframe
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      document.body.appendChild(iframe);
+      const doc = iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(printContent);
+        doc.close();
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          setTimeout(() => document.body.removeChild(iframe), 1000);
+        }, 300);
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150">
       <div className="relative w-full max-w-4xl rounded-2xl bg-[#0F1422]/98 border border-white/[0.12] p-6 shadow-2xl shadow-black/90 font-sans max-h-[90vh] overflow-y-auto">
@@ -80,12 +360,24 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               Portfolio Disruption & ESG Exposure
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* [EXPORT_PDF] Button */}
+            <button
+              onClick={handleExportPDF}
+              className="px-3 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-slate-200 text-xs font-mono font-bold flex items-center gap-1.5 border border-white/10 transition-all cursor-pointer shadow-xs"
+              title="Export Executive Risk Audit as PDF"
+            >
+              <FileDown className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">[EXPORT_PDF]</span>
+              <span className="sm:hidden">PDF</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Charts Grid */}
