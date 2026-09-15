@@ -53,6 +53,8 @@ export const BOM_PRESETS_CATALOG: Record<string, BOMPresetInfo> = {
   },
 };
 
+export const EV_BATTERY_PACK_DAG_DATA: SupplyChainDAGResponse = INITIAL_DAG_DATA;
+
 export const BOM_PRESET_DAGS: Record<string, SupplyChainDAGResponse> = {
-  EV_BATTERY_PACK: INITIAL_DAG_DATA,
+  EV_BATTERY_PACK: EV_BATTERY_PACK_DAG_DATA,
 };
