@@ -14,8 +14,9 @@ import {
 } from './db/queries.js';
 import { triggerDisruptionSentinel, TriggerDisruptionRequestSchema } from './services/sentinel.js';
 import { generateMitigationMemo } from './services/mitigation.js';
-import { parseBOMCSV, ingestBOMItems } from './services/ingestion.js';
-import { getScenarioCatalog, simulateScenario } from './services/scenarios.js';
+import { parseBOMCSV, parseBOMFile, ingestBOMItems } from './services/ingestion.js';
+import { getScenarioCatalog, simulateScenario, getAvailableBOMPresets, loadBOMPreset } from './services/scenarios.js';
+import { getLiveDisruptionBulletin } from './services/gemini.js';
 import { validateUUIDParam, validateBody } from './middleware/validate.js';
 
 dotenv.config();
@@ -256,26 +257,28 @@ app.get(
   }
 );
 
-// 8. Ingest BOM (CSV Upload or JSON Payload)
+// 8. Ingest BOM (CSV, XLSX, PDF Upload or JSON Payload)
 app.post('/api/ingest', upload.single('file'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const orgId = req.body.orgId || DEFAULT_ORG_ID;
 
     if (req.file) {
-      const csvText = req.file.buffer.toString('utf-8');
-      const { items, errors } = parseBOMCSV(csvText);
+      const { items, format, source, errors } = await parseBOMFile(req.file);
 
       if (items.length === 0) {
         return res.status(400).json({
           error: 'INVALID_BOM_DATA',
-          message: 'No valid BOM line items found in CSV',
+          message: `No valid BOM line items found in uploaded ${format.toUpperCase()} document`,
+          format,
           parseErrors: errors,
         });
       }
 
       const result = await ingestBOMItems(orgId, items);
       return res.json({
-        message: `Successfully ingested ${result.ingestedSuppliersCount} suppliers and linked ${result.linkedEdgesCount} edges`,
+        message: `Successfully ingested ${result.ingestedSuppliersCount} suppliers and linked ${result.linkedEdgesCount} edges via ${format.toUpperCase()} pipeline`,
+        format,
+        source,
         parseErrors: errors.length > 0 ? errors : undefined,
         dag: result.dag,
       });
@@ -291,7 +294,7 @@ app.post('/api/ingest', upload.single('file'), async (req: Request, res: Respons
 
     return res.status(400).json({
       error: 'BAD_REQUEST',
-      message: 'Please upload a CSV file as form-data (field: "file") or provide a JSON array "lineItems"',
+      message: 'Please upload a CSV, XLSX, or PDF file as form-data (field: "file") or provide a JSON array "lineItems"',
     });
   } catch (error: any) {
     if (error.message?.includes('not found')) {
@@ -299,6 +302,35 @@ app.post('/api/ingest', upload.single('file'), async (req: Request, res: Respons
     }
     next(error);
   }
+});
+
+// 9. Multi-BOM Presets Catalog
+app.get('/api/scenarios/boms', (_req: Request, res: Response) => {
+  const presets = getAvailableBOMPresets();
+  res.json({ count: presets.length, presets });
+});
+
+// 10. Load Multi-BOM Architecture Preset
+app.post('/api/scenarios/boms/:presetKey/load', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { presetKey } = req.params;
+    const orgId = req.body.orgId || DEFAULT_ORG_ID;
+    const result = await loadBOMPreset(presetKey, orgId);
+    res.json(result);
+  } catch (error: any) {
+    if (error.message?.includes('not found')) {
+      return res.status(404).json({ error: 'NOT_FOUND', message: error.message });
+    }
+    next(error);
+  }
+});
+
+// 11. Live Maritime & Trade Disruption Intelligence Bulletin
+app.get('/api/disruption/bulletin/:scenarioKey', (req: Request, res: Response) => {
+  const { scenarioKey } = req.params;
+  const country = (req.query.country as string) || 'Global Corridor';
+  const bulletin = getLiveDisruptionBulletin(scenarioKey, country);
+  res.json({ scenarioKey, bulletin });
 });
 
 // Centralized Error Handling Middleware (prevents DB leak)

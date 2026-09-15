@@ -1,0 +1,13 @@
+supplierName,code,country,countryCode,tier,materialCategory,componentName,spendUsd,leadTimeDays,parentSupplierCode,shippingRoute,lat,lng
+AeroSpace Dynamics Prime,ADP-USA,United States,USA,0,Low-Earth Orbit Satellite Constellation,Modular 150kg LEO Satellite Bus,320000000,0,ROOT,Cape Canaveral Launch Prep Corridor,28.3922,-80.6077
+Orbital Propulsion Systems,OPS-FRA,France,FRA,1,Hall-Effect Ion Thrusters,Krypton Electric Propulsion System,78000000,32,ADP-USA,Transatlantic Air Logistics,48.8566,2.3522
+AstroPower Solar Arrays,ASA-DEU,Germany,DEU,1,Space-Grade Triple-Junction PV,Foldable GaAs Solar Wing Assembly,64000000,28,ADP-USA,EU Aerotech Highway,50.1109,8.6821
+Helios Photovoltaics KG,HPV-DEU,Germany,DEU,2,Gallium Arsenide Solar Cells,Triple-Junction Space Solar Cells,36000000,40,ASA-DEU,Munich High-Tech Transport,48.1371,11.5761
+Toulouse Valve & Propellant,TVP-FRA,France,FRA,2,High-Pressure Hydrazine & Xenon Tanks,Titanium Liner Carbon Overwrap Tanks,29000000,35,OPS-FRA,Occitanie Aerospace Corridor,43.6047,1.4442
+Kyoto Precision Actuators,KPA-JPN,Japan,JPN,2,Reaction Wheel Assemblies,Hermetic Precision Flywheels,22000000,26,ADP-USA,Pacific Air Cargo Corridor,35.0116,135.7681
+Strait Maritime Heavy Freight,SMH-SGP,Singapore,SGP,3,Malacca Strait Chokepoint Freight,Aerospace Titanium & Specialized Alloys,18000000,45,KPA-JPN,STRAIT_OF_MALACCA,1.29027,103.851959
+Nordic Germanium Smelters,NGS-FIN,Finland,FIN,3,High-Purity Germanium Substrates,Electronic Grade Germanium Ingots,24000000,38,HPV-DEU,Baltic Sea Cargo Corridor,60.1699,24.9384
+Urals Forged Titanium Ltd,UFT-KAZ,Kazakhstan,KAZ,3,Aerospace Grade Titanium Billets,Grade 5 Ti-6Al-4V Forgings,31000000,55,TVP-FRA,Trans-Caspian Freight Route,43.2220,76.8512
+Katanga Neodymium Mining,KNM-COD,DR Congo,COD,4,Rare Earth Neodymium Magnets,Refined Neodymium Powder,14000000,75,SMH-SGP,Central African Mining Line,-11.6667,27.4833
+Hainan Bauxite & Rutile,HBR-CHN,China,CHN,4,Rutile Titanium Mineral Sands,Raw Rutile Ore Concentrates,19000000,62,UFT-KAZ,South China Sea Corridor,19.9961,110.3312
+Kunene Germanium Sands,KGS-NAM,Namibia,NAM,4,Zinc-Germanium Mineral Sands,Raw Germanium Ore Concentrate,12000000,70,NGS-FIN,Atlantic Deep Sea Freight,-18.0600,13.8400
