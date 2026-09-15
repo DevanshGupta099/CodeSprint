@@ -296,3 +296,95 @@ async def ingest_bom(request: Request):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@app.get("/api/scenarios/boms", tags=["Scenarios"])
+def get_bom_presets():
+    """
+    Returns available multi-BOM architecture presets (EV Battery, Aerospace Satellite, Semiconductor MCU).
+    """
+    presets = [
+        {
+            "key": "EV_BATTERY_PACK",
+            "title": "Flagship 800V EV Battery Pack & Powertrain",
+            "industry": "Automotive & Clean Mobility (SDG 12)",
+            "description": "11 Tier-0 to Tier-4 nodes spanning Chile lithium, DRC cobalt, German battery modules, and Bab-el-Mandeb chokepoint.",
+            "fileName": "sample-ev-battery-bom.csv",
+            "nodeCount": 11,
+            "primaryChokepoint": "Apex Maritime Logistics (Bab-el-Mandeb Strait // SPOF)",
+        },
+        {
+            "key": "AEROSPACE_SATELLITE",
+            "title": "LEO Constellation Satellite Bus & Hall Thrusters",
+            "industry": "Aerospace & Defense Telemetry",
+            "description": "12 Tier-0 to Tier-4 nodes spanning French electric propulsion, German space solar arrays, and Malacca Strait shipping.",
+            "fileName": "sample-aerospace-satellite-bom.csv",
+            "nodeCount": 12,
+            "primaryChokepoint": "Strait Maritime Heavy Freight (Strait of Malacca // SPOF)",
+        },
+        {
+            "key": "SEMICONDUCTOR_MCU",
+            "title": "Automotive Grade-0 Microcontroller & Photolithography",
+            "industry": "Advanced Semiconductors & Electronics",
+            "description": "11 Tier-0 to Tier-4 nodes spanning Taiwanese 28nm foundries, Ukrainian laser neon gas refiners, and Xinjiang silicon.",
+            "fileName": "sample-semiconductor-microcontroller-bom.csv",
+            "nodeCount": 11,
+            "primaryChokepoint": "Odesa Noble Gas Refiners (Black Sea Corridor // SPOF)",
+        },
+    ]
+    return {"count": len(presets), "presets": presets}
+
+
+@app.get("/api/disruption/bulletin/{scenario_key}", tags=["Disruption Sentinel"])
+def get_disruption_bulletin(scenario_key: str, country: str = "Global Corridor"):
+    """
+    Returns live maritime & trade disruption intelligence bulletin.
+    """
+    bulletins = {
+        "RED_SEA_BLOCKADE": {
+            "sourceAgency": "United Kingdom Maritime Trade Operations (UKMTO) / Joint Maritime Information Center",
+            "advisoryLevel": "CRITICAL HAZARD // CODE RED",
+            "timestamp": "2026-09-15T09:30:00Z",
+            "headline": "Missile Strikes & Drone Incursions Verified in Southern Red Sea / Bab-el-Mandeb Strait",
+            "maritimeCoordinates": "12°35'N 043°20'E (Hanish Islands to Perim Island)",
+            "affectedCorridor": "Bab-el-Mandeb Shipping Lane (Mandatory Divert via Cape of Good Hope)",
+            "recommendedAction": "Immediate rerouting to secondary South Atlantic freight carriers with audited dual-fuel propulsion (UN SDG 12).",
+        },
+        "XINJIANG_UFLPA_SANCTIONS": {
+            "sourceAgency": "US Customs and Border Protection (CBP) // Uyghur Forced Labor Prevention Act Directive",
+            "advisoryLevel": "REGULATORY EMBARGO // DETENTION ORDER",
+            "timestamp": "2026-09-15T09:30:00Z",
+            "headline": "Immediate Withhold Release Order Enforced on Polysilicon Substrates and Quartz Sand Smelters",
+            "maritimeCoordinates": "43°49'N 087°37'E (Xinjiang Uygur Autonomous Region)",
+            "affectedCorridor": "Trans-Eurasian Overland Silk Rail & Western Port Consignments",
+            "recommendedAction": "Execute full provenance audit and reroute silicon procurement to certified conflict-free domestic or EU smelters (UN SDG 8).",
+        },
+        "DRC_COBALT_MORATORIUM": {
+            "sourceAgency": "OECD Responsible Mineral Supply Chains Directorate // DRC Ministry of Mines",
+            "advisoryLevel": "ETHICAL SOURCING EMBARGO // LEVEL 4",
+            "timestamp": "2026-09-15T09:30:00Z",
+            "headline": "Emergency Moratorium on Artisanal Cobalt Ore Exports Following Child Labor Audit Failure",
+            "maritimeCoordinates": "10°43'S 025°28'E (Katanga Copper-Cobalt Belt)",
+            "affectedCorridor": "East African Mineral Export Highway (Lubumbashi to Dar es Salaam)",
+            "recommendedAction": "Activate mass-balance traceability and transition cathode supply to certified recycled or Australian spodumene refiners.",
+        },
+        "ATACAMA_WATER_CRISIS": {
+            "sourceAgency": "Chilean Environmental Superintendency (SMA) // First Environmental Court of Antofagasta",
+            "advisoryLevel": "ENVIRONMENTAL CEASE-AND-DESIST // SEVERE",
+            "timestamp": "2026-09-15T09:30:00Z",
+            "headline": "Emergency Injunction Halting Brine Pumping in Salar de Atacama due to Extreme Aquifer Depletion",
+            "maritimeCoordinates": "23°51'S 067°08'W (Salar de Atacama Salt Flat Basin)",
+            "affectedCorridor": "Antofagasta Port Mineral Terminal & South American Pacific Rail",
+            "recommendedAction": "Shift lithium refining volume to closed-loop direct lithium extraction (DLE) facilities with zero freshwater consumption (UN SDG 12).",
+        }
+    }
+    b = bulletins.get(scenario_key, {
+        "sourceAgency": "Veritas Disruption Sentinel Intelligence Service",
+        "advisoryLevel": "ELEVATED MONITORING",
+        "timestamp": "2026-09-15T09:30:00Z",
+        "headline": f"Supply Chain Anomaly Detected in {country}",
+        "maritimeCoordinates": "Lat 0.00 / Lng 0.00",
+        "affectedCorridor": "Global Commercial Freight",
+        "recommendedAction": "Inspect upstream dependency tier and prepare pre-qualified alternate suppliers.",
+    })
+    return {"scenarioKey": scenario_key, "bulletin": b}
+
+

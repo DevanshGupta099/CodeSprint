@@ -1,6 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import { DisruptionScenario } from '../types/supply-chain.js';
 import { query } from '../db/index.js';
 import { triggerDisruptionSentinel } from './sentinel.js';
+import { parseBOMCSV, ingestBOMItems } from './ingestion.js';
 
 export const SCENARIO_CATALOG: Record<string, DisruptionScenario> = {
   RED_SEA_BLOCKADE: {
@@ -80,4 +83,106 @@ export async function simulateScenario(scenarioKey: string) {
     sourceSummary: `[SCENARIO: ${scenario.key}] ${scenario.narrative}`,
     sourceUrl: `https://veritassupply.internal/intel/scenarios/${scenario.key.toLowerCase()}`,
   });
+}
+
+/**
+ * Multi-BOM Architecture Preset Catalog
+ */
+export interface BOMPreset {
+  key: string;
+  title: string;
+  industry: string;
+  description: string;
+  fileName: string;
+  nodeCount: number;
+  primaryChokepoint: string;
+}
+
+export const BOM_PRESETS: Record<string, BOMPreset> = {
+  EV_BATTERY_PACK: {
+    key: 'EV_BATTERY_PACK',
+    title: 'Flagship 800V EV Battery Pack & Powertrain',
+    industry: 'Automotive & Clean Mobility (SDG 12)',
+    description: '11 Tier-0 to Tier-4 nodes spanning Chile lithium, DRC cobalt, German battery modules, and Bab-el-Mandeb chokepoint.',
+    fileName: 'sample-ev-battery-bom.csv',
+    nodeCount: 11,
+    primaryChokepoint: 'Apex Maritime Logistics (Bab-el-Mandeb Strait // SPOF)',
+  },
+  AEROSPACE_SATELLITE: {
+    key: 'AEROSPACE_SATELLITE',
+    title: 'LEO Constellation Satellite Bus & Hall Thrusters',
+    industry: 'Aerospace & Defense Telemetry',
+    description: '12 Tier-0 to Tier-4 nodes spanning French electric propulsion, German space solar arrays, and Malacca Strait shipping.',
+    fileName: 'sample-aerospace-satellite-bom.csv',
+    nodeCount: 12,
+    primaryChokepoint: 'Strait Maritime Heavy Freight (Strait of Malacca // SPOF)',
+  },
+  SEMICONDUCTOR_MCU: {
+    key: 'SEMICONDUCTOR_MCU',
+    title: 'Automotive Grade-0 Microcontroller & Photolithography',
+    industry: 'Advanced Semiconductors & Electronics',
+    description: '11 Tier-0 to Tier-4 nodes spanning Taiwanese 28nm foundries, Ukrainian laser neon gas refiners, and Xinjiang silicon.',
+    fileName: 'sample-semiconductor-microcontroller-bom.csv',
+    nodeCount: 11,
+    primaryChokepoint: 'Odesa Noble Gas Refiners (Black Sea Corridor // SPOF)',
+  },
+};
+
+export function getAvailableBOMPresets(): BOMPreset[] {
+  return Object.values(BOM_PRESETS);
+}
+
+/**
+ * Loads a specified BOM Preset into the database for the given organization
+ */
+export async function loadBOMPreset(presetKey: string, orgId: string) {
+  const preset = BOM_PRESETS[presetKey];
+  if (!preset) {
+    throw new Error(`BOM Preset '${presetKey}' not found. Available presets: ${Object.keys(BOM_PRESETS).join(', ')}`);
+  }
+
+  // Locate the CSV file
+  const possiblePaths = [
+    path.resolve('data', preset.fileName),
+    path.resolve('../data', preset.fileName),
+    path.join(process.cwd(), 'data', preset.fileName),
+    path.join(process.cwd(), '..', 'data', preset.fileName),
+  ];
+
+  let csvPath = '';
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      csvPath = p;
+      break;
+    }
+  }
+
+  if (!csvPath) {
+    throw new Error(`Data file '${preset.fileName}' not found for preset '${presetKey}'`);
+  }
+
+  const csvContent = fs.readFileSync(csvPath, 'utf-8');
+  const { items, errors } = parseBOMCSV(csvContent);
+
+  if (items.length === 0) {
+    throw new Error(`Failed to parse items for preset '${presetKey}': ${JSON.stringify(errors)}`);
+  }
+
+  // Clean existing edges and suppliers for this org to ensure clean DAG reconstruction
+  await query(
+    `DELETE FROM supplier_edges WHERE parent_supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)
+     OR child_supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`,
+    [orgId]
+  );
+  await query(`DELETE FROM disruption_events WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`, [orgId]);
+  await query(`DELETE FROM risk_scores WHERE supplier_id IN (SELECT id FROM suppliers WHERE org_id = $1)`, [orgId]);
+  await query(`DELETE FROM suppliers WHERE org_id = $1`, [orgId]);
+
+  const ingestionResult = await ingestBOMItems(orgId, items);
+
+  return {
+    preset,
+    message: `Successfully activated '${preset.title}' with ${ingestionResult.ingestedSuppliersCount} suppliers and ${ingestionResult.linkedEdgesCount} edges`,
+    dag: ingestionResult.dag,
+  };
 }
