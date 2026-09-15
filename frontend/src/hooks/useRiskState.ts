@@ -26,5 +26,34 @@ export function useRiskState({
   const callbackRef = useRef(onRiskStateChange);
   callbackRef.current = onRiskStateChange;
 
-  return { riskState, lastPolledAt, isPolling, error };
+  const poll = useCallback(async () => {
+    try {
+      setIsPolling(true);
+      const state = await api.getRiskState(orgId);
+      setLastPolledAt(new Date());
+      setError(null);
+
+      // Create a deterministic signature of critical state fields
+      const signature = JSON.stringify({
+        activeDisruptions: state.portfolioMetrics.activeDisruptionsCount,
+        totalSpendAtRisk: state.portfolioMetrics.totalSpendAtRiskUSD,
+        avoidedCarbon: state.portfolioMetrics.avoidedScope3Tco2e,
+        nodes: state.nodes.map((n) => `${n.supplierId}:${n.status}:${n.riskScore}`),
+      });
+
+      if (signature !== prevSignatureRef.current) {
+        prevSignatureRef.current = signature;
+        setRiskState(state);
+        if (callbackRef.current) {
+          callbackRef.current(state);
+        }
+      }
+    } catch (err: any) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setIsPolling(false);
+    }
+  }, [orgId]);
+
+  return { riskState, lastPolledAt, isPolling, error, refreshNow: poll };
 }
