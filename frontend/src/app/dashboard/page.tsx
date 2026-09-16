@@ -53,6 +53,27 @@ export default function VeritasSupplyDashboard() {
     insight: true,
   });
 
+  // Segmented date range and granularity state (controlled by SubHeaderToolbar)
+  const [range1, setRange1] = useState<string>('Jan 01 - July 31');
+  const [range2, setRange2] = useState<string>('Aug 01 - Dec 31');
+  const [granularity, setGranularity] = useState<string>('Daily');
+
+  const handleResetFilters = useCallback(() => {
+    setRange1('Jan 01 - July 31');
+    setRange2('Aug 01 - Dec 31');
+    setGranularity('Daily');
+  }, []);
+
+  const handleSetAllWidgets = useCallback((visible: boolean) => {
+    setVisibleWidgets({
+      funnel: visible,
+      var: visible,
+      volatility: visible,
+      equalizer: visible,
+      insight: visible,
+    });
+  }, []);
+
   // Automated background polling hook (Task 1: 3-5s setInterval against /api/risk-state/:orgId)
   useRiskState({
     orgId: '00000000-0000-0000-0000-000000000001',
@@ -320,6 +341,14 @@ export default function VeritasSupplyDashboard() {
         }
         visibleWidgets={visibleWidgets}
         onToggleWidget={(key) => setVisibleWidgets(prev => ({ ...prev, [key]: !prev[key] }))}
+        onSetAllWidgets={handleSetAllWidgets}
+        range1={range1}
+        onRange1Change={setRange1}
+        range2={range2}
+        onRange2Change={setRange2}
+        granularity={granularity}
+        onGranularityChange={setGranularity}
+        onResetFilters={handleResetFilters}
         onAddWidget={() => setActiveTab('graph')}
       />
 
@@ -339,6 +368,9 @@ export default function VeritasSupplyDashboard() {
                       setActiveTab('graph');
                     }}
                     isProcessingPrompt={isProcessingAi}
+                    range1={range1}
+                    range2={range2}
+                    granularity={granularity}
                   />
                 </div>
               )}
@@ -349,6 +381,9 @@ export default function VeritasSupplyDashboard() {
                   <ValueAtRiskCard
                     totalSpendAtRiskUSD={spendAtRiskUSD}
                     isDisrupted={isDisrupted}
+                    range1={range1}
+                    range2={range2}
+                    granularity={granularity}
                   />
                 </div>
               )}
@@ -358,12 +393,19 @@ export default function VeritasSupplyDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {/* Bottom Left: Stepped Volatility Area Chart */}
               {visibleWidgets.volatility && (
-                <SteppedVolatilityCard />
+                <SteppedVolatilityCard 
+                  range1={range1}
+                  granularity={granularity}
+                />
               )}
 
               {/* Bottom Center: Dual Equalizer Histogram Card */}
               {visibleWidgets.equalizer && (
-                <DualEqualizerHistogramCard />
+                <DualEqualizerHistogramCard 
+                  granularity={granularity}
+                  range1={range1}
+                  range2={range2}
+                />
               )}
 
               {/* Bottom Right: Hero Sunset Gradient AI Insight Card */}

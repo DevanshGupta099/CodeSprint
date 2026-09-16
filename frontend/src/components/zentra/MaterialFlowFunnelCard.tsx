@@ -26,12 +26,18 @@ interface MaterialFlowFunnelCardProps {
   onExplorePrompt?: (prompt: string) => void;
   onSelectStage?: (stageId: string) => void;
   isProcessingPrompt?: boolean;
+  range1?: string;
+  range2?: string;
+  granularity?: string;
 }
 
 export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
   onExplorePrompt,
   onSelectStage,
   isProcessingPrompt = false,
+  range1 = 'Jan 01 - July 31',
+  range2 = 'Aug 01 - Dec 31',
+  granularity = 'Daily',
 }) => {
   const { isDark } = useTheme();
   const [selectedStageId, setSelectedStageId] = useState<string>('tier-2');
@@ -40,47 +46,58 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
     'I want to know what caused the bottleneck from Tier-3 to semiconductor-fabs'
   );
 
+  // Dynamic scale factor based on range1
+  const stageScale = 
+    range1 === 'Q1 (Jan - Mar)' ? 0.35 :
+    range1 === 'Q2 (Apr - Jun)' ? 0.48 :
+    range1 === 'Q3 (Jul - Sep)' ? 0.62 :
+    range1 === 'Q4 (Oct - Dec)' ? 0.75 :
+    range1 === 'H1 (Jan - Jun)' ? 0.78 :
+    granularity === 'Hourly CTE' ? 0.08 : 1.0;
+
+  const comparisonSuffix = range2 ? `vs ${range2.split(' ')[0]}` : '';
+
   const stages: StageData[] = [
     {
       id: 'tier-4',
       name: 'Tier-4 Extraction',
       sub: 'Raw Mining',
-      volume: '84.2k',
-      pillValue: '+14.2%',
-      height: 155,
+      volume: `${(84.2 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `-14.2% ${comparisonSuffix}` : '+14.2%',
+      height: Math.round(155 * (0.85 + 0.15 * stageScale)),
     },
     {
       id: 'tier-3',
       name: 'Tier-3 Refining',
       sub: 'Smelters',
-      volume: '68.5k',
-      pillValue: '+8.4%',
-      height: 128,
+      volume: `${(68.5 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `-8.4% ${comparisonSuffix}` : '+8.4%',
+      height: Math.round(128 * (0.85 + 0.15 * stageScale)),
     },
     {
       id: 'tier-2',
       name: 'Tier-2 Fab Supply',
       sub: 'Chips & PCBs',
-      volume: '51.3k',
-      pillValue: '-18.0%',
-      height: 104,
+      volume: `${(51.3 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q3 (Jul - Sep)' ? `-28.4% ${comparisonSuffix}` : '-18.0%',
+      height: Math.round(104 * (0.85 + 0.15 * stageScale)),
       isSelected: true,
     },
     {
       id: 'tier-1',
       name: 'Tier-1 Assembly',
       sub: 'Battery Packs',
-      volume: '42.1k',
-      pillValue: '+5.2%',
-      height: 82,
+      volume: `${(42.1 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `+3.1% ${comparisonSuffix}` : '+5.2%',
+      height: Math.round(82 * (0.85 + 0.15 * stageScale)),
     },
     {
       id: 'tier-0',
       name: 'Final Deliveries',
       sub: 'Gigafactory',
-      volume: '36.8k',
-      pillValue: '+12.1%',
-      height: 64,
+      volume: `${(36.8 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `+8.6% ${comparisonSuffix}` : '+12.1%',
+      height: Math.round(64 * (0.85 + 0.15 * stageScale)),
     },
   ];
 
@@ -116,6 +133,22 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
 
   return (
     <div className="tactile-card p-4 sm:p-6 md:p-7 select-none font-sans flex flex-col justify-between overflow-hidden">
+      {/* Dynamic Filter Context Header */}
+      <div className="flex items-center justify-between pb-3 mb-1 border-b border-neutral-100 dark:border-white/5">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+            Material Flow Funnel
+          </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 font-semibold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+            <span>{range1} vs {range2}</span>
+          </span>
+        </div>
+        <span className="text-[11px] font-mono text-neutral-400 dark:text-slate-500 hidden sm:inline">
+          Resolution: <span className="text-neutral-700 dark:text-slate-300 font-semibold">{granularity}</span>
+        </span>
+      </div>
+
       {/* TOP LABEL GRID (5 STAGES) - MOBILE HORIZONTALLY SCROLLABLE, DESKTOP 5-COL GRID */}
       <div className="flex sm:grid sm:grid-cols-5 overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:divide-x sm:divide-neutral-200/80 dark:sm:divide-white/10 pb-3 sm:pb-5 border-b border-neutral-100 dark:border-white/10 no-scrollbar">
         {stages.map((st) => {

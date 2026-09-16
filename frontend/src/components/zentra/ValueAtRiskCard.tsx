@@ -14,59 +14,63 @@ interface ValueCategory {
 interface ValueAtRiskCardProps {
   totalSpendAtRiskUSD?: number;
   isDisrupted?: boolean;
+  range1?: string;
+  range2?: string;
+  granularity?: string;
 }
+
+const RANGE_FACTORS: Record<string, number> = {
+  'Q1 (Jan - Mar)': 0.32,
+  'Q2 (Apr - Jun)': 0.44,
+  'Q3 (Jul - Sep)': 0.58,
+  'Q4 (Oct - Dec)': 0.72,
+  'H1 (Jan - Jun)': 0.76,
+  'YTD Baseline': 0.90,
+  'Jan 01 - July 31': 1.0,
+};
 
 export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
   totalSpendAtRiskUSD,
   isDisrupted = false,
+  range1 = 'Jan 01 - July 31',
+  range2 = 'Aug 01 - Dec 31',
+  granularity = 'Daily',
 }) => {
-  const displayAmount = totalSpendAtRiskUSD 
-    ? `$${totalSpendAtRiskUSD.toLocaleString('en-US')}` 
-    : isDisrupted 
-    ? '$41,540,000' 
-    : '$12,000,000';
+  const factor = RANGE_FACTORS[range1] ?? 1.0;
+  const baseNominal = 12000000;
+  const baseDisrupted = 41540000;
 
-  const categories: ValueCategory[] = isDisrupted ? [
+  const effectiveTotalUSD = isDisrupted 
+    ? Math.round(baseDisrupted * factor) 
+    : totalSpendAtRiskUSD && totalSpendAtRiskUSD !== 12000000 
+    ? Math.round(totalSpendAtRiskUSD * factor)
+    : Math.round(baseNominal * factor);
+
+  const displayAmount = `$${effectiveTotalUSD.toLocaleString('en-US')}`;
+
+  const semiAmount = Math.round(effectiveTotalUSD * (isDisrupted ? 0.64 : 0.60));
+  const mineralAmount = Math.round(effectiveTotalUSD * (isDisrupted ? 0.25 : 0.30));
+  const freightAmount = effectiveTotalUSD - semiAmount - mineralAmount;
+
+  const categories: ValueCategory[] = [
     {
       label: 'Semiconductor Allocation',
-      amount: '$26,800,000',
-      pct: 64,
+      amount: `$${semiAmount.toLocaleString('en-US')}`,
+      pct: isDisrupted ? 64 : 60,
       patternUrl: 'url(#stripe-green)',
       baseColor: '#10B981',
     },
     {
       label: 'Mineral Smelting Contracts',
-      amount: '$10,400,000',
-      pct: 25,
+      amount: `$${mineralAmount.toLocaleString('en-US')}`,
+      pct: isDisrupted ? 25 : 30,
       patternUrl: 'url(#stripe-blue)',
       baseColor: '#3B82F6',
     },
     {
       label: 'Freight & Maritime Transit',
-      amount: '$4,340,000',
-      pct: 11,
-      patternUrl: 'url(#stripe-pink)',
-      baseColor: '#F43F5E',
-    },
-  ] : [
-    {
-      label: 'Semiconductor Allocation',
-      amount: '$7,200,000',
-      pct: 60,
-      patternUrl: 'url(#stripe-green)',
-      baseColor: '#10B981',
-    },
-    {
-      label: 'Mineral Smelting Contracts',
-      amount: '$3,600,000',
-      pct: 30,
-      patternUrl: 'url(#stripe-blue)',
-      baseColor: '#3B82F6',
-    },
-    {
-      label: 'Freight & Maritime Transit',
-      amount: '$1,200,000',
-      pct: 10,
+      amount: `$${freightAmount.toLocaleString('en-US')}`,
+      pct: isDisrupted ? 11 : 10,
       patternUrl: 'url(#stripe-pink)',
       baseColor: '#F43F5E',
     },
@@ -75,10 +79,18 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
   return (
     <div className="tactile-card p-6 sm:p-7 select-none font-sans flex flex-col justify-between">
       {/* Header */}
-      <div className="flex items-center justify-between pb-1">
-        <h3 className="text-sm font-semibold text-neutral-500 dark:text-slate-400 uppercase tracking-wider">
-          Total Value at Risk
-        </h3>
+      <div className="flex items-start justify-between pb-1">
+        <div>
+          <h3 className="text-sm font-semibold text-neutral-500 dark:text-slate-400 uppercase tracking-wider">
+            Total Value at Risk
+          </h3>
+          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-mono text-neutral-500 dark:text-slate-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0" />
+            <span className="truncate max-w-[200px]">{range1} vs {range2}</span>
+            <span>·</span>
+            <span className="font-semibold text-neutral-700 dark:text-slate-300">{granularity}</span>
+          </div>
+        </div>
         <button className="text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200 p-1 cursor-pointer">
           <MoreHorizontal className="w-4 h-4" />
         </button>
@@ -110,7 +122,7 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
       <p className="text-xs text-neutral-500 dark:text-slate-400 font-medium mb-4">
         {isDisrupted 
           ? 'CRITICAL ALERT // Active CTE shockwave propagating upstream' 
-          : 'Standard operational baseline across Tier-1 to Tier-4 supply corridors'}
+          : `Standard operational baseline computed for ${range1} corridor`}
       </p>
 
       {/* Three Categorized Progress Bars (Striped 3D Pills) */}
