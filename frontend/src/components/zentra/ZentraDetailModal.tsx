@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Download,
   FileText,
-  Check
+  Check,
+  TrendingUp
 } from 'lucide-react';
 import { ZentraTab } from './GlobalHeader';
 import { INITIAL_DAG_DATA } from '../../data/seed-graph';
@@ -27,6 +28,7 @@ interface ZentraDetailModalProps {
   onClose: () => void;
   onTriggerDisruption?: (supplierId: string) => void;
   onSelectSupplier?: (supplier: Supplier) => void;
+  onOpenAnalytics?: () => void;
 }
 
 export const ZentraDetailModal: React.FC<ZentraDetailModalProps> = ({
@@ -34,10 +36,11 @@ export const ZentraDetailModal: React.FC<ZentraDetailModalProps> = ({
   onClose,
   onTriggerDisruption,
   onSelectSupplier,
+  onOpenAnalytics,
 }) => {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
-  if (activeTab === 'overview' || activeTab === 'graph') return null;
+  if (activeTab === 'overview' || activeTab === 'graph' || activeTab === 'reports') return null;
 
   const handleDownloadReport = (format: 'md' | 'csv') => {
     let content = '';
@@ -146,7 +149,6 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
                 {activeTab === 'disruptions' && 'Multi-Tier Disruption & Shock Simulator'}
                 {activeTab === 'sanctions' && 'UFLPA Sanctions & Forced Labor Sentinel'}
                 {activeTab === 'esg' && 'Scope-3 Carbon & Environmental Compliance'}
-                {activeTab === 'reports' && 'Executive Compliance & Audit Reports'}
               </h3>
             </div>
 
@@ -162,7 +164,7 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
           {activeTab === 'suppliers' && (
             <div className="flex flex-col gap-3">
               <div className="text-xs text-neutral-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-                <span>14 mapped nodes across Tier-0 (Assembly) to Tier-4 (Mines & Maritime Choke Points)</span>
+                <span>{INITIAL_DAG_DATA.nodes.length} mapped nodes across Tier-0 (Assembly) to Tier-4 (Mines & Maritime Choke Points)</span>
                 <span className="text-[11px] font-mono text-neutral-400 dark:text-slate-500">Click any row to inspect</span>
               </div>
               <div className="grid grid-cols-1 gap-2">
@@ -175,21 +177,21 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
                         onClose();
                       }
                     }}
-                    className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/90 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 transition-all flex items-center justify-between gap-3 cursor-pointer group"
+                    className="p-3 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/90 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 transition-all flex items-center justify-between gap-2.5 sm:gap-3 cursor-pointer group"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-neutral-900 dark:text-white text-xs sm:text-sm group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="font-bold text-neutral-900 dark:text-white text-xs sm:text-sm group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
                           {node.name}
                         </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white dark:bg-slate-800 text-neutral-600 dark:text-slate-300 border border-black/[0.06] dark:border-white/10">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-bold bg-white dark:bg-slate-800 text-neutral-600 dark:text-slate-300 border border-black/[0.06] dark:border-white/10 shrink-0">
                           Tier {node.tier}
                         </span>
-                        <span className="text-[10px] font-mono text-neutral-400 dark:text-slate-400">
+                        <span className="text-[10px] font-mono text-neutral-400 dark:text-slate-400 shrink-0">
                           {node.code}
                         </span>
                       </div>
-                      <p className="text-xs text-neutral-500 dark:text-slate-400 mt-1">
+                      <p className="text-[11px] sm:text-xs text-neutral-500 dark:text-slate-400 mt-1 truncate">
                         {node.materialCategory} • {node.country} ({node.countryCode}) • Lead Time: {node.leadTimeDays}d
                       </p>
                     </div>
@@ -199,7 +201,7 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
                         ${node.spend}M
                       </span>
                       <span
-                        className={`text-[10px] font-semibold uppercase ${
+                        className={`text-[9px] sm:text-[10px] font-semibold uppercase ${
                           node.status === 'CRITICAL'
                             ? 'text-rose-600 dark:text-rose-400'
                             : node.status === 'ELEVATED'
@@ -234,7 +236,9 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
                   <span className="text-[11px] font-bold text-neutral-400 dark:text-slate-400 uppercase font-mono block mb-1">
                     Screened Suppliers
                   </span>
-                  <span className="text-3xl font-extrabold font-mono text-neutral-900 dark:text-white">14 / 14</span>
+                  <span className="text-3xl font-extrabold font-mono text-neutral-900 dark:text-white">
+                    {INITIAL_DAG_DATA.nodes.length} / {INITIAL_DAG_DATA.nodes.length}
+                  </span>
                   <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold block mt-1">100% Provenance Coverage</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 border border-black/[0.04] dark:border-white/10">
@@ -248,14 +252,14 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
 
               <div className="p-4 rounded-2xl bg-neutral-900 dark:bg-black/60 dark:border dark:border-white/10 text-white text-xs">
                 <h4 className="font-bold font-mono text-sky-400 uppercase text-[11px] mb-1">
-                  High-Scrutiny Entity: Xinjiang PureSilicon Ltd (XPS-CHN)
+                  High-Scrutiny Entity: Sino-Refine Silicon Co (SRS-CHN)
                 </h4>
                 <p className="text-slate-300 text-xs leading-relaxed mb-3">
-                  Tier-3 smelting node flagged for regional coal-grid dependency and strict export presumption. Pre-qualified Nordic failover ready.
+                  Tier-3 smelting node in Xinjiang flagged for regional coal-grid dependency and strict UFLPA export presumption. Pre-qualified alternate failover ready.
                 </p>
                 <button
                   onClick={() => {
-                    if (onTriggerDisruption) onTriggerDisruption('10000000-0000-0000-0000-000000000006');
+                    if (onTriggerDisruption) onTriggerDisruption('30000000-0000-0000-0000-000000000003');
                     onClose();
                   }}
                   className="px-4 py-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -312,61 +316,81 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
               </p>
 
               <div className="grid grid-cols-1 gap-2.5">
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer">
-                  <div>
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 cursor-pointer">
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold text-neutral-900 dark:text-white text-xs sm:text-sm block">
                       Bab-el-Mandeb Strait Maritime Blockade
                     </span>
-                    <span className="text-xs text-neutral-500 dark:text-slate-400">
-                      Apex Maritime Logistics (AML-YEM) • Risk: 0.94 • Split Reroute to Vietnam & Mexico
+                    <span className="text-[11px] sm:text-xs text-neutral-500 dark:text-slate-400 mt-0.5 block">
+                      Apex Maritime Logistics (AML-YEM) • Risk: 0.94 • Split Reroute to Cape of Good Hope
                     </span>
                   </div>
                   <button
                     onClick={() => {
-                      if (onTriggerDisruption) onTriggerDisruption('10000000-0000-0000-0000-000000000007');
+                      if (onTriggerDisruption) onTriggerDisruption('30000000-0000-0000-0000-000000000001');
                       onClose();
                     }}
-                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-slate-800 text-white text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-700 transition-colors shrink-0"
+                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-slate-950 text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-100 transition-colors shrink-0 cursor-pointer self-start sm:self-auto"
                   >
                     Simulate
                   </button>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer">
-                  <div>
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 cursor-pointer">
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold text-neutral-900 dark:text-white text-xs sm:text-sm block">
-                      Taiwan Strait Semiconductor Halt
+                      Power Electronics SiC Inverter Bottleneck
                     </span>
-                    <span className="text-xs text-neutral-500 dark:text-slate-400">
-                      DriveTech Inverters (DTI-JPN/TWN) • Risk: 0.88 • Dual Sourcing Failover
+                    <span className="text-[11px] sm:text-xs text-neutral-500 dark:text-slate-400 mt-0.5 block">
+                      DriveTech Inverters Ltd (DTI-JPN) • Risk: 0.88 • Dual Sourcing Failover
                     </span>
                   </div>
                   <button
                     onClick={() => {
-                      if (onTriggerDisruption) onTriggerDisruption('10000000-0000-0000-0000-000000000004');
+                      if (onTriggerDisruption) onTriggerDisruption('10000000-0000-0000-0000-000000000002');
                       onClose();
                     }}
-                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-slate-800 text-white text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-700 transition-colors shrink-0"
+                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-slate-950 text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-100 transition-colors shrink-0 cursor-pointer self-start sm:self-auto"
                   >
                     Simulate
                   </button>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer">
-                  <div>
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 cursor-pointer">
+                  <div className="min-w-0 flex-1">
                     <span className="font-bold text-neutral-900 dark:text-white text-xs sm:text-sm block">
                       Xinjiang Polysilicon Smelter UFLPA Embargo
                     </span>
-                    <span className="text-xs text-neutral-500 dark:text-slate-400">
-                      Xinjiang PureSilicon Ltd (XPS-CHN) • Risk: 0.96 • Rebuttable Presumption
+                    <span className="text-[11px] sm:text-xs text-neutral-500 dark:text-slate-400 mt-0.5 block">
+                      Sino-Refine Silicon Co (SRS-CHN) • Risk: 0.96 • Rebuttable Presumption
                     </span>
                   </div>
                   <button
                     onClick={() => {
-                      if (onTriggerDisruption) onTriggerDisruption('10000000-0000-0000-0000-000000000006');
+                      if (onTriggerDisruption) onTriggerDisruption('30000000-0000-0000-0000-000000000003');
                       onClose();
                     }}
-                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-slate-800 text-white text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-700 transition-colors shrink-0"
+                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-slate-950 text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-100 transition-colors shrink-0 cursor-pointer self-start sm:self-auto"
+                  >
+                    Simulate
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100/80 dark:hover:bg-slate-800/80 border border-black/[0.04] dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer">
+                  <div>
+                    <span className="font-bold text-neutral-900 dark:text-white text-xs sm:text-sm block">
+                      DRC Cobalt Mine Export Moratorium (SDG 8)
+                    </span>
+                    <span className="text-xs text-neutral-500 dark:text-slate-400">
+                      Katanga Artisanal Ore (KAO-COD) • Risk: 0.95 • Hazardous Labor Audit
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (onTriggerDisruption) onTriggerDisruption('40000000-0000-0000-0000-000000000001');
+                      onClose();
+                    }}
+                    className="px-3.5 py-1.5 rounded-full bg-neutral-900 dark:bg-white text-white dark:text-slate-950 text-xs font-semibold hover:bg-neutral-800 dark:hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
                   >
                     Simulate
                   </button>
@@ -375,57 +399,6 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
             </div>
           )}
 
-          {/* TAB CONTENT: REPORTS */}
-          {activeTab === 'reports' && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800/40 text-xs text-indigo-900 dark:text-indigo-200 leading-relaxed flex items-start gap-3">
-                <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold block text-sm mb-1">
-                    Automated Tier-N Provenance & ESG Audit Reports
-                  </span>
-                  Ready for download in Markdown (with CTE risk traces) or CSV tabular format for enterprise ERP integration.
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleDownloadReport('md')}
-                  className="p-5 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100 dark:hover:bg-slate-800 border border-black/[0.06] dark:border-white/10 text-left transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-bold text-xs text-indigo-600 dark:text-indigo-400 uppercase">Audit Dossier</span>
-                    <Download className="w-4 h-4 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-y-0.5 transition-transform" />
-                  </div>
-                  <h4 className="font-bold text-neutral-900 dark:text-white text-sm mb-1">Executive Audit Report (.MD)</h4>
-                  <p className="text-xs text-neutral-500 dark:text-slate-400 leading-relaxed">
-                    Full multi-tier breakdown including recursive CTE propagation matrices, SDG 8 and SDG 12 compliance.
-                  </p>
-                </button>
-
-                <button
-                  onClick={() => handleDownloadReport('csv')}
-                  className="p-5 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100 dark:hover:bg-slate-800 border border-black/[0.06] dark:border-white/10 text-left transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400 uppercase">Tabular Raw Data</span>
-                    <Download className="w-4 h-4 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white group-hover:translate-y-0.5 transition-transform" />
-                  </div>
-                  <h4 className="font-bold text-neutral-900 dark:text-white text-sm mb-1">Supplier Roster (.CSV)</h4>
-                  <p className="text-xs text-neutral-500 dark:text-slate-400 leading-relaxed">
-                    14 monitored supplier nodes with spend, lead times, risk scores, and SPOF flags for spreadsheet tools.
-                  </p>
-                </button>
-              </div>
-
-              {downloadSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-200 dark:border-emerald-800 animate-in fade-in duration-200">
-                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Report successfully generated and downloaded!</span>
-                </div>
-              )}
-            </div>
-          )}
         </motion.div>
       </div>
     </AnimatePresence>

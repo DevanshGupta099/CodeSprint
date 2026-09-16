@@ -14,17 +14,27 @@ import {
   X
 } from 'lucide-react';
 
+export interface VisibleWidgetsState {
+  funnel: boolean;
+  var: boolean;
+  volatility: boolean;
+  equalizer: boolean;
+  insight: boolean;
+}
+
 interface SubHeaderToolbarProps {
   title?: string;
   onAddWidget?: () => void;
-  visibleWidgets?: {
-    funnel: boolean;
-    var: boolean;
-    volatility: boolean;
-    equalizer: boolean;
-    insight: boolean;
-  };
-  onToggleWidget?: (widgetKey: 'funnel' | 'var' | 'volatility' | 'equalizer' | 'insight') => void;
+  visibleWidgets?: VisibleWidgetsState;
+  onToggleWidget?: (widgetKey: keyof VisibleWidgetsState) => void;
+  onSetAllWidgets?: (visible: boolean) => void;
+  range1?: string;
+  onRange1Change?: (range: string) => void;
+  range2?: string;
+  onRange2Change?: (range: string) => void;
+  granularity?: string;
+  onGranularityChange?: (granularity: string) => void;
+  onResetFilters?: () => void;
 }
 
 export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
@@ -32,11 +42,55 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
   onAddWidget,
   visibleWidgets = { funnel: true, var: true, volatility: true, equalizer: true, insight: true },
   onToggleWidget,
+  onSetAllWidgets,
+  range1: propRange1,
+  onRange1Change,
+  range2: propRange2,
+  onRange2Change,
+  granularity: propGranularity,
+  onGranularityChange,
+  onResetFilters,
 }) => {
-  const [range1, setRange1] = useState('Jan 01 - July 31');
-  const [range2, setRange2] = useState('Aug 01 - Dec 31');
-  const [granularity, setGranularity] = useState('Daily');
+  const [internalRange1, setInternalRange1] = useState('Jan 01 - July 31');
+  const [internalRange2, setInternalRange2] = useState('Aug 01 - Dec 31');
+  const [internalGranularity, setInternalGranularity] = useState('Daily');
   const [copied, setCopied] = useState(false);
+
+  const range1 = propRange1 ?? internalRange1;
+  const range2 = propRange2 ?? internalRange2;
+  const granularity = propGranularity ?? internalGranularity;
+
+  const isFiltered = 
+    range1 !== 'Jan 01 - July 31' || 
+    range2 !== 'Aug 01 - Dec 31' || 
+    granularity !== 'Daily';
+
+  const visibleCount = Object.values(visibleWidgets).filter(Boolean).length;
+
+  const handleSelectRange1 = (opt: string) => {
+    setInternalRange1(opt);
+    onRange1Change?.(opt);
+    setOpenDropdown(null);
+  };
+
+  const handleSelectRange2 = (opt: string) => {
+    setInternalRange2(opt);
+    onRange2Change?.(opt);
+    setOpenDropdown(null);
+  };
+
+  const handleSelectGranularity = (opt: string) => {
+    setInternalGranularity(opt);
+    onGranularityChange?.(opt);
+    setOpenDropdown(null);
+  };
+
+  const handleReset = () => {
+    setInternalRange1('Jan 01 - July 31');
+    setInternalRange2('Aug 01 - Dec 31');
+    setInternalGranularity('Daily');
+    onResetFilters?.();
+  };
 
   const [openDropdown, setOpenDropdown] = useState<'range1' | 'range2' | 'granularity' | 'widgets' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,11 +145,29 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
 
       {/* RIGHT SEGMENTED DATE SELECTOR & ACTIONS */}
       <div className="flex items-center flex-wrap gap-2 text-xs">
+        {/* Active Filter Pill with quick Reset */}
+        {isFiltered && (
+          <button
+            onClick={handleReset}
+            className="tactile-badge px-2.5 py-1 text-[10px] sm:text-[11px] font-mono text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 flex items-center gap-1.5 cursor-pointer animate-in fade-in transition-colors mr-1"
+            title="Active filter applied. Click to reset all to default."
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping" />
+            <span className="hidden sm:inline">FILTERED:</span>
+            <span className="font-semibold truncate max-w-[120px]">{granularity}</span>
+            <X className="w-3 h-3 ml-0.5 opacity-70 hover:opacity-100 text-rose-500 dark:text-rose-400" />
+          </button>
+        )}
+
         {/* Pill 1: Range 1 Dropdown */}
         <div className="relative">
           <button 
             onClick={() => setOpenDropdown(openDropdown === 'range1' ? null : 'range1')}
-            className="tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 sm:gap-2 text-neutral-800 dark:text-slate-200 font-medium cursor-pointer"
+            className={`tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-medium cursor-pointer ${
+              range1 !== 'Jan 01 - July 31'
+                ? 'border-cyan-500/50 bg-cyan-50/50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-300'
+                : 'text-neutral-800 dark:text-slate-200'
+            }`}
           >
             <Calendar className="w-3.5 h-3.5 text-neutral-500 dark:text-slate-400" />
             <span className="text-[11px] sm:text-xs">{range1}</span>
@@ -107,10 +179,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
               {range1Options.map(opt => (
                 <button
                   key={opt}
-                  onClick={() => {
-                    setRange1(opt);
-                    setOpenDropdown(null);
-                  }}
+                  onClick={() => handleSelectRange1(opt)}
                   className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                     range1 === opt 
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-slate-950 font-semibold' 
@@ -133,7 +202,11 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         <div className="relative">
           <button 
             onClick={() => setOpenDropdown(openDropdown === 'range2' ? null : 'range2')}
-            className="tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 sm:gap-2 text-neutral-800 dark:text-slate-200 font-medium cursor-pointer"
+            className={`tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-medium cursor-pointer ${
+              range2 !== 'Aug 01 - Dec 31'
+                ? 'border-cyan-500/50 bg-cyan-50/50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-300'
+                : 'text-neutral-800 dark:text-slate-200'
+            }`}
           >
             <Calendar className="w-3.5 h-3.5 text-neutral-500 dark:text-slate-400" />
             <span className="text-[11px] sm:text-xs">{range2}</span>
@@ -141,14 +214,11 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
           </button>
 
           {openDropdown === 'range2' && (
-            <div className="absolute left-0 mt-1.5 w-44 bg-white dark:bg-[#0B0F19] rounded-2xl shadow-xl border border-black/[0.08] dark:border-white/10 p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="absolute left-0 sm:left-auto sm:right-0 mt-1.5 w-44 bg-white dark:bg-[#0B0F19] rounded-2xl shadow-xl border border-black/[0.08] dark:border-white/10 p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
               {range2Options.map(opt => (
                 <button
                   key={opt}
-                  onClick={() => {
-                    setRange2(opt);
-                    setOpenDropdown(null);
-                  }}
+                  onClick={() => handleSelectRange2(opt)}
                   className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                     range2 === opt 
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-slate-950 font-semibold' 
@@ -166,21 +236,22 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         <div className="relative">
           <button 
             onClick={() => setOpenDropdown(openDropdown === 'granularity' ? null : 'granularity')}
-            className="tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 text-neutral-800 dark:text-slate-200 font-medium cursor-pointer"
+            className={`tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 font-medium cursor-pointer ${
+              granularity !== 'Daily'
+                ? 'border-cyan-500/50 bg-cyan-50/50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-300'
+                : 'text-neutral-800 dark:text-slate-200'
+            }`}
           >
             <span className="text-[11px] sm:text-xs">{granularity}</span>
             <ChevronDown className="w-3 h-3 text-neutral-400 dark:text-slate-500" />
           </button>
 
           {openDropdown === 'granularity' && (
-            <div className="absolute right-0 mt-1.5 w-36 bg-white dark:bg-[#0B0F19] rounded-2xl shadow-xl border border-black/[0.08] dark:border-white/10 p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="absolute right-0 mt-1.5 w-40 bg-white dark:bg-[#0B0F19] rounded-2xl shadow-xl border border-black/[0.08] dark:border-white/10 p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
               {granularityOptions.map(opt => (
                 <button
                   key={opt}
-                  onClick={() => {
-                    setGranularity(opt);
-                    setOpenDropdown(null);
-                  }}
+                  onClick={() => handleSelectGranularity(opt)}
                   className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
                     granularity === opt 
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-slate-950 font-semibold' 
@@ -202,6 +273,9 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
             title="Configure Dashboard Widgets"
           >
             <span className="text-[11px] sm:text-xs">Customize</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-neutral-100 dark:bg-slate-800 text-neutral-600 dark:text-slate-400 font-semibold">
+              {visibleCount}/5
+            </span>
             <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-700 dark:text-slate-300" />
           </button>
 
@@ -213,6 +287,24 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
+
+              {/* Quick Actions: Show All / Hide All */}
+              {onSetAllWidgets && (
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  <button
+                    onClick={() => onSetAllWidgets(true)}
+                    className="flex-1 py-1 px-2 text-[10px] font-semibold rounded-lg bg-neutral-100 dark:bg-slate-800 text-neutral-700 dark:text-slate-300 hover:bg-neutral-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  >
+                    Show All
+                  </button>
+                  <button
+                    onClick={() => onSetAllWidgets(false)}
+                    className="flex-1 py-1 px-2 text-[10px] font-semibold rounded-lg bg-neutral-100 dark:bg-slate-800 text-neutral-700 dark:text-slate-300 hover:bg-neutral-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  >
+                    Hide All
+                  </button>
+                </div>
+              )}
 
               <div className="space-y-1.5 text-xs">
                 {[

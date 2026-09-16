@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Layers
 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 interface StageData {
   id: string;
@@ -25,60 +26,78 @@ interface MaterialFlowFunnelCardProps {
   onExplorePrompt?: (prompt: string) => void;
   onSelectStage?: (stageId: string) => void;
   isProcessingPrompt?: boolean;
+  range1?: string;
+  range2?: string;
+  granularity?: string;
 }
 
 export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
   onExplorePrompt,
   onSelectStage,
   isProcessingPrompt = false,
+  range1 = 'Jan 01 - July 31',
+  range2 = 'Aug 01 - Dec 31',
+  granularity = 'Daily',
 }) => {
+  const { isDark } = useTheme();
   const [selectedStageId, setSelectedStageId] = useState<string>('tier-2');
   const [isCopilotCollapsed, setIsCopilotCollapsed] = useState<boolean>(false);
   const [customPrompt, setCustomPrompt] = useState<string>(
     'I want to know what caused the bottleneck from Tier-3 to semiconductor-fabs'
   );
 
+  // Dynamic scale factor based on range1
+  const stageScale = 
+    range1 === 'Q1 (Jan - Mar)' ? 0.35 :
+    range1 === 'Q2 (Apr - Jun)' ? 0.48 :
+    range1 === 'Q3 (Jul - Sep)' ? 0.62 :
+    range1 === 'Q4 (Oct - Dec)' ? 0.75 :
+    range1 === 'H1 (Jan - Jun)' ? 0.78 :
+    granularity === 'Hourly CTE' ? 0.08 : 1.0;
+
+  const comparisonSuffix = range2 ? `vs ${range2.split(' ')[0]}` : '';
+
   const stages: StageData[] = [
     {
       id: 'tier-4',
       name: 'Tier-4 Extraction',
       sub: 'Raw Mining',
-      volume: '84.2k',
-      pillValue: '+14.2%',
-      height: 155,
+      volume: `${(84.2 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `-14.2% ${comparisonSuffix}` : '+14.2%',
+      height: Math.round(155 * (0.85 + 0.15 * stageScale)),
     },
     {
       id: 'tier-3',
       name: 'Tier-3 Refining',
       sub: 'Smelters',
-      volume: '68.5k',
-      pillValue: '+8.4%',
-      height: 128,
+      volume: `${(68.5 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `-8.4% ${comparisonSuffix}` : '+8.4%',
+      height: Math.round(128 * (0.85 + 0.15 * stageScale)),
     },
     {
       id: 'tier-2',
       name: 'Tier-2 Fab Supply',
       sub: 'Chips & PCBs',
-      volume: '51.3k',
-      pillValue: '-18.0%',
-      height: 104,
+      volume: `${(51.3 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q3 (Jul - Sep)' ? `-28.4% ${comparisonSuffix}` : '-18.0%',
+      height: Math.round(104 * (0.85 + 0.15 * stageScale)),
       isSelected: true,
     },
     {
       id: 'tier-1',
       name: 'Tier-1 Assembly',
       sub: 'Battery Packs',
-      volume: '42.1k',
-      pillValue: '+5.2%',
-      height: 82,
+      volume: `${(42.1 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `+3.1% ${comparisonSuffix}` : '+5.2%',
+      height: Math.round(82 * (0.85 + 0.15 * stageScale)),
     },
     {
       id: 'tier-0',
       name: 'Final Deliveries',
       sub: 'Gigafactory',
-      volume: '36.8k',
-      pillValue: '+12.1%',
-      height: 64,
+      volume: `${(36.8 * stageScale).toFixed(1)}k`,
+      pillValue: range1 === 'Q1 (Jan - Mar)' ? `+8.6% ${comparisonSuffix}` : '+12.1%',
+      height: Math.round(64 * (0.85 + 0.15 * stageScale)),
     },
   ];
 
@@ -114,6 +133,22 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
 
   return (
     <div className="tactile-card p-4 sm:p-6 md:p-7 select-none font-sans flex flex-col justify-between overflow-hidden">
+      {/* Dynamic Filter Context Header */}
+      <div className="flex items-center justify-between pb-3 mb-1 border-b border-neutral-100 dark:border-white/5">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+            Material Flow Funnel
+          </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 font-semibold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+            <span>{range1} vs {range2}</span>
+          </span>
+        </div>
+        <span className="text-[11px] font-mono text-neutral-400 dark:text-slate-500 hidden sm:inline">
+          Resolution: <span className="text-neutral-700 dark:text-slate-300 font-semibold">{granularity}</span>
+        </span>
+      </div>
+
       {/* TOP LABEL GRID (5 STAGES) - MOBILE HORIZONTALLY SCROLLABLE, DESKTOP 5-COL GRID */}
       <div className="flex sm:grid sm:grid-cols-5 overflow-x-auto sm:overflow-visible gap-3 sm:gap-0 sm:divide-x sm:divide-neutral-200/80 dark:sm:divide-white/10 pb-3 sm:pb-5 border-b border-neutral-100 dark:border-white/10 no-scrollbar">
         {stages.map((st) => {
@@ -166,6 +201,35 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
           className="w-full h-full overflow-visible"
           preserveAspectRatio="none"
         >
+          <defs>
+            {/* Gradients for 3D Bar Front Faces with theme adaptive opacity */}
+            <linearGradient id="grad-green" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#10B981" stopOpacity={isDark ? "0.65" : "0.85"} />
+              <stop offset="100%" stopColor="#047857" stopOpacity={isDark ? "0.9" : "0.95"} />
+            </linearGradient>
+
+            <linearGradient id="grad-blue" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#3B82F6" stopOpacity={isDark ? "0.65" : "0.85"} />
+              <stop offset="100%" stopColor="#1D4ED8" stopOpacity={isDark ? "0.9" : "0.95"} />
+            </linearGradient>
+
+            <linearGradient id="grad-pink" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FB7185" stopOpacity={isDark ? "0.65" : "0.85"} />
+              <stop offset="100%" stopColor="#E11D48" stopOpacity={isDark ? "0.9" : "0.95"} />
+            </linearGradient>
+
+            <linearGradient id="grad-orange" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#FBBF24" stopOpacity={isDark ? "0.65" : "0.85"} />
+              <stop offset="100%" stopColor="#D97706" stopOpacity={isDark ? "0.9" : "0.95"} />
+            </linearGradient>
+
+            {/* Local fallback stripe-blue */}
+            <pattern id="stripe-blue" width="8" height="8" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="#3B82F6" strokeWidth="4" />
+              <line x1="4" y1="0" x2="4" y2="8" stroke="#60A5FA" strokeWidth="4" />
+            </pattern>
+          </defs>
+
           {/* Ground grid lines */}
           <line x1="20" y1="185" x2="580" y2="185" stroke="currentColor" className="text-slate-300 dark:text-slate-700" strokeWidth="1.5" strokeDasharray="3 3" />
           <line x1="20" y1="130" x2="580" y2="130" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeWidth="1" strokeDasharray="3 3" />
@@ -180,6 +244,24 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
             const dy = 10;
             const isSelected = selectedStageId === st.id;
 
+            // Stage accent color highlights for selection & crisp dark borders
+            const activeHighlightColor = 
+              i === 0 ? '#34D399' :
+              i === 1 ? '#60A5FA' :
+              i === 2 ? '#FDA4AF' :
+              i === 3 ? '#93C5FD' : '#FBBF24';
+
+            // High-contrast, theme-aware border colors:
+            // Selected: Glowing accent stroke in dark mode, prominent accent in light mode
+            // Unselected: Visible crisp light border in dark mode (rgba(255,255,255,0.35))
+            const frontStrokeColor = isSelected
+              ? (isDark ? activeHighlightColor : (i === 2 ? '#E11D48' : '#18181B'))
+              : (isDark ? 'rgba(255, 255, 255, 0.35)' : '#CBD5E1');
+
+            const sideTopStrokeColor = isSelected
+              ? (isDark ? activeHighlightColor : (i === 2 ? '#E11D48' : '#64748B'))
+              : (isDark ? 'rgba(255, 255, 255, 0.3)' : '#CBD5E1');
+
             return (
               <g 
                 key={st.id} 
@@ -191,7 +273,7 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                 <polygon
                   points={`${x},185 ${x + barWidth},185 ${x + barWidth + dx * 1.5},${185 + dy * 0.8} ${x + dx * 1.5},${185 + dy * 0.8}`}
                   fill="#000000"
-                  opacity={isSelected ? 0.08 : 0.03}
+                  opacity={isSelected ? (isDark ? 0.25 : 0.08) : (isDark ? 0.15 : 0.03)}
                 />
 
                 {/* 2. Main Front Face */}
@@ -212,8 +294,8 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                       ? 'url(#stripe-blue)'
                       : 'url(#grad-orange)'
                   }
-                  stroke={isSelected ? '#18181B' : '#CBD5E1'}
-                  strokeWidth={isSelected ? '2' : '0.5'}
+                  stroke={frontStrokeColor}
+                  strokeWidth={isSelected ? '2' : '1'}
                 />
 
                 {/* 3. 3D Isometric Side Extrusion Face */}
@@ -230,9 +312,9 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                       ? '#1D4ED8'
                       : '#D97706'
                   }
-                  opacity={isSelected ? 0.85 : 0.6}
-                  stroke="#CBD5E1"
-                  strokeWidth="0.5"
+                  opacity={isSelected ? 0.95 : 0.75}
+                  stroke={sideTopStrokeColor}
+                  strokeWidth={isSelected ? '1' : '0.5'}
                 />
 
                 {/* 4. 3D Isometric Top Cap Face */}
@@ -249,9 +331,9 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                       ? '#93C5FD'
                       : '#FBBF24'
                   }
-                  opacity={isSelected ? 0.95 : 0.75}
-                  stroke="#CBD5E1"
-                  strokeWidth="0.5"
+                  opacity={isSelected ? 1 : 0.8}
+                  stroke={sideTopStrokeColor}
+                  strokeWidth={isSelected ? '1' : '0.5'}
                 />
 
                 {/* Selected Stage Focus Monolith Ring */}
@@ -260,9 +342,10 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                     cx={x + barWidth / 2 + dx / 2}
                     cy={y - dy / 2}
                     r="5"
-                    fill="#18181B"
+                    fill={isDark ? activeHighlightColor : '#18181B'}
                     stroke="#FFFFFF"
                     strokeWidth="2"
+                    className="animate-pulse"
                   />
                 )}
               </g>
@@ -270,32 +353,21 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
           })}
         </svg>
 
-        {/* ACTIVE FLOATING TOOLTIP: Anchored above selected stage */}
+        {/* ACTIVE FLOATING TOOLTIP: Centered on mobile, anchored to bar on tablet/desktop */}
         <div
-          className="absolute z-20 pointer-events-none transition-all duration-300"
+          className="absolute z-20 pointer-events-none transition-all duration-300 left-1/2 -translate-x-1/2 sm:translate-x-0 max-w-[calc(100%-16px)] sm:max-w-none"
           style={{
-            left:
-              selectedStageId === 'tier-4'
-                ? '15%'
-                : selectedStageId === 'tier-3'
-                ? '32%'
-                : selectedStageId === 'tier-2'
-                ? '50%'
-                : selectedStageId === 'tier-1'
-                ? '68%'
-                : '85%',
             top: '4px',
-            transform: 'translateX(-50%)',
           }}
         >
-          <div className="tactile-badge px-3 py-1.5 flex items-center gap-2 whitespace-nowrap text-xs shadow-xl">
-            <span className="font-extrabold text-neutral-900 dark:text-white font-mono">{selectedStage.volume} units</span>
+          <div className="tactile-badge px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs shadow-xl truncate">
+            <span className="font-extrabold text-neutral-900 dark:text-white font-mono shrink-0">{selectedStage.volume} units</span>
             <span className="text-neutral-300 dark:text-slate-600">|</span>
-            <span className="text-neutral-600 dark:text-slate-300 font-medium">
+            <span className="text-neutral-600 dark:text-slate-300 font-medium truncate">
               Stage: <strong className="text-neutral-900 dark:text-white">{selectedStage.name}</strong>
             </span>
-            <span className="text-neutral-300 dark:text-slate-600 hidden sm:inline">|</span>
-            <span className={`font-bold font-mono hidden sm:inline ${
+            <span className="text-neutral-300 dark:text-slate-600 hidden md:inline">|</span>
+            <span className={`font-bold font-mono hidden md:inline shrink-0 ${
               selectedStage.pillValue.startsWith('-') ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
             }`}>
               Variance: {selectedStage.pillValue}

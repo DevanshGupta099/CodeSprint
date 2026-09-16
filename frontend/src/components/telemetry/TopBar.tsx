@@ -100,8 +100,8 @@ export const TopBar: React.FC<TopBarProps> = ({
           <span className="text-[10px] text-emerald-400/80 uppercase tracking-wider font-semibold">
             Avoided CO₂:
           </span>
-          <span className="font-mono font-bold text-white text-xs">
-            {avoidedScope3.toLocaleString()} <span className="text-[10px] text-emerald-400 font-normal">tCO2e</span>
+          <span suppressHydrationWarning className="font-mono font-bold text-white text-xs">
+            {avoidedScope3.toLocaleString('en-US')} <span className="text-[10px] text-emerald-400 font-normal">tCO2e</span>
           </span>
         </div>
 

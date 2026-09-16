@@ -133,8 +133,8 @@ export const Footer: React.FC<FooterProps> = ({ monitoredNodes }) => {
         {/* Persistent Live System Status Line */}
         <div className="pt-8 border-t border-white/10 flex items-center justify-between font-mono text-[11px] text-rose-400 bg-black/40 p-4 border border-white/10">
           <div className="flex items-center gap-3">
-            <span className="tracking-wider">
-              [ SYSTEM STATUS: OPERATIONAL // {monitoredNodes.toLocaleString()} NODES MONITORED // UPTIME 99.98% ]
+            <span suppressHydrationWarning className="tracking-wider">
+              [ SYSTEM STATUS: OPERATIONAL // {monitoredNodes.toLocaleString('en-US')} NODES MONITORED // UPTIME 99.98% ]
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-4 text-neutral-500">

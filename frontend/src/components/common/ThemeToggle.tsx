@@ -63,7 +63,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       </div>
 
       {/* Monospace Technical HUD Status Label */}
-      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider font-mono">
+      <span className="hidden xl:inline text-[10px] sm:text-[11px] font-bold uppercase tracking-wider font-mono">
         {isDark ? 'DARK' : 'LIGHT'}
       </span>
     </button>

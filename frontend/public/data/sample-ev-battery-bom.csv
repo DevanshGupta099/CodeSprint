@@ -1,0 +1,12 @@
+supplierName,code,country,countryCode,tier,materialCategory,componentName,spendUsd,leadTimeDays,parentSupplierCode,shippingRoute,lat,lng
+Veritas Assembly Gigafactory,VMC-USA,United States,USA,0,EV Final Assembly,Flagship Dual-Motor EV Chassis,450000000,0,ROOT,Domestic US Freight,37.7749,-122.4194
+Apex Power Systems GmbH,APS-DEU,Germany,DEU,1,High-Voltage Battery Packs,800V High-Voltage Battery Pack,180000000,21,VMC-USA,Transatlantic Air/Sea Corridor,52.5200,13.4050
+DriveTech Inverters Ltd,DTI-JPN,Japan,JPN,1,SiC Power Inverters,Dual-Motor SiC Inverter,85000000,28,VMC-USA,Transpacific Maritime Freight,35.6762,139.6503
+Voltaic Cell Dynamics,VCD-KOR,South Korea,KOR,2,NMC 811 Battery Cells,NMC 811 Pouch Battery Cells,95000000,35,APS-DEU,Eurasian Ocean Line,37.5665,126.9780
+Munich BMS Modules,MBM-DEU,Germany,DEU,2,Battery Management PCBs,Safety Architecture BMS PCB,40000000,18,APS-DEU,EU Intermodal Road Corridor,48.1351,11.5820
+Kobe Precision Copper,KPC-JPN,Japan,JPN,2,Ultra-Thin Anode Foils,Rolled Annealed Copper Foil,32000000,24,DTI-JPN,Japan Sea Logistics,34.6901,135.1955
+Apex Maritime Logistics,AML-YEM,Djibouti / Yemen,DJI,3,Red Sea Shipping Chokepoint,Raw Material Maritime Freight,28000000,42,VCD-KOR,BAB_EL_MANDEB_STRAIT,12.5900,43.3200
+Atacama Salt Brine Ltd,ASB-CHL,Chile,CHL,3,Refined Lithium Hydroxide,Battery-Grade Lithium Hydroxide,48000000,45,VCD-KOR,Pan-Pacific Mineral Route,-23.8634,-67.1420
+Sino-Refine Silicon Co,SRS-CHN,China,CHN,3,Inverter Silicon Wafers,Polysilicon Substrate Ingots,22000000,38,DTI-JPN,Silk Road Overland Freight,43.8256,87.6168
+Katanga Artisanal Ore,KAO-COD,DR Congo,COD,4,Cobalt Mining,Concentrated Cobalt Ore,18000000,60,AML-YEM,East African Mining Corridor,-10.7222,25.4722
+Pilbara Spodumene Corp,PSC-AUS,Australia,AUS,4,Lithium Spodumene Extraction,Spodumene Mineral Ore,35000000,50,ASB-CHL,Indian Ocean Transit,-21.3500,119.5000

@@ -92,8 +92,8 @@ export const KPIRibbon: React.FC<KPIRibbonProps> = ({
             Avoided Scope-3 Carbon
           </span>
           <div className="flex items-baseline gap-2 mt-0.5">
-            <span className="font-bold text-emerald-300 text-lg font-mono">
-              {avoidedScope3.toLocaleString()}
+            <span suppressHydrationWarning className="font-bold text-emerald-300 text-lg font-mono">
+              {avoidedScope3.toLocaleString('en-US')}
             </span>
             <span className="text-[11px] text-emerald-400/90 font-medium">tCO2e (SDG 12)</span>
           </div>

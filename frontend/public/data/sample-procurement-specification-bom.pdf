@@ -1,0 +1,49 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1841 >>
+stream
+BT /F1 12 Tf 50 750 Td (VERITAS PROCUREMENT SPECIFICATION) Tj ET
+BT /F1 10 Tf 50 720 Td (VERITAS SUPPLY CHAIN SPECIFICATION & TIER-N PROCUREMENT BILL OF MATERIALS) Tj ET
+BT /F1 10 Tf 50 700 Td (Document Ref: VSC-SPEC-2026-09 | Classification: Enterprise Controlled) Tj ET
+BT /F1 10 Tf 50 680 Td (Organization: Veritas Motors Corp \(ID: 00000000-0000-0000-0000-000000000001\)) Tj ET
+BT /F1 10 Tf 50 660 Td (--------------------------------------------------------------------------------) Tj ET
+BT /F1 10 Tf 50 640 Td (Tier 0: Veritas Assembly Gigafactory | USA | Code: VMC-USA | $450M | ROOT) Tj ET
+BT /F1 10 Tf 50 620 Td (Tier 1: Apex Power Systems GmbH | Germany | Code: APS-DEU | $180M | Parent: VMC-USA) Tj ET
+BT /F1 10 Tf 50 600 Td (Tier 1: DriveTech Inverters Ltd | Japan | Code: DTI-JPN | $85M | Parent: VMC-USA) Tj ET
+BT /F1 10 Tf 50 580 Td (Tier 2: Voltaic Cell Dynamics | South Korea | Code: VCD-KOR | $95M | Parent: APS-DEU) Tj ET
+BT /F1 10 Tf 50 560 Td (Tier 2: Munich BMS Modules | Germany | Code: MBM-DEU | $40M | Parent: APS-DEU) Tj ET
+BT /F1 10 Tf 50 540 Td (Tier 3: Apex Maritime Logistics | Djibouti/Yemen | Code: AML-YEM | $28M | Parent: VCD-KOR) Tj ET
+BT /F1 10 Tf 50 520 Td (Tier 3: Atacama Salt Brine Ltd | Chile | Code: ASB-CHL | $48M | Parent: VCD-KOR) Tj ET
+BT /F1 10 Tf 50 500 Td (Tier 4: Katanga Artisanal Ore | DR Congo | Code: KAO-COD | $18M | Parent: AML-YEM) Tj ET
+BT /F1 10 Tf 50 480 Td (Tier 4: Pilbara Spodumene Corp | Australia | Code: PSC-AUS | $35M | Parent: ASB-CHL) Tj ET
+BT /F1 10 Tf 50 460 Td (--------------------------------------------------------------------------------) Tj ET
+BT /F1 10 Tf 50 440 Td (Compliance Standard: UN SDG 8 \(Decent Work\) & UN SDG 12 \(Responsible Production\)) Tj ET
+BT /F1 10 Tf 50 420 Td (Audit Status: UFLPA Verified | Dual-Fuel Cape Route Mitigation Enabled) Tj ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000002134 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2204
+%%EOF

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Upload, X, FileText, CheckCircle2, AlertCircle, FileSpreadsheet } from 'lucide-react';
+import { Upload, X, FileText, CheckCircle2, FileSpreadsheet, Sparkles } from 'lucide-react';
+import { api } from '../../services/api';
 
 interface BOMUploadModalProps {
   isOpen: boolean;
@@ -26,36 +27,26 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
     }
   };
 
+  const isPDF = file?.name.toLowerCase().endsWith('.pdf');
+
   const handleUpload = async () => {
     if (!file) return;
     setIsUploading(true);
     setMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('http://localhost:5000/api/ingest', {
-        method: 'POST',
-        body: formData,
-        signal: AbortSignal.timeout(2000),
-      }).catch(() => null);
-
-      if (res && res.ok) {
-        setMessage(`Successfully ingested ${file.name} to PostgreSQL CTE pipeline.`);
-      } else {
-        setMessage(`Parsed ${file.name}. Directed Acyclic Graph constructed in PostgreSQL CTE.`);
-      }
-
+      const result = await api.ingestBOMFile(file);
+      setMessage(result.message);
       onUploadSuccess(file.name);
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 1800);
     } catch {
       setMessage(`Parsed ${file.name}. Directed Acyclic Graph constructed in PostgreSQL CTE.`);
       onUploadSuccess(file.name);
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 1800);
     } finally {
       setIsUploading(false);
     }
@@ -71,7 +62,7 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
                 Data Pipeline
               </span>
-              <span className="text-xs text-slate-400">CSV & XLSX Ingestion</span>
+              <span className="text-xs text-slate-400">CSV, XLSX & PDF AI Ingestion</span>
             </div>
             <h2 className="font-bold text-lg text-white tracking-tight">
               Ingest Bill of Materials (BOM)
@@ -79,7 +70,7 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -89,7 +80,7 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
         <div className="border border-dashed border-white/[0.16] hover:border-blue-500/60 rounded-xl transition-all p-7 text-center bg-black/30 mb-5 relative group cursor-pointer">
           <input
             type="file"
-            accept=".csv, .xlsx, .json"
+            accept=".csv, .xlsx, .xls, .json, .pdf, application/pdf"
             onChange={handleFileChange}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
           />
@@ -100,7 +91,7 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
             Drag & drop your BOM file, or <span className="text-blue-400">browse</span>
           </p>
           <p className="text-xs text-slate-400">
-            Supports multi-tier hierarchy: Parent ID, Child ID, Component, Spend, Lead Time
+            Supports CSV, XLSX, and PDF invoices via Autonomous AI Extraction
           </p>
         </div>
 
@@ -108,17 +99,28 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
         {file && (
           <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-between gap-3 mb-5 text-xs">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <FileSpreadsheet className="w-5 h-5 text-blue-400 shrink-0" />
+              {isPDF ? (
+                <FileText className="w-5 h-5 text-rose-400 shrink-0" />
+              ) : (
+                <FileSpreadsheet className="w-5 h-5 text-blue-400 shrink-0" />
+              )}
               <div className="truncate">
-                <p className="text-white font-medium truncate">{file.name}</p>
+                <p className="text-white font-medium truncate flex items-center gap-1.5">
+                  <span>{file.name}</span>
+                  {isPDF && (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      PDF AI AGENT
+                    </span>
+                  )}
+                </p>
                 <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                  {(file.size / 1024).toFixed(1)} KB
+                  {(file.size / 1024).toFixed(1)} KB · Ready for CTE Ingestion
                 </p>
               </div>
             </div>
             <button
               onClick={() => setFile(null)}
-              className="p-1 text-slate-400 hover:text-white"
+              className="p-1 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -137,19 +139,27 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
         <div className="flex items-center justify-end gap-2.5">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] text-slate-300 hover:text-white text-xs font-medium transition-colors"
+            className="px-4 py-2 rounded-xl border border-white/[0.08] hover:bg-white/[0.06] text-slate-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-900/30 transition-all disabled:opacity-50 disabled:pointer-events-none"
+            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-900/30 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-2"
           >
-            {isUploading ? 'Constructing Graph CTE...' : 'Upload & Reconstruct DAG'}
+            {isUploading ? (
+              <>
+                <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                <span>{isPDF ? 'AI Agent Extracting PDF...' : 'Constructing Graph CTE...'}</span>
+              </>
+            ) : (
+              <span>{isPDF ? 'Extract & Construct DAG' : 'Upload & Reconstruct DAG'}</span>
+            )}
           </button>
         </div>
       </div>
     </div>
   );
 };
+

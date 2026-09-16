@@ -31,11 +31,11 @@ export default function GraphWorkflowPage() {
     return () => { isMounted = false; };
   }, []);
 
-  // Trigger Disruption Sentinel ([SIMULATE RED SEA BLOCKADE])
-  const handleTriggerRedSeaBlockade = useCallback(async () => {
+  // Trigger Disruption Sentinel ([SIMULATE RED SEA BLOCKADE] or node-specific shock)
+  const handleTriggerDisruption = useCallback(async (customSupplierId?: string) => {
     setIsProcessing(true);
     try {
-      const targetSupplierId = '10000000-0000-0000-0000-000000000007'; // AML-YEM
+      const targetSupplierId = customSupplierId || '30000000-0000-0000-0000-000000000001'; // AML-YEM (Apex Maritime Logistics)
       const res = await api.triggerDisruption(targetSupplierId, 0.94, 'GEOPOLITICAL_BLOCKADE');
       
       setIsDisrupted(true);
@@ -117,7 +117,7 @@ export default function GraphWorkflowPage() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full tactile-canvas text-neutral-900 font-sans antialiased pb-20 flex flex-col">
+    <div className="min-h-screen w-full tactile-canvas text-neutral-900 dark:text-slate-100 font-sans antialiased pb-20 flex flex-col overflow-x-hidden">
       <SVGDefs />
 
       {/* 1. GLOBAL HEADER WITH TABS */}
@@ -125,12 +125,14 @@ export default function GraphWorkflowPage() {
         activeTab="graph"
         onSelectTab={(tab) => {
           if (tab === 'overview') {
-            router.push('/');
+            router.push('/dashboard');
+          } else if (tab === 'reports') {
+            router.push('/dashboard?tab=reports');
           } else if (tab !== 'graph') {
-            router.push(`/?tab=${tab}`);
+            router.push(`/dashboard?tab=${tab}`);
           }
         }}
-        onSimulateRedSea={isDisrupted ? handleResetBaseline : handleTriggerRedSeaBlockade}
+        onSimulateRedSea={isDisrupted ? handleResetBaseline : () => handleTriggerDisruption()}
         isDisrupted={isDisrupted}
         isProcessing={isProcessing}
       />
@@ -138,14 +140,14 @@ export default function GraphWorkflowPage() {
       {/* 2. SUB-HEADER TOOLBAR */}
       <SubHeaderToolbar
         title="Supply Dependency DAG Studio"
-        onAddWidget={() => handleTriggerRedSeaBlockade()}
+        onAddWidget={() => handleTriggerDisruption()}
       />
 
       {/* 3. MAIN WORKSPACE */}
-      <main className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 flex-1 flex flex-col">
+      <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 flex-1 flex flex-col">
         <SupplyWorkflowStudio
           dag={dagData}
-          onTriggerDisruption={handleTriggerRedSeaBlockade}
+          onTriggerDisruption={handleTriggerDisruption}
           onResetBaseline={handleResetBaseline}
           isDisrupted={isDisrupted}
           isProcessing={isProcessing}
