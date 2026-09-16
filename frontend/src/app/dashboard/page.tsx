@@ -16,9 +16,12 @@ import { ProcurementSwitchMemo } from '@/components/terminal/ProcurementSwitchMe
 import { SupplierDetailDrawer } from '@/components/graph/SupplierDetailDrawer';
 import { AICopilotModal } from '@/components/ai/AICopilotModal';
 import { INITIAL_DAG_DATA } from '@/data/seed-graph';
-import { SupplyChainDAGResponse, Supplier, MitigationMemo } from '@/types/supply-chain';
+import { SupplyChainDAGResponse, Supplier, MitigationMemo, PortfolioBreakdownResponse } from '@/types/supply-chain';
 import { AICopilotResponse } from '@/types/ai';
 import { api } from '@/services/api';
+import { useRiskState } from '@/hooks/useRiskState';
+import { AnalyticsDashboard } from '@/components/dashboard/AnalyticsDashboard';
+import { BOM_PRESETS_CATALOG } from '@/data/bom-presets';
 
 export default function VeritasSupplyDashboard() {
   const [activeTab, setActiveTab] = useState<ZentraTab>('overview');
@@ -28,6 +31,10 @@ export default function VeritasSupplyDashboard() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [activeMemo, setActiveMemo] = useState<MitigationMemo | null>(null);
   const [avoidedCo2Total, setAvoidedCo2Total] = useState<number>(0);
+  const [activeBOMKey, setActiveBOMKey] = useState<string>('EV_BATTERY_PACK');
+  const [spendAtRiskUSD, setSpendAtRiskUSD] = useState<number>(12000000);
+  const [portfolioData, setPortfolioData] = useState<PortfolioBreakdownResponse | null>(null);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState<boolean>(false);
 
   // AI Copilot state
   const [copilotResponse, setCopilotResponse] = useState<AICopilotResponse | null>(null);
@@ -41,6 +48,54 @@ export default function VeritasSupplyDashboard() {
     volatility: true,
     equalizer: true,
     insight: true,
+  });
+
+  // Automated background polling hook (Task 1: 3-5s setInterval against /api/risk-state/:orgId)
+  useRiskState({
+    orgId: '00000000-0000-0000-0000-000000000001',
+    intervalMs: 4000,
+    enabled: true,
+    onRiskStateChange: (polledState) => {
+      // 1. Update financial value at risk
+      if (polledState.portfolioMetrics?.totalSpendAtRiskUSD) {
+        setSpendAtRiskUSD(polledState.portfolioMetrics.totalSpendAtRiskUSD);
+      }
+      if (polledState.portfolioMetrics?.avoidedScope3Tco2e > 0) {
+        setAvoidedCo2Total(polledState.portfolioMetrics.avoidedScope3Tco2e);
+      }
+
+      // 2. Synchronize node risk scores and statuses in active DAG
+      setDagData((prevDag) => {
+        let hasChanges = false;
+        const stateMap = new Map(polledState.nodes.map((n) => [n.supplierId, n]));
+        const updatedNodes = prevDag.nodes.map((node) => {
+          const matched = stateMap.get(node.id);
+          if (
+            matched &&
+            (matched.status !== node.status ||
+              matched.riskScore !== node.riskScore ||
+              matched.isSPOF !== node.isSPOF)
+          ) {
+            hasChanges = true;
+            return {
+              ...node,
+              status: matched.status,
+              riskScore: matched.riskScore,
+              isSPOF: matched.isSPOF,
+            };
+          }
+          return node;
+        });
+
+        return hasChanges ? { ...prevDag, nodes: updatedNodes } : prevDag;
+      });
+
+      // 3. Update global disruption state
+      const hasDisruption =
+        polledState.portfolioMetrics.activeDisruptionsCount > 0 ||
+        polledState.nodes.some((n) => n.status === 'CRITICAL');
+      setIsDisrupted(hasDisruption);
+    },
   });
 
   // Fetch initial DAG from backend API (or fallback to simulator)
@@ -61,13 +116,40 @@ export default function VeritasSupplyDashboard() {
     return () => { isMounted = false; };
   }, []);
 
+  // Fetch portfolio breakdown for Recharts Analytics Dashboard on demand
+  useEffect(() => {
+    if (activeTab === 'reports' || isAnalyticsOpen) {
+      api.getPortfolioAnalytics().then(setPortfolioData).catch(console.error);
+    }
+  }, [activeTab, isAnalyticsOpen]);
+
+
+  // Switch Active BOM Architecture Preset
+  const handleSelectBOM = useCallback(async (presetKey: string) => {
+    setIsProcessing(true);
+    setActiveBOMKey(presetKey);
+    try {
+      const res = await api.loadBOMPreset(presetKey);
+      if (res && res.dag && res.dag.nodes) {
+        setDagData(res.dag);
+      }
+      setIsDisrupted(false);
+      setActiveMemo(null);
+      setSelectedSupplier(null);
+    } catch (err) {
+      console.error('BOM preset switch error:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
 
   // 1. Trigger Disruption Sentinel for specific or default node
   const handleTriggerDisruption = useCallback(async (targetSupplierId?: string, customSeverity?: number) => {
     setIsProcessing(true);
     try {
-      // Default to AML-YEM node (Apex Maritime Logistics) if no ID supplied
-      const supplierId = targetSupplierId || '10000000-0000-0000-0000-000000000007';
+      // Default to active BOM chokepoint node if no ID supplied
+      const defaultSupplierId = BOM_PRESETS_CATALOG[activeBOMKey]?.primaryChokepointSupplierId || '10000000-0000-0000-0000-000000000007';
+      const supplierId = targetSupplierId || defaultSupplierId;
       const severity = customSeverity || 0.94;
       const res = await api.triggerDisruption(supplierId, severity, 'GEOPOLITICAL_BLOCKADE');
       
@@ -100,7 +182,7 @@ export default function VeritasSupplyDashboard() {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [activeBOMKey]);
 
   // 2. Execute Reroute Action
   const handleExecuteReroute = useCallback(async () => {
@@ -216,6 +298,8 @@ export default function VeritasSupplyDashboard() {
         }}
         isDisrupted={isDisrupted}
         isProcessing={isProcessing}
+        activeBOMKey={activeBOMKey}
+        onSelectBOM={handleSelectBOM}
       />
 
       {/* 2. SUB-HEADER ACTION BAR: Responsive "Overview" & Segmented Date/Widget Selectors */}
@@ -255,7 +339,10 @@ export default function VeritasSupplyDashboard() {
               {/* TOP RIGHT (35% -> 4 cols): Value at Risk ($41,540,000 & 3 Striped Progress Bars) */}
               {visibleWidgets.var && (
                 <div className={`${visibleWidgets.funnel ? 'lg:col-span-4' : 'lg:col-span-12'} flex flex-col`}>
-                  <ValueAtRiskCard />
+                  <ValueAtRiskCard
+                    totalSpendAtRiskUSD={spendAtRiskUSD}
+                    isDisrupted={isDisrupted}
+                  />
                 </div>
               )}
             </div>
@@ -297,7 +384,7 @@ export default function VeritasSupplyDashboard() {
         )}
       </main>
 
-      {/* TAB DETAIL MODAL (SUPPLIERS, DISRUPTIONS, SANCTIONS, ESG, REPORTS) */}
+      {/* TAB DETAIL MODAL (SUPPLIERS, DISRUPTIONS, SANCTIONS, ESG) */}
       <ZentraDetailModal
         activeTab={activeTab}
         onClose={() => setActiveTab('overview')}
@@ -308,6 +395,17 @@ export default function VeritasSupplyDashboard() {
         onSelectSupplier={(supplier) => {
           setSelectedSupplier(supplier);
           setActiveTab('graph');
+        }}
+        onOpenAnalytics={() => setIsAnalyticsOpen(true)}
+      />
+
+      {/* RECHARTS EXECUTIVE RISK & PROGRESSION ANALYTICS DASHBOARD (REPORTS TAB) */}
+      <AnalyticsDashboard
+        isOpen={activeTab === 'reports' || isAnalyticsOpen}
+        data={portfolioData}
+        onClose={() => {
+          setIsAnalyticsOpen(false);
+          if (activeTab === 'reports') setActiveTab('overview');
         }}
       />
 

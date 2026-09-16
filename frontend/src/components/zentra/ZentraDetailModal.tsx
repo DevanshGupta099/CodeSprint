@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Download,
   FileText,
-  Check
+  Check,
+  TrendingUp
 } from 'lucide-react';
 import { ZentraTab } from './GlobalHeader';
 import { INITIAL_DAG_DATA } from '../../data/seed-graph';
@@ -27,6 +28,7 @@ interface ZentraDetailModalProps {
   onClose: () => void;
   onTriggerDisruption?: (supplierId: string) => void;
   onSelectSupplier?: (supplier: Supplier) => void;
+  onOpenAnalytics?: () => void;
 }
 
 export const ZentraDetailModal: React.FC<ZentraDetailModalProps> = ({
@@ -34,6 +36,7 @@ export const ZentraDetailModal: React.FC<ZentraDetailModalProps> = ({
   onClose,
   onTriggerDisruption,
   onSelectSupplier,
+  onOpenAnalytics,
 }) => {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
@@ -389,6 +392,37 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* 30-Day Historical Risk Progression Launcher */}
+                <button
+                  onClick={() => {
+                    onClose();
+                    if (onOpenAnalytics) onOpenAnalytics();
+                  }}
+                  className="col-span-1 sm:col-span-2 p-5 rounded-2xl bg-gradient-to-r from-blue-900/30 via-indigo-900/30 to-rose-900/20 hover:from-blue-900/50 hover:to-rose-900/40 border border-blue-500/30 text-left transition-all group cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shrink-0">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-bold text-neutral-900 dark:text-white text-sm">
+                          Executive Risk Audit & 30-Day Historical Progression
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                          RECHARTS AREA
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-500 dark:text-slate-400 leading-relaxed">
+                        Interactive Recharts visualizer tracking baseline $12M to disrupted $41.5M exposure at Day 26 Bab-el-Mandeb crisis onset.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3.5 py-1.5 rounded-full text-xs font-mono font-bold bg-neutral-900 dark:bg-white text-white dark:text-slate-950 group-hover:scale-105 transition-transform shrink-0">
+                    VIEW CHARTS &rarr;
+                  </span>
+                </button>
+
                 <button
                   onClick={() => handleDownloadReport('md')}
                   className="p-5 rounded-2xl bg-neutral-50 dark:bg-slate-900/60 hover:bg-neutral-100 dark:hover:bg-slate-800 border border-black/[0.06] dark:border-white/10 text-left transition-all group cursor-pointer"
