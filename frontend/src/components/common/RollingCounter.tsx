@@ -21,7 +21,7 @@ export const RollingCounter: React.FC<RollingCounterProps> = ({
   className = '',
   digitClassName = '',
 }) => {
-  const formattedString = value.toLocaleString(undefined, {
+  const formattedString = value.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

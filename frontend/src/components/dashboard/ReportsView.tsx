@@ -564,8 +564,8 @@ ${INITIAL_DAG_DATA.nodes.map(n => `### ${n.name} (${n.code})
             </div>
           </div>
           <div className="my-2">
-            <span className="text-2xl xs:text-3xl xl:text-4xl font-extrabold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 block truncate">
-              +{avoidedCo2Total.toLocaleString()} tCO2e
+            <span suppressHydrationWarning className="text-2xl xs:text-3xl xl:text-4xl font-extrabold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 block truncate">
+              +{avoidedCo2Total.toLocaleString('en-US')} tCO2e
             </span>
             <span className="text-xs text-neutral-500 dark:text-slate-400 font-medium mt-1 block truncate">
               Bunker fuel idle burn eliminated on Cape bypass

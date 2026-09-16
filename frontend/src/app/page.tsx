@@ -401,7 +401,7 @@ const MonitoredNodesTicker: React.FC = () => {
       window.removeEventListener('pointerdown', startTicker);
     };
   }, []);
-  return <span>{nodes.toLocaleString()} NODES</span>;
+  return <span suppressHydrationWarning>{nodes.toLocaleString('en-US')} NODES</span>;
 };
 
 const LiveLatencyTicker: React.FC = () => {

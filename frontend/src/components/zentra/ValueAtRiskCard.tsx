@@ -21,7 +21,7 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
   isDisrupted = false,
 }) => {
   const displayAmount = totalSpendAtRiskUSD 
-    ? `$${totalSpendAtRiskUSD.toLocaleString()}` 
+    ? `$${totalSpendAtRiskUSD.toLocaleString('en-US')}` 
     : isDisrupted 
     ? '$41,540,000' 
     : '$12,000,000';
@@ -86,7 +86,9 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
 
       {/* Large Display Value */}
       <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 my-2">
-        <span className={`text-3xl xs:text-4xl sm:text-[42px] font-extrabold font-mono tracking-tight leading-none ${
+        <span 
+          suppressHydrationWarning
+          className={`text-3xl xs:text-4xl sm:text-[42px] font-extrabold font-mono tracking-tight leading-none ${
           isDisrupted ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-900 dark:text-white'
         }`}>
           {displayAmount}
