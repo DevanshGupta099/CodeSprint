@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Filter,
   Maximize2,
+  Minimize2,
   SlidersHorizontal,
   Compass,
   TrendingDown,
@@ -43,6 +44,7 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
   const [selectedTier, setSelectedTier] = useState<number | 'all'>('all');
   const [filterMode, setFilterMode] = useState<'all' | 'critical' | 'spof'>('all');
   const [direction, setDirection] = useState<'LR' | 'TB'>('LR');
+  const [isLegendCollapsed, setIsLegendCollapsed] = useState<boolean>(false);
 
   // Filter nodes according to user selection
   const filteredDag = useMemo(() => {
@@ -264,27 +266,48 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
           direction={direction}
         />
 
-        {/* Bottom Left: Workflow Legend Card */}
-        <div className="absolute bottom-6 left-6 z-10 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border border-black/[0.08] dark:border-white/10 p-3.5 rounded-2xl shadow-lg max-w-sm hidden sm:block">
-          <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-black/[0.06] dark:border-white/10">
+        {/* Top Left: Workflow Legend & Mechanics HUD Card (Freeing the bottom-left zoom controls) */}
+        {isLegendCollapsed ? (
+          <button
+            onClick={() => setIsLegendCollapsed(false)}
+            className="absolute top-5 left-5 z-10 bg-white/90 dark:bg-[#0B0F19]/90 hover:bg-white dark:hover:bg-[#0B0F19] backdrop-blur-md border border-black/[0.08] dark:border-white/10 px-3 py-1.5 rounded-full shadow-md text-xs font-mono font-bold text-neutral-700 dark:text-slate-200 flex items-center gap-1.5 transition-all hover:scale-105 cursor-pointer hidden sm:flex"
+            title="Expand DAG Workflow Mechanics"
+          >
             <Info className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
-            <span className="text-xs font-bold text-neutral-900 dark:text-white font-mono">DAG Workflow Mechanics</span>
+            <span>Workflow Mechanics</span>
+            <Maximize2 className="w-3 h-3 text-neutral-400 dark:text-slate-500 ml-0.5" />
+          </button>
+        ) : (
+          <div className="absolute top-5 left-5 z-10 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-md border border-black/[0.08] dark:border-white/10 p-3.5 rounded-2xl shadow-lg max-w-sm hidden sm:block transition-all animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-black/[0.06] dark:border-white/10">
+              <div className="flex items-center gap-2">
+                <Info className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
+                <span className="text-xs font-bold text-neutral-900 dark:text-white font-mono">DAG Workflow Mechanics</span>
+              </div>
+              <button
+                onClick={() => setIsLegendCollapsed(true)}
+                className="text-neutral-400 hover:text-neutral-700 dark:text-slate-500 dark:hover:text-slate-200 p-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                title="Minimize guide"
+              >
+                <Minimize2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-[11px] text-neutral-600 dark:text-slate-300 leading-relaxed">
+              Click any supplier card to inspect its bill of materials, spend, lead time, and autonomous failover rerouting options. Click <strong>SIMULATE RED SEA BLOCKADE</strong> to watch recursive risk flow up the graph.
+            </p>
+            <div className="flex items-center gap-3 mt-2 pt-2 border-t border-black/[0.04] dark:border-white/10 text-[10px] font-mono">
+              <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Nominal
+              </span>
+              <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> Elevated (0.7x)
+              </span>
+              <span className="flex items-center gap-1 text-rose-700 dark:text-rose-400">
+                <span className="w-2 h-2 rounded-full bg-rose-600" /> Compromised (0.94x)
+              </span>
+            </div>
           </div>
-          <p className="text-[11px] text-neutral-600 dark:text-slate-300 leading-relaxed">
-            Click any supplier card to inspect its bill of materials, spend, lead time, and autonomous failover rerouting options. Click <strong>SIMULATE RED SEA BLOCKADE</strong> to watch recursive risk flow up the graph.
-          </p>
-          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-black/[0.04] dark:border-white/10 text-[10px] font-mono">
-            <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Nominal
-            </span>
-            <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Elevated (0.7x)
-            </span>
-            <span className="flex items-center gap-1 text-rose-700 dark:text-rose-400">
-              <span className="w-2 h-2 rounded-full bg-rose-600" /> Compromised (0.94x)
-            </span>
-          </div>
-        </div>
+        )}
 
         {/* SUPPLIER DETAIL INSPECTION DRAWER */}
         <SupplierDetailDrawer
