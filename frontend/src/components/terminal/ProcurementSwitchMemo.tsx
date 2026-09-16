@@ -358,44 +358,44 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
   if (!memo) return null;
 
   return (
-    <aside className="fixed inset-x-0 bottom-0 sm:inset-x-auto sm:top-20 sm:right-6 sm:bottom-6 w-full sm:w-[440px] max-h-[85vh] sm:max-h-none z-50 rounded-t-[32px] sm:rounded-[28px] bg-white dark:bg-[#0B0F19] border border-black/[0.08] dark:border-white/10 p-5 sm:p-7 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.22)] dark:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] flex flex-col justify-between overflow-y-auto animate-in fade-in slide-in-from-bottom-6 sm:slide-in-from-right-6 duration-200 select-none font-sans text-neutral-900 dark:text-slate-100">
+    <aside className="fixed inset-x-0 bottom-0 sm:inset-x-auto sm:top-20 sm:right-6 sm:bottom-6 w-full sm:w-[480px] lg:w-[500px] max-h-[85vh] sm:max-h-none z-50 rounded-t-[32px] sm:rounded-[28px] bg-white dark:bg-[#0B0F19] border border-black/[0.08] dark:border-white/10 p-4 sm:p-6 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.22)] dark:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] flex flex-col justify-between overflow-y-auto animate-in fade-in slide-in-from-bottom-6 sm:slide-in-from-right-6 duration-200 select-none font-sans text-neutral-900 dark:text-slate-100">
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-black/[0.06] dark:border-white/10">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between pb-3.5 border-b border-black/[0.06] dark:border-white/10 gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 flex items-center justify-center text-white shadow-xs shrink-0">
               <Sparkles className="w-4 h-4" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-base text-neutral-900 dark:text-white tracking-tight leading-none">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-extrabold text-sm sm:text-[15px] text-neutral-900 dark:text-white tracking-tight leading-snug">
                   Autonomous Mitigation Directive
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-neutral-100 dark:bg-slate-800 text-neutral-700 dark:text-slate-300 border border-black/[0.06] dark:border-white/10">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold font-mono bg-neutral-100 dark:bg-slate-800 text-neutral-700 dark:text-slate-300 border border-black/[0.06] dark:border-white/10 shrink-0 whitespace-nowrap">
                   AI SENTINEL
                 </span>
               </div>
-              <span className="text-xs text-neutral-400 dark:text-slate-500 font-medium block mt-1">
+              <span className="text-[11px] text-neutral-400 dark:text-slate-500 font-medium block mt-0.5 truncate">
                 {new Date(memo.generatedAt).toLocaleTimeString()} · Closed-Loop Reroute Synthesis
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 shrink-0 pt-0.5">
             {/* [EXPORT_PDF] Executive PDF Export Button */}
             <button
               onClick={handleExportPDF}
-              className="px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-neutral-700 dark:text-slate-200 text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-black/[0.05] dark:border-white/10 shadow-xs"
+              className="px-2 sm:px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-mono font-bold flex items-center gap-1 transition-all cursor-pointer border border-amber-200 dark:border-amber-800/60 shadow-xs shrink-0"
               title="Export Executive PDF Memorandum"
             >
-              <FileDown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span className="hidden sm:inline">[EXPORT_PDF]</span>
-              <span className="sm:hidden">PDF</span>
+              <FileDown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span className="hidden xs:inline">[EXPORT_PDF]</span>
+              <span className="xs:hidden">PDF</span>
             </button>
 
             <button
               onClick={handleCopyMemo}
-              className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 text-neutral-400 hover:text-neutral-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 text-neutral-400 hover:text-neutral-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
               title="Copy memo text"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -404,17 +404,17 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 text-neutral-400 hover:text-neutral-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-slate-800 text-neutral-400 hover:text-neutral-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
                 title="Close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
         </div>
 
         {/* Executive Sourcing Directive Terminal (Obsidian Console) */}
-        <div className="my-4 p-4 rounded-2xl bg-[#0F172A] border border-slate-800 text-xs shadow-inner">
+        <div className="my-3 sm:my-4 p-3.5 sm:p-4 rounded-2xl bg-[#0F172A] border border-slate-800 text-xs shadow-inner">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
             <span className="text-[10px] uppercase font-bold tracking-wider font-mono text-sky-400">
               EXECUTIVE SOURCING DIRECTIVE // RECURSIVE CTE
@@ -433,31 +433,31 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
         </div>
 
         {/* Trade-off Variance Cards */}
-        <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-          <div className="p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40">
-            <span className="text-[10px] uppercase font-bold font-mono text-amber-700 dark:text-amber-400 block">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 mb-4">
+          <div className="p-2 sm:p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 flex flex-col items-center justify-center text-center">
+            <span className="text-[9px] sm:text-[11px] uppercase font-bold font-mono text-amber-700 dark:text-amber-400 block truncate max-w-full">
               Price Delta
             </span>
-            <span className="font-extrabold font-mono text-amber-900 dark:text-amber-200 text-sm sm:text-base mt-0.5 block">
+            <span className="font-extrabold font-mono text-amber-900 dark:text-amber-200 text-xs sm:text-base mt-0.5 sm:mt-1 block truncate max-w-full">
               +{memo.priceVariancePct}%
             </span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40">
-            <span className="text-[10px] uppercase font-bold font-mono text-blue-700 dark:text-blue-400 block">
-              Transit Lead Time
+          <div className="p-2 sm:p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 flex flex-col items-center justify-center text-center">
+            <span className="text-[9px] sm:text-[11px] uppercase font-bold font-mono text-blue-700 dark:text-blue-400 block truncate max-w-full">
+              Lead Time
             </span>
-            <span className="font-extrabold font-mono text-blue-900 dark:text-blue-200 text-sm sm:text-base mt-0.5 block">
+            <span className="font-extrabold font-mono text-blue-900 dark:text-blue-200 text-xs sm:text-base mt-0.5 sm:mt-1 block truncate max-w-full">
               {memo.leadTimeDeltaDays} Days
             </span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40">
-            <span className="text-[10px] uppercase font-bold font-mono text-emerald-700 dark:text-emerald-400 block">
-              Scope-3 CO2
+          <div className="p-2 sm:p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 flex flex-col items-center justify-center text-center">
+            <span className="text-[9px] sm:text-[11px] uppercase font-bold font-mono text-emerald-700 dark:text-emerald-400 block truncate max-w-full">
+              Avoided Scope-3
             </span>
-            <span className="font-extrabold font-mono text-emerald-900 dark:text-emerald-200 text-sm sm:text-base mt-0.5 block">
-              +{memo.avoidedScope3Tco2e} t
+            <span className="font-extrabold font-mono text-emerald-900 dark:text-emerald-200 text-xs sm:text-base mt-0.5 sm:mt-1 block truncate max-w-full">
+              +{memo.avoidedScope3Tco2e} tCO2e
             </span>
           </div>
         </div>

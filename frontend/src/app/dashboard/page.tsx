@@ -21,6 +21,8 @@ import { AICopilotResponse } from '@/types/ai';
 import { api } from '@/services/api';
 import { useRiskState } from '@/hooks/useRiskState';
 import { AnalyticsDashboard } from '@/components/dashboard/AnalyticsDashboard';
+import { ReportsView } from '@/components/dashboard/ReportsView';
+import { BOMIngestionModal } from '@/components/ingestion/BOMIngestionModal';
 import { BOM_PRESETS_CATALOG } from '@/data/bom-presets';
 
 export default function VeritasSupplyDashboard() {
@@ -35,6 +37,7 @@ export default function VeritasSupplyDashboard() {
   const [spendAtRiskUSD, setSpendAtRiskUSD] = useState<number>(12000000);
   const [portfolioData, setPortfolioData] = useState<PortfolioBreakdownResponse | null>(null);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState<boolean>(false);
+  const [isIngestModalOpen, setIsIngestModalOpen] = useState<boolean>(false);
 
   // AI Copilot state
   const [copilotResponse, setCopilotResponse] = useState<AICopilotResponse | null>(null);
@@ -148,7 +151,7 @@ export default function VeritasSupplyDashboard() {
     setIsProcessing(true);
     try {
       // Default to active BOM chokepoint node if no ID supplied
-      const defaultSupplierId = BOM_PRESETS_CATALOG[activeBOMKey]?.primaryChokepointSupplierId || '10000000-0000-0000-0000-000000000007';
+      const defaultSupplierId = BOM_PRESETS_CATALOG[activeBOMKey]?.primaryChokepointSupplierId || '30000000-0000-0000-0000-000000000001';
       const supplierId = targetSupplierId || defaultSupplierId;
       const severity = customSeverity || 0.94;
       const res = await api.triggerDisruption(supplierId, severity, 'GEOPOLITICAL_BLOCKADE');
@@ -274,16 +277,17 @@ export default function VeritasSupplyDashboard() {
   }, [handleTriggerDisruption, handleExecuteReroute, activeMemo, dagData]);
 
   return (
-    <div className="min-h-screen w-full tactile-canvas text-neutral-900 dark:text-slate-100 font-sans antialiased pb-20 flex flex-col">
+    <div className="min-h-screen w-full tactile-canvas text-neutral-900 dark:text-slate-100 font-sans antialiased pb-20 flex flex-col overflow-x-hidden">
       {/* GLOBAL SVG PATTERNS: 45-degree Candy Stripes & 3D Gradients */}
       <SVGDefs />
 
       {/* Breadcrumb back to Editorial Landing Page */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 pt-3 pb-1 flex items-center justify-between text-xs font-mono text-neutral-500">
-        <Link href="/" className="hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5 transition-colors">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 pt-3 pb-1 flex items-center justify-between text-xs font-mono text-neutral-500 overflow-hidden">
+        <Link href="/" className="hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5 transition-colors shrink-0">
           <span>←</span> <span className="font-semibold">LANDING OVERVIEW</span>
         </Link>
-        <span className="tracking-widest uppercase text-[10px] text-neutral-400">TACTICAL ENGINE // ORG_ID: 00000000-0000-0000-0000-000000000001</span>
+        <span className="tracking-widest uppercase text-[10px] text-neutral-400 hidden sm:inline truncate">TACTICAL ENGINE // ORG_ID: 00000000-0000-0000-0000-000000000001</span>
+        <span className="tracking-widest uppercase text-[9px] text-neutral-400 sm:hidden">ORG: ...0001</span>
       </div>
 
       {/* 1. HEADER & NAVIGATION: Responsive Floating Rounded Pill Nav Bar */}
@@ -300,6 +304,7 @@ export default function VeritasSupplyDashboard() {
         isProcessing={isProcessing}
         activeBOMKey={activeBOMKey}
         onSelectBOM={handleSelectBOM}
+        onOpenIngest={() => setIsIngestModalOpen(true)}
       />
 
       {/* 2. SUB-HEADER ACTION BAR: Responsive "Overview" & Segmented Date/Widget Selectors */}
@@ -309,6 +314,8 @@ export default function VeritasSupplyDashboard() {
             ? 'Overview'
             : activeTab === 'graph'
             ? 'Supply Dependency DAG'
+            : activeTab === 'reports'
+            ? 'Executive Reports & Risk Analytics'
             : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
         }
         visibleWidgets={visibleWidgets}
@@ -318,8 +325,8 @@ export default function VeritasSupplyDashboard() {
 
       {/* 3. MAIN WORKSPACE CONTAINER */}
       <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 flex-1 flex flex-col gap-6">
-        {/* VIEW A: OVERVIEW TAB (ZENTRA BENTO GRID) */}
-        {activeTab === 'overview' && (
+        {/* VIEW A: OVERVIEW TAB (ZENTRA BENTO GRID) - Renders during overview or active inspection modal */}
+        {(activeTab === 'overview' || activeTab === 'suppliers' || activeTab === 'disruptions' || activeTab === 'sanctions' || activeTab === 'esg') && (
           <>
             {/* ROW 1: TOP HERO (65% / 35%) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
@@ -373,7 +380,7 @@ export default function VeritasSupplyDashboard() {
         {activeTab === 'graph' && (
           <SupplyWorkflowStudio
             dag={dagData}
-            onTriggerDisruption={() => handleTriggerDisruption()}
+            onTriggerDisruption={(targetId) => handleTriggerDisruption(targetId)}
             onResetBaseline={handleResetBaseline}
             isDisrupted={isDisrupted}
             isProcessing={isProcessing}
@@ -382,11 +389,23 @@ export default function VeritasSupplyDashboard() {
             avoidedCo2Total={avoidedCo2Total}
           />
         )}
+
+        {/* VIEW C: EXECUTIVE REPORTS & RISK ANALYTICS TAB */}
+        {activeTab === 'reports' && (
+          <ReportsView
+            data={portfolioData}
+            isDisrupted={isDisrupted}
+            avoidedCo2Total={avoidedCo2Total}
+            spendAtRiskUSD={spendAtRiskUSD}
+            onSimulateDisruption={() => handleTriggerDisruption()}
+            onResetBaseline={handleResetBaseline}
+          />
+        )}
       </main>
 
       {/* TAB DETAIL MODAL (SUPPLIERS, DISRUPTIONS, SANCTIONS, ESG) */}
       <ZentraDetailModal
-        activeTab={activeTab}
+        activeTab={activeTab === 'reports' ? 'overview' : activeTab}
         onClose={() => setActiveTab('overview')}
         onTriggerDisruption={(id) => {
           handleTriggerDisruption(id);
@@ -399,14 +418,11 @@ export default function VeritasSupplyDashboard() {
         onOpenAnalytics={() => setIsAnalyticsOpen(true)}
       />
 
-      {/* RECHARTS EXECUTIVE RISK & PROGRESSION ANALYTICS DASHBOARD (REPORTS TAB) */}
+      {/* RECHARTS EXECUTIVE RISK & PROGRESSION ANALYTICS MODAL (STANDALONE) */}
       <AnalyticsDashboard
-        isOpen={activeTab === 'reports' || isAnalyticsOpen}
+        isOpen={isAnalyticsOpen}
         data={portfolioData}
-        onClose={() => {
-          setIsAnalyticsOpen(false);
-          if (activeTab === 'reports') setActiveTab('overview');
-        }}
+        onClose={() => setIsAnalyticsOpen(false)}
       />
 
       {/* SUPPLIER DETAIL INSPECTION DRAWER (WHEN NODE CLICKED ON OVERVIEW) */}
@@ -437,6 +453,28 @@ export default function VeritasSupplyDashboard() {
         onExecuteAction={handleExecuteCopilotAction}
         isProcessing={isProcessing}
       />
+
+      {/* MULTI-FORMAT BOM INGESTION MODAL (CSV, XLSX, PDF AI PARSER) */}
+      <BOMIngestionModal
+        isOpen={isIngestModalOpen}
+        onClose={() => setIsIngestModalOpen(false)}
+        onIngestSuccess={async (filename) => {
+          setIsProcessing(true);
+          try {
+            const updatedDag = await api.getSupplyChainDAG();
+            if (updatedDag && updatedDag.nodes) {
+              setDagData(updatedDag);
+            }
+            const analytics = await api.getPortfolioAnalytics();
+            if (analytics) setPortfolioData(analytics);
+          } catch (err) {
+            console.error('Error reloading graph after ingestion', err);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+      />
     </div>
   );
 }
+

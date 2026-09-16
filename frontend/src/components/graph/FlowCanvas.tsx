@@ -155,6 +155,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
         fitViewOptions={{ padding: 0.18 }}
         minZoom={0.2}
         maxZoom={1.5}
+        preventScrolling={false}
         defaultEdgeOptions={{
           type: 'smoothstep',
         }}

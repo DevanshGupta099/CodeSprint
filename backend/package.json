@@ -8,6 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "db:seed": "tsx src/db/seed.ts",
     "test:cte": "tsx test/test-backend.ts",
     "test:security": "tsx test/test-security-and-edge-cases.ts",
     "test": "tsx test/test-security-and-edge-cases.ts",

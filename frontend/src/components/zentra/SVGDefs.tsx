@@ -42,6 +42,27 @@ export const SVGDefs: React.FC = () => {
           <stop offset="100%" stopColor="#172554" stopOpacity="0.95" />
         </linearGradient>
 
+        {/* Gradients for 3D Bar Front Faces */}
+        <linearGradient id="grad-green" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#10B981" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#047857" stopOpacity="0.9" />
+        </linearGradient>
+
+        <linearGradient id="grad-blue" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#1D4ED8" stopOpacity="0.9" />
+        </linearGradient>
+
+        <linearGradient id="grad-pink" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#FB7185" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#E11D48" stopOpacity="0.9" />
+        </linearGradient>
+
+        <linearGradient id="grad-orange" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.75" />
+          <stop offset="100%" stopColor="#D97706" stopOpacity="0.9" />
+        </linearGradient>
+
         {/* Isometric Shadow */}
         <linearGradient id="isoShadow" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="rgba(0, 0, 0, 0.16)" />

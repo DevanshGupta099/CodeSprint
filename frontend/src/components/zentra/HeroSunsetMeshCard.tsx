@@ -60,9 +60,9 @@ export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = ({
           </span>
         </div>
 
-        {/* Massive Hero Stat: 75% in 56px ultra-crisp white typography */}
-        <div className="my-3">
-          <div className="text-[56px] font-extrabold font-mono tracking-tight text-white leading-none mb-2 drop-shadow-sm">
+        {/* Massive Hero Stat: 75% in ultra-crisp white typography */}
+        <div className="my-2 sm:my-3">
+          <div className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold font-mono tracking-tight text-white leading-none mb-2 drop-shadow-sm">
             {current.stat}
           </div>
 

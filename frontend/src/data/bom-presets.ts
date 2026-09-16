@@ -24,7 +24,7 @@ export const BOM_PRESETS_CATALOG: Record<string, BOMPresetInfo> = {
     description: '11 Tier-0 to Tier-4 nodes spanning Chile lithium, DRC cobalt, German battery modules, and Bab-el-Mandeb chokepoint.',
     nodeCount: 11,
     primaryChokepoint: 'Apex Maritime Logistics (Bab-el-Mandeb Strait // SPOF)',
-    primaryChokepointSupplierId: '10000000-0000-0000-0000-000000000007',
+    primaryChokepointSupplierId: '30000000-0000-0000-0000-000000000001',
     defaultSpendUSD: '$41,540,000',
   },
   AEROSPACE_SATELLITE: {

@@ -21,7 +21,7 @@ import {
 
 interface SupplyWorkflowStudioProps {
   dag: SupplyChainDAGResponse;
-  onTriggerDisruption: () => void;
+  onTriggerDisruption: (supplierId?: string) => void;
   onResetBaseline: () => void;
   isDisrupted: boolean;
   isProcessing: boolean;
@@ -100,11 +100,11 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
           </div>
 
           {/* Action trigger & Reset buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
             <button
-              onClick={isDisrupted ? onResetBaseline : onTriggerDisruption}
+              onClick={isDisrupted ? onResetBaseline : () => onTriggerDisruption()}
               disabled={isProcessing}
-              className={`px-4 py-2 rounded-full text-xs font-bold font-mono transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:scale-[1.02] ${isDisrupted
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold font-mono transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-sm hover:scale-[1.02] ${isDisrupted
                 ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-200 dark:shadow-rose-950 animate-pulse'
                 : 'bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-slate-100 text-white dark:text-slate-950 shadow-neutral-300 dark:shadow-slate-900'
                 }`}
@@ -124,7 +124,7 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
 
             <button
               onClick={() => setDirection((prev) => (prev === 'LR' ? 'TB' : 'LR'))}
-              className="px-3 py-2 rounded-full bg-neutral-100 dark:bg-slate-800 hover:bg-neutral-200 dark:hover:bg-slate-700 text-neutral-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full bg-neutral-100 dark:bg-slate-800 hover:bg-neutral-200 dark:hover:bg-slate-700 text-neutral-700 dark:text-slate-200 text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Toggle Layout Direction"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -290,7 +290,7 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
         <SupplierDetailDrawer
           supplier={selectedSupplier}
           onClose={() => onSelectSupplier(null)}
-          onSimulateDisruptionOnNode={() => onTriggerDisruption()}
+          onSimulateDisruptionOnNode={(id) => onTriggerDisruption(id)}
         />
       </div>
     </div>

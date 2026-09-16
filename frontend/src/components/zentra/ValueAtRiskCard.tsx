@@ -85,8 +85,8 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
       </div>
 
       {/* Large Display Value */}
-      <div className="flex items-center gap-3 my-2">
-        <span className={`text-[36px] sm:text-[42px] font-extrabold font-mono tracking-tight leading-none ${
+      <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 my-2">
+        <span className={`text-3xl xs:text-4xl sm:text-[42px] font-extrabold font-mono tracking-tight leading-none ${
           isDisrupted ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-900 dark:text-white'
         }`}>
           {displayAmount}
@@ -94,12 +94,12 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
 
         {/* Inline Pill Badge */}
         {isDisrupted ? (
-          <div className="px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center gap-1 text-rose-600 dark:text-rose-400 text-xs font-bold font-mono shadow-xs animate-pulse">
+          <div className="px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center gap-1 text-rose-600 dark:text-rose-400 text-xs font-bold font-mono shadow-xs animate-pulse shrink-0">
             <ArrowUp className="w-3 h-3 stroke-[3]" />
             <span>+245%</span>
           </div>
         ) : (
-          <div className="tactile-badge px-2.5 py-1 flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono shadow-xs">
+          <div className="tactile-badge px-2.5 py-1 flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono shadow-xs shrink-0">
             <span>NOMINAL</span>
           </div>
         )}

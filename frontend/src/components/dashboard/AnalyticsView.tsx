@@ -78,8 +78,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ data }) => {
                       color: '#F8FAFC',
                     }}
                   />
-                  <Bar dataKey="totalSpend" fill="#6366F1" radius={[4, 4, 0, 0]} name="Total Spend" opacity={0.6} />
-                  <Bar dataKey="atRiskSpend" fill="#F43F5E" radius={[4, 4, 0, 0]} name="At-Risk Spend" />
+                  <Bar dataKey="totalSpend" fill="#6366F1" stroke="rgba(255,255,255,0.15)" strokeWidth={1} radius={[4, 4, 0, 0]} name="Total Spend" opacity={0.6} />
+                  <Bar dataKey="atRiskSpend" fill="#F43F5E" stroke="#FDA4AF" strokeWidth={1} radius={[4, 4, 0, 0]} name="At-Risk Spend" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -118,8 +118,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ data }) => {
                       color: '#F8FAFC',
                     }}
                   />
-                  <Bar dataKey="spend" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Tier Spend" opacity={0.6} />
-                  <Bar dataKey="atRisk" fill="#F43F5E" radius={[4, 4, 0, 0]} name="At-Risk Spend" />
+                  <Bar dataKey="spend" fill="#8B5CF6" stroke="rgba(255,255,255,0.15)" strokeWidth={1} radius={[4, 4, 0, 0]} name="Tier Spend" opacity={0.6} />
+                  <Bar dataKey="atRisk" fill="#F43F5E" stroke="#FDA4AF" strokeWidth={1} radius={[4, 4, 0, 0]} name="At-Risk Spend" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
