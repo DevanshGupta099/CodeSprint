@@ -1,6 +1,6 @@
 # VeritasSupply // [TIER-N INTEL ENGINE]
 
-> **Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine**
+> **Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine.**
 
 [![Live Demo](https://img.shields.io/badge/Production%20App-veritas--supply.vercel.app-00F0FF?style=for-the-badge&logo=vercel&logoColor=white)](https://veritas-supply.vercel.app)
 [![API Status](https://img.shields.io/badge/Production%20API-Live%20on%20Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://codesprint-wu6p.onrender.com/api/health)
