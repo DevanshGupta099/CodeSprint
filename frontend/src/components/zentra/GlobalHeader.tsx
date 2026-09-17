@@ -47,7 +47,7 @@ interface GlobalHeaderProps {
   onOpenIngest?: () => void;
 }
 
-export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
+export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
   activeTab,
   onSelectTab,
   onOpenSearch,
@@ -167,7 +167,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               <span className="font-extrabold text-base sm:text-xl text-neutral-900 dark:text-white tracking-tight lowercase">
                 veritas
               </span>
-              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-slate-400 font-mono px-1 py-0.5 bg-neutral-100 dark:bg-slate-800 rounded">
+              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-widest text-neutral-600 dark:text-slate-300 font-mono px-1 py-0.5 bg-neutral-200/80 dark:bg-slate-800 rounded">
                 AI
               </span>
             </div>
@@ -179,13 +179,16 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               onClick={() => setIsBomDropdownOpen(!isBomDropdownOpen)}
               className="px-2 sm:px-2.5 py-1 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-slate-800/90 dark:hover:bg-slate-700/90 text-neutral-800 dark:text-slate-200 border border-black/[0.06] dark:border-white/10 text-[10px] sm:text-[11px] font-mono font-bold flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer"
               title="Switch Active Bill of Materials (BOM) Architecture"
+              aria-label={`BOM: ${currentBOMInfo?.badge || activeBOMKey}, switch active architecture`}
+              aria-haspopup="true"
+              aria-expanded={isBomDropdownOpen}
             >
               <Database className="w-3 h-3 text-amber-500 shrink-0" />
-              <span className="hidden xl:inline text-neutral-400 dark:text-slate-500 font-medium">BOM:</span>
+              <span className="hidden xl:inline text-neutral-600 dark:text-slate-400 font-medium">BOM:</span>
               <span className="truncate max-w-[90px] sm:max-w-[130px] text-neutral-900 dark:text-white">
                 {currentBOMInfo?.badge || activeBOMKey}
               </span>
-              <ChevronDown className={`w-3 h-3 text-neutral-400 transition-transform ${isBomDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 text-neutral-500 dark:text-slate-400 transition-transform ${isBomDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isBomDropdownOpen && (
@@ -269,7 +272,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                 onClick={() => onSelectTab(tab.id)}
                 className={`transition-all duration-200 cursor-pointer flex items-center gap-1 xl:gap-1.5 shrink-0 ${isActive
                   ? 'bg-[#18181B] dark:bg-white text-white dark:text-slate-950 px-2.5 xl:px-3.5 py-1 xl:py-1.5 rounded-full font-semibold text-[11px] xl:text-xs shadow-sm'
-                  : 'text-neutral-500 dark:text-slate-400 hover:text-neutral-900 dark:hover:text-white px-2 xl:px-3 py-1 xl:py-1.5 text-[11px] xl:text-xs font-medium'
+                  : 'text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white px-2 xl:px-3 py-1 xl:py-1.5 text-[11px] xl:text-xs font-medium'
                   }`}
               >
                 <span>{tab.label}</span>
@@ -316,6 +319,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           {/* Search Button (Visible on sm screens and up, also present in mobile menu) */}
           <button
             onClick={() => setIsSearchModalOpen(true)}
+            aria-label="Search Suppliers & Tiers"
             className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-full bg-white dark:bg-slate-900/90 border border-black/[0.06] dark:border-white/10 items-center justify-center text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white shadow-[0_2px_5px_rgba(0,0,0,0.04)] hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
             title="Search Suppliers & Tiers"
           >
@@ -326,6 +330,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
           <div className="relative shrink-0 hidden sm:block" ref={notifsRef}>
             <button
               onClick={() => setIsNotifsOpen(!isNotifsOpen)}
+              aria-label="Notifications"
               className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-white dark:bg-slate-900/90 border border-black/[0.06] dark:border-white/10 flex items-center justify-center text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white shadow-[0_2px_5px_rgba(0,0,0,0.04)] hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
               title="Notifications"
             >
@@ -377,15 +382,18 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 
           {/* User Avatar with Profile Dropdown */}
           <div className="relative shrink-0" ref={profileRef}>
-            <div
+            <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="p-[2px] rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+              aria-label="SD, Organization Profile"
+              aria-haspopup="true"
+              aria-expanded={isProfileOpen}
+              className="p-[2px] rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 shadow-sm cursor-pointer hover:scale-105 transition-transform block"
               title="Organization Profile"
             >
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-900 dark:bg-slate-800 flex items-center justify-center text-white text-xs font-bold border border-white dark:border-slate-700">
                 SD
               </div>
-            </div>
+            </button>
 
             {isProfileOpen && (
               <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#0B0F19] border border-black/[0.08] dark:border-white/10 shadow-2xl p-4 z-50 text-left animate-in fade-in slide-in-from-top-2 duration-150 font-sans">
@@ -638,4 +646,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
       )}
     </div>
   );
-};
+});
+
+GlobalHeader.displayName = 'GlobalHeader';
+

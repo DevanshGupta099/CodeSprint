@@ -29,7 +29,7 @@ const RANGE_FACTORS: Record<string, number> = {
   'Jan 01 - July 31': 1.0,
 };
 
-export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
+export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = React.memo(({
   totalSpendAtRiskUSD,
   isDisrupted = false,
   range1 = 'Jan 01 - July 31',
@@ -81,17 +81,20 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
       {/* Header */}
       <div className="flex items-start justify-between pb-1">
         <div>
-          <h3 className="text-sm font-semibold text-neutral-500 dark:text-slate-400 uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-neutral-600 dark:text-slate-400 uppercase tracking-wider">
             Total Value at Risk
-          </h3>
-          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-mono text-neutral-500 dark:text-slate-400">
+          </h2>
+          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] font-mono text-neutral-600 dark:text-slate-400">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 shrink-0" />
             <span className="truncate max-w-[200px]">{range1} vs {range2}</span>
             <span>·</span>
             <span className="font-semibold text-neutral-700 dark:text-slate-300">{granularity}</span>
           </div>
         </div>
-        <button className="text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200 p-1 cursor-pointer">
+        <button 
+          aria-label="More options"
+          className="text-neutral-500 hover:text-neutral-700 dark:hover:text-slate-200 p-1 cursor-pointer"
+        >
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </div>
@@ -108,59 +111,68 @@ export const ValueAtRiskCard: React.FC<ValueAtRiskCardProps> = ({
 
         {/* Inline Pill Badge */}
         {isDisrupted ? (
-          <div className="px-2.5 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 flex items-center gap-1 text-rose-600 dark:text-rose-400 text-xs font-bold font-mono shadow-xs animate-pulse shrink-0">
-            <ArrowUp className="w-3 h-3 stroke-[3]" />
-            <span>+245%</span>
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-mono font-bold">
+            <ArrowUp className="w-3 h-3 text-rose-500" />
+            <span>+246.2% DISRUPTED</span>
           </div>
         ) : (
-          <div className="tactile-badge px-2.5 py-1 flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono shadow-xs shrink-0">
-            <span>NOMINAL</span>
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold">
+            <span>NOMINAL BASELINE</span>
           </div>
         )}
       </div>
 
-      <p className="text-xs text-neutral-500 dark:text-slate-400 font-medium mb-4">
+      <p className="text-xs text-neutral-600 dark:text-slate-400 font-medium mb-4">
         {isDisrupted 
           ? 'CRITICAL ALERT // Active CTE shockwave propagating upstream' 
           : `Standard operational baseline computed for ${range1} corridor`}
       </p>
 
-      {/* Three Categorized Progress Bars (Striped 3D Pills) */}
-      <div className="flex flex-col gap-4 pt-1">
-        {categories.map((cat, i) => (
-          <div key={i} className="flex flex-col gap-1.5">
-            {/* Label + Value Row */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-neutral-700 dark:text-slate-300">
-                {cat.label}
-              </span>
-              <span className="font-mono font-bold text-neutral-900 dark:text-white">
-                {cat.amount}
-              </span>
+      {/* Progress Bars Stack with candy stripes */}
+      <div className="flex flex-col gap-3 my-2">
+        {categories.map((cat, idx) => (
+          <div key={idx} className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between text-xs font-medium">
+              <span className="text-neutral-700 dark:text-slate-300">{cat.label}</span>
+              <div className="flex items-center gap-2 font-mono">
+                <span className="font-semibold text-neutral-900 dark:text-white">{cat.amount}</span>
+                <span className="text-neutral-600 dark:text-slate-400 text-[10px] w-7 text-right">
+                  {cat.pct}%
+                </span>
+              </div>
             </div>
 
-            {/* Progress Bar: Rounded-full track (bg-neutral-100 h-3.5) filled with 3D candy-stripe pattern */}
-            <div className="w-full h-3.5 rounded-full bg-neutral-100 dark:bg-slate-800/90 overflow-hidden p-0.5 border border-black/[0.04] dark:border-white/10 shadow-inner">
-              <svg className="w-full h-full rounded-full overflow-hidden" preserveAspectRatio="none">
-                <rect
-                  x="0"
-                  y="0"
-                  width={`${cat.pct}%`}
-                  height="100%"
-                  rx="6"
-                  fill={cat.patternUrl}
+            {/* Micro Striped Progress Bar Container */}
+            <div className="w-full h-2.5 rounded-full bg-neutral-100 dark:bg-slate-800/80 overflow-hidden relative p-[1px]">
+              {/* Pattern Striped Fill Bar */}
+              <div
+                className="h-full rounded-full transition-all duration-700 relative overflow-hidden"
+                style={{
+                  width: `${cat.pct}%`,
+                  backgroundColor: cat.baseColor,
+                }}
+              >
+                {/* Overlay SVG Pattern */}
+                <div
+                  className="absolute inset-0 opacity-40 mix-blend-overlay"
+                  style={{
+                    backgroundImage: cat.patternUrl,
+                    backgroundSize: '10px 10px',
+                  }}
                 />
-              </svg>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Footer Readout */}
-      <div className="pt-4 border-t border-neutral-100 dark:border-white/10 mt-4 flex items-center justify-between text-[11px] text-neutral-400 dark:text-slate-500 font-medium">
+      <div className="pt-4 border-t border-neutral-100 dark:border-white/10 mt-4 flex items-center justify-between text-[11px] text-neutral-600 dark:text-slate-400 font-medium">
         <span>Mitigation Capacity: High</span>
         <span className="text-neutral-700 dark:text-slate-300 font-semibold font-mono">3 Pre-Qualified Reroutes</span>
       </div>
     </div>
   );
-};
+});
+
+ValueAtRiskCard.displayName = 'ValueAtRiskCard';

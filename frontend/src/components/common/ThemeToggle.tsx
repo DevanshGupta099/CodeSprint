@@ -25,7 +25,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
           : 'bg-white hover:bg-neutral-50 text-neutral-800 border-black/[0.08] shadow-[0_2px_5px_rgba(0,0,0,0.04)] hover:border-black/20 hover:shadow-[0_2px_10px_rgba(0,0,0,0.08)]'
       } ${className}`}
       title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-      aria-label="Toggle visual theme"
+      aria-label={isDark ? 'DARK theme active, click to switch to light theme' : 'LIGHT theme active, click to switch to dark theme'}
     >
       {/* Precision Geometric Contrast Aperture Glyph */}
       <div className="relative w-4 h-4 flex items-center justify-center">

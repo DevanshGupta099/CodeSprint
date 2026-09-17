@@ -45,3 +45,6 @@ Thumbs.db
 !.vscode/extensions.json
 .idea/
 *.swp
+
+# Lighthouse reports
+lighthouse*.json

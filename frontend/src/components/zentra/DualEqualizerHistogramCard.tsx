@@ -9,7 +9,7 @@ interface DualEqualizerHistogramCardProps {
   range2?: string;
 }
 
-export const DualEqualizerHistogramCard: React.FC<DualEqualizerHistogramCardProps> = ({
+export const DualEqualizerHistogramCard: React.FC<DualEqualizerHistogramCardProps> = React.memo(({
   granularity = 'Daily',
   range1 = 'Jan 01 - July 31',
   range2 = 'Aug 01 - Dec 31',
@@ -77,10 +77,10 @@ export const DualEqualizerHistogramCard: React.FC<DualEqualizerHistogramCardProp
       {/* BLOCK A: DISRUPTION INCIDENTS */}
       <div className="pb-4 border-b border-neutral-100 dark:border-white/10">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-semibold text-neutral-500 dark:text-slate-400 uppercase tracking-tight">
+          <h2 className="text-xs font-semibold text-neutral-600 dark:text-slate-400 uppercase tracking-tight">
             {blockATitle}
-          </span>
-          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+          </h2>
+          <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
             {blockAComparison}
           </span>
         </div>
@@ -126,10 +126,10 @@ export const DualEqualizerHistogramCard: React.FC<DualEqualizerHistogramCardProp
       {/* BLOCK B: MONITORED VENDORS */}
       <div className="pt-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-semibold text-neutral-500 dark:text-slate-400 uppercase tracking-tight">
+          <h3 className="text-xs font-semibold text-neutral-600 dark:text-slate-400 uppercase tracking-tight">
             {blockBTitle}
-          </span>
-          <span className="text-[11px] font-mono text-blue-600 dark:text-sky-400 font-semibold">
+          </h3>
+          <span className="text-[11px] font-mono text-blue-700 dark:text-sky-400 font-semibold">
             {blockBComparison}
           </span>
         </div>
@@ -173,4 +173,6 @@ export const DualEqualizerHistogramCard: React.FC<DualEqualizerHistogramCardProp
       </div>
     </div>
   );
-};
+});
+
+DualEqualizerHistogramCard.displayName = 'DualEqualizerHistogramCard';

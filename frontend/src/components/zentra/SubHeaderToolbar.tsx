@@ -37,7 +37,7 @@ interface SubHeaderToolbarProps {
   onResetFilters?: () => void;
 }
 
-export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
+export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = React.memo(({
   title = 'Overview',
   onAddWidget,
   visibleWidgets = { funnel: true, var: true, volatility: true, equalizer: true, insight: true },
@@ -130,6 +130,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         </h1>
         <button
           onClick={handleCopyLink}
+          aria-label="Copy dashboard link"
           className="relative h-7 w-7 rounded-full bg-white dark:bg-slate-900 border border-black/10 dark:border-white/10 flex items-center justify-center text-neutral-500 dark:text-slate-400 hover:text-neutral-900 dark:hover:text-white shadow-sm hover:bg-neutral-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
           title="Copy dashboard link"
         >
@@ -163,6 +164,9 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         <div className="relative">
           <button 
             onClick={() => setOpenDropdown(openDropdown === 'range1' ? null : 'range1')}
+            aria-label={`${range1}, select primary date range`}
+            aria-haspopup="true"
+            aria-expanded={openDropdown === 'range1'}
             className={`tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-medium cursor-pointer ${
               range1 !== 'Jan 01 - July 31'
                 ? 'border-cyan-500/50 bg-cyan-50/50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-300'
@@ -194,7 +198,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         </div>
 
         {/* Text: compared to */}
-        <span className="text-neutral-400 dark:text-slate-500 text-[11px] sm:text-xs font-normal px-0.5 hidden sm:inline">
+        <span className="text-neutral-600 dark:text-slate-400 text-[11px] sm:text-xs font-normal px-0.5 hidden sm:inline">
           vs
         </span>
 
@@ -202,6 +206,9 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         <div className="relative">
           <button 
             onClick={() => setOpenDropdown(openDropdown === 'range2' ? null : 'range2')}
+            aria-label={`${range2}, select comparison date range`}
+            aria-haspopup="true"
+            aria-expanded={openDropdown === 'range2'}
             className={`tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 sm:gap-2 font-medium cursor-pointer ${
               range2 !== 'Aug 01 - Dec 31'
                 ? 'border-cyan-500/50 bg-cyan-50/50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-300'
@@ -236,6 +243,9 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         <div className="relative">
           <button 
             onClick={() => setOpenDropdown(openDropdown === 'granularity' ? null : 'granularity')}
+            aria-label={`${granularity}, select data granularity`}
+            aria-haspopup="true"
+            aria-expanded={openDropdown === 'granularity'}
             className={`tactile-pill-btn px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center gap-1.5 font-medium cursor-pointer ${
               granularity !== 'Daily'
                 ? 'border-cyan-500/50 bg-cyan-50/50 dark:bg-cyan-950/30 text-cyan-700 dark:text-cyan-300'
@@ -269,6 +279,9 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
         <div className="relative">
           <button
             onClick={() => setOpenDropdown(openDropdown === 'widgets' ? null : 'widgets')}
+            aria-label={`Customize dashboard widgets, ${visibleCount} of 5 active`}
+            aria-haspopup="true"
+            aria-expanded={openDropdown === 'widgets'}
             className="tactile-pill-btn px-3.5 py-1.5 sm:px-4 sm:py-2 flex items-center gap-1.5 text-neutral-900 dark:text-white font-semibold cursor-pointer shadow-sm hover:bg-neutral-50 dark:hover:bg-slate-800 ml-0.5"
             title="Configure Dashboard Widgets"
           >
@@ -283,7 +296,11 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
             <div className="absolute right-0 mt-1.5 w-64 bg-white dark:bg-[#0B0F19] rounded-2xl shadow-xl border border-black/[0.08] dark:border-white/10 p-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150 font-sans">
               <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.06] dark:border-white/10">
                 <span className="font-bold text-xs text-neutral-900 dark:text-white">Dashboard Bento Cards</span>
-                <button onClick={() => setOpenDropdown(null)} className="text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200 cursor-pointer">
+                <button 
+                  onClick={() => setOpenDropdown(null)} 
+                  aria-label="Close widget customization"
+                  className="text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200 cursor-pointer p-1"
+                >
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -336,4 +353,7 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = ({
       </div>
     </div>
   );
-};
+});
+
+SubHeaderToolbar.displayName = 'SubHeaderToolbar';
+

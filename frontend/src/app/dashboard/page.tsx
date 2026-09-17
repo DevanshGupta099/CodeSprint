@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { GlobalHeader, ZentraTab } from '@/components/zentra/GlobalHeader';
 import { SubHeaderToolbar } from '@/components/zentra/SubHeaderToolbar';
 import { MaterialFlowFunnelCard } from '@/components/zentra/MaterialFlowFunnelCard';
@@ -10,20 +11,74 @@ import { SteppedVolatilityCard } from '@/components/zentra/SteppedVolatilityCard
 import { DualEqualizerHistogramCard } from '@/components/zentra/DualEqualizerHistogramCard';
 import { HeroSunsetMeshCard } from '@/components/zentra/HeroSunsetMeshCard';
 import { SVGDefs } from '@/components/zentra/SVGDefs';
-import { ZentraDetailModal } from '@/components/zentra/ZentraDetailModal';
-import { SupplyWorkflowStudio } from '@/components/graph/SupplyWorkflowStudio';
-import { ProcurementSwitchMemo } from '@/components/terminal/ProcurementSwitchMemo';
-import { SupplierDetailDrawer } from '@/components/graph/SupplierDetailDrawer';
-import { AICopilotModal } from '@/components/ai/AICopilotModal';
 import { INITIAL_DAG_DATA } from '@/data/seed-graph';
 import { SupplyChainDAGResponse, Supplier, MitigationMemo, PortfolioBreakdownResponse } from '@/types/supply-chain';
 import { AICopilotResponse } from '@/types/ai';
 import { api } from '@/services/api';
 import { useRiskState } from '@/hooks/useRiskState';
-import { AnalyticsDashboard } from '@/components/dashboard/AnalyticsDashboard';
-import { ReportsView } from '@/components/dashboard/ReportsView';
-import { BOMIngestionModal } from '@/components/ingestion/BOMIngestionModal';
 import { BOM_PRESETS_CATALOG } from '@/data/bom-presets';
+
+// Performance: Code-split heavy interactive workspaces & modals into on-demand chunks
+const SupplyWorkflowStudio = dynamic(
+  () => import('@/components/graph/SupplyWorkflowStudio').then((m) => m.SupplyWorkflowStudio),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[650px] rounded-3xl bg-neutral-100/50 dark:bg-slate-900/50 border border-black/5 dark:border-white/10 flex flex-col items-center justify-center gap-3 font-mono text-xs text-neutral-400">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-500 animate-ping" />
+          <span className="font-semibold text-neutral-700 dark:text-slate-300">INITIALIZING DAG WORKFLOW STUDIO...</span>
+        </div>
+        <span className="text-[10px] text-neutral-400 dark:text-slate-500">Tier-N Relational Network Engine (Dagre CTE)</span>
+      </div>
+    ),
+  }
+);
+
+const ReportsView = dynamic(
+  () => import('@/components/dashboard/ReportsView').then((m) => m.ReportsView),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-[600px] rounded-3xl bg-neutral-100/50 dark:bg-slate-900/50 border border-black/5 dark:border-white/10 flex flex-col items-center justify-center gap-3 font-mono text-xs text-neutral-400">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+          <span className="font-semibold text-neutral-700 dark:text-slate-300">COMPILING EXECUTIVE RISK ANALYTICS...</span>
+        </div>
+      </div>
+    ),
+  }
+);
+
+const AnalyticsDashboard = dynamic(
+  () => import('@/components/dashboard/AnalyticsDashboard').then((m) => m.AnalyticsDashboard),
+  { ssr: false }
+);
+
+const BOMIngestionModal = dynamic(
+  () => import('@/components/ingestion/BOMIngestionModal').then((m) => m.BOMIngestionModal),
+  { ssr: false }
+);
+
+const AICopilotModal = dynamic(
+  () => import('@/components/ai/AICopilotModal').then((m) => m.AICopilotModal),
+  { ssr: false }
+);
+
+const ZentraDetailModal = dynamic(
+  () => import('@/components/zentra/ZentraDetailModal').then((m) => m.ZentraDetailModal),
+  { ssr: false }
+);
+
+const SupplierDetailDrawer = dynamic(
+  () => import('@/components/graph/SupplierDetailDrawer').then((m) => m.SupplierDetailDrawer),
+  { ssr: false }
+);
+
+const ProcurementSwitchMemo = dynamic(
+  () => import('@/components/terminal/ProcurementSwitchMemo').then((m) => m.ProcurementSwitchMemo),
+  { ssr: false }
+);
 
 export default function VeritasSupplyDashboard() {
   const [activeTab, setActiveTab] = useState<ZentraTab>('overview');
@@ -303,12 +358,16 @@ export default function VeritasSupplyDashboard() {
       <SVGDefs />
 
       {/* Breadcrumb back to Editorial Landing Page */}
-      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 pt-3 pb-1 flex items-center justify-between text-xs font-mono text-neutral-500 overflow-hidden">
-        <Link href="/" className="hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5 transition-colors shrink-0">
+      <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 pt-3 pb-1 flex items-center justify-between text-xs font-mono text-neutral-600 dark:text-slate-400 overflow-hidden">
+        <Link 
+          href="/" 
+          aria-label="Return to landing overview"
+          className="hover:text-neutral-900 dark:hover:text-white flex items-center gap-1.5 transition-colors shrink-0"
+        >
           <span>←</span> <span className="font-semibold">LANDING OVERVIEW</span>
         </Link>
-        <span className="tracking-widest uppercase text-[10px] text-neutral-400 hidden sm:inline truncate">TACTICAL ENGINE // ORG_ID: 00000000-0000-0000-0000-000000000001</span>
-        <span className="tracking-widest uppercase text-[9px] text-neutral-400 sm:hidden">ORG: ...0001</span>
+        <span className="tracking-widest uppercase text-[10px] text-neutral-500 dark:text-slate-400 hidden sm:inline truncate">TACTICAL ENGINE // ORG_ID: 00000000-0000-0000-0000-000000000001</span>
+        <span className="tracking-widest uppercase text-[9px] text-neutral-500 dark:text-slate-400 sm:hidden">ORG: ...0001</span>
       </div>
 
       {/* 1. HEADER & NAVIGATION: Responsive Floating Rounded Pill Nav Bar */}

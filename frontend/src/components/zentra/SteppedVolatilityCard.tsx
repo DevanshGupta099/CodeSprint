@@ -8,7 +8,7 @@ interface SteppedVolatilityCardProps {
   granularity?: string;
 }
 
-export const SteppedVolatilityCard: React.FC<SteppedVolatilityCardProps> = ({
+export const SteppedVolatilityCard: React.FC<SteppedVolatilityCardProps> = React.memo(({
   range1 = 'Jan 01 - July 31',
   granularity = 'Daily',
 }) => {
@@ -92,15 +92,18 @@ export const SteppedVolatilityCard: React.FC<SteppedVolatilityCardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between pb-2">
         <div>
-          <h3 className="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">
+          <h2 className="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">
             Lead-Time Volatility
-          </h3>
-          <span className="text-[11px] font-medium text-neutral-400 dark:text-slate-400">
+          </h2>
+          <span className="text-[11px] font-medium text-neutral-600 dark:text-slate-400">
             {subTitle}
           </span>
         </div>
 
-        <button className="text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200 p-1 cursor-pointer">
+        <button 
+          aria-label="More options"
+          className="text-neutral-500 hover:text-neutral-700 dark:hover:text-slate-200 p-1 cursor-pointer"
+        >
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </div>
@@ -113,55 +116,49 @@ export const SteppedVolatilityCard: React.FC<SteppedVolatilityCardProps> = ({
               <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.22" />
               <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0" />
             </linearGradient>
-
-            {/* Vertical micro-hatch pattern */}
-            <pattern id="micro-hatch" width="4" height="4" patternUnits="userSpaceOnUse">
-              <line x1="0" y1="0" x2="0" y2="4" stroke="#F43F5E" strokeWidth="0.75" strokeOpacity="0.15" />
-            </pattern>
           </defs>
 
-          {/* Area Fill */}
+          {/* Stepped Area Fill */}
           <path
             d={pathFill}
             fill="url(#pinkGrad)"
           />
-          <path
-            d={pathFill}
-            fill="url(#micro-hatch)"
-          />
 
-          {/* Stepped Staircase Stroke */}
+          {/* Crisp Pink Stepped Stroke Line */}
           <path
             d={pathStroke}
             fill="none"
             stroke="#F43F5E"
             strokeWidth="2.5"
             strokeLinecap="round"
-            strokeLinejoin="miter"
+            strokeLinejoin="round"
           />
 
-          {/* Peak Point Circle */}
-          <circle cx={peakCx} cy={peakCy} r="4" fill="#F43F5E" stroke="#FFFFFF" strokeWidth="2" />
+          {/* Dynamic Peak Highlight Circle Marker */}
+          <circle cx={peakCx} cy={peakCy} r="4.5" fill="#F43F5E" />
+          <circle cx={peakCx} cy={peakCy} r="8" fill="#F43F5E" fillOpacity="0.2" className="animate-ping" />
         </svg>
 
-        {/* Floating Tactile White Pill Badge anchored to peak step point */}
+        {/* Dynamic Peak Floating Tactile Capsule Badge */}
         <div 
+          className="absolute -top-1 pointer-events-none transition-all duration-300"
           style={{ left: peakBadgeLeft }}
-          className="absolute top-0 -translate-x-1/2 -translate-y-2 pointer-events-none transition-all duration-300"
         >
-          <div className="tactile-badge px-2.5 py-0.5 text-[11px] font-bold font-mono text-neutral-900 dark:text-white flex items-center gap-1.5 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>{peakPercent}</span>
+          <div className="micro-capsule-3d px-2.5 py-1 rounded-full text-[11px] font-mono font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 shadow-md animate-in fade-in zoom-in-95">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            <span>Peak +{peakPercent}</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Axis Labels in muted gray */}
-      <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-white/10 text-[11px] font-medium text-neutral-400 dark:text-slate-500 font-mono">
+      <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-white/10 text-[11px] font-medium text-neutral-600 dark:text-slate-400 font-mono">
         {labels.map((m) => (
           <span key={m}>{m}</span>
         ))}
       </div>
     </div>
   );
-};
+});
+
+SteppedVolatilityCard.displayName = 'SteppedVolatilityCard';

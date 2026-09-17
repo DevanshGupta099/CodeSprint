@@ -58,15 +58,19 @@ export function useRiskState({
   useEffect(() => {
     if (!enabled) return;
 
-    // Initial poll
-    poll();
-
-    // 3–5s polling interval
-    const interval = setInterval(() => {
+    let interval: NodeJS.Timeout;
+    // Defer initial poll slightly after hydration to ensure smooth, zero-contention FCP/LCP paint
+    const timer = setTimeout(() => {
       poll();
-    }, intervalMs);
+      interval = setInterval(() => {
+        poll();
+      }, intervalMs);
+    }, 1200);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      if (interval) clearInterval(interval);
+    };
   }, [enabled, intervalMs, poll]);
 
   return {

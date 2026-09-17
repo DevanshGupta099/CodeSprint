@@ -7,7 +7,7 @@ interface HeroSunsetMeshCardProps {
   onExploreMitigation?: () => void;
 }
 
-export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = ({
+export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = React.memo(({
   onExploreMitigation,
 }) => {
   const [activeSlide, setActiveSlide] = useState(0);
@@ -67,9 +67,9 @@ export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = ({
           </div>
 
           {/* Bold Headline */}
-          <h4 className="text-base font-bold text-white tracking-tight leading-snug mb-1.5">
+          <h2 className="text-base font-bold text-white tracking-tight leading-snug mb-1.5">
             {current.headline}
-          </h4>
+          </h2>
 
           {/* Body Copy */}
           <p className="text-xs text-white/85 leading-relaxed font-normal">
@@ -79,18 +79,23 @@ export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = ({
 
         {/* Bottom Carousel Indicator: 3 horizontal glass slider lines with the first line active (longer, solid white) */}
         <div className="pt-3 border-t border-white/15 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {slides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveSlide(idx)}
-                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  activeSlide === idx
-                    ? 'w-7 bg-white'
-                    : 'w-2 bg-white/40 hover:bg-white/60'
-                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+                className="min-w-[24px] min-h-[24px] p-1 cursor-pointer flex items-center justify-center"
                 title={`Slide ${idx + 1}`}
-              />
+              >
+                <span
+                  className={`h-1.5 rounded-full transition-all duration-300 block ${
+                    activeSlide === idx
+                      ? 'w-7 bg-white'
+                      : 'w-2 bg-white/40 hover:bg-white/60'
+                  }`}
+                />
+              </button>
             ))}
           </div>
 
@@ -105,4 +110,7 @@ export const HeroSunsetMeshCard: React.FC<HeroSunsetMeshCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+HeroSunsetMeshCard.displayName = 'HeroSunsetMeshCard';
+

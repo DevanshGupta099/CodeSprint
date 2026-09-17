@@ -31,7 +31,7 @@ interface MaterialFlowFunnelCardProps {
   granularity?: string;
 }
 
-export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
+export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = React.memo(({
   onExplorePrompt,
   onSelectStage,
   isProcessingPrompt = false,
@@ -136,15 +136,15 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
       {/* Dynamic Filter Context Header */}
       <div className="flex items-center justify-between pb-3 mb-1 border-b border-neutral-100 dark:border-white/5">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+          <h2 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
             Material Flow Funnel
-          </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 font-semibold flex items-center gap-1">
+          </h2>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 font-semibold flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
             <span>{range1} vs {range2}</span>
           </span>
         </div>
-        <span className="text-[11px] font-mono text-neutral-400 dark:text-slate-500 hidden sm:inline">
+        <span className="text-[11px] font-mono text-neutral-600 dark:text-slate-400 hidden sm:inline">
           Resolution: <span className="text-neutral-700 dark:text-slate-300 font-semibold">{granularity}</span>
         </span>
       </div>
@@ -163,7 +163,7 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
             >
               {/* Extruded micro-capsule badge */}
               <div className={`micro-capsule-3d px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold mb-1.5 shadow-xs transition-colors ${
-                st.pillValue.startsWith('-') ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-600 dark:text-slate-300'
+                st.pillValue.startsWith('-') ? 'text-rose-700 dark:text-rose-400' : 'text-neutral-700 dark:text-slate-300'
               }`}>
                 {st.pillValue}
               </div>
@@ -184,7 +184,7 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                 className={`text-[10px] sm:text-[11px] uppercase tracking-tight block mt-0.5 truncate max-w-full ${
                   isSelected
                     ? 'text-neutral-900 dark:text-white font-bold'
-                    : 'text-neutral-400 dark:text-slate-400 font-semibold group-hover:text-neutral-600 dark:group-hover:text-slate-200'
+                    : 'text-neutral-600 dark:text-slate-400 font-semibold group-hover:text-neutral-900 dark:group-hover:text-slate-200'
                 }`}
               >
                 {st.name}
@@ -368,7 +368,7 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
             </span>
             <span className="text-neutral-300 dark:text-slate-600 hidden md:inline">|</span>
             <span className={`font-bold font-mono hidden md:inline shrink-0 ${
-              selectedStage.pillValue.startsWith('-') ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
+              selectedStage.pillValue.startsWith('-') ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'
             }`}>
               Variance: {selectedStage.pillValue}
             </span>
@@ -392,6 +392,7 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
 
           <button
             onClick={() => setIsCopilotCollapsed(!isCopilotCollapsed)}
+            aria-label="Toggle Copilot Dock"
             className="p-1 text-sky-700 dark:text-sky-400 hover:text-sky-950 dark:hover:text-white transition-colors cursor-pointer"
             title="Toggle Copilot Dock"
           >
@@ -411,12 +412,14 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Ask Veritas AI (e.g. bottleneck cause, UFLPA sanctions, Red Sea reroute)..."
-                className="flex-1 text-xs text-neutral-800 dark:text-slate-100 font-medium outline-none bg-transparent placeholder:text-neutral-400 dark:placeholder:text-slate-500"
+                aria-label="Ask Veritas AI supply chain copilot"
+                className="flex-1 text-xs text-neutral-800 dark:text-slate-100 font-medium outline-none bg-transparent placeholder:text-neutral-500 dark:placeholder:text-slate-400"
               />
 
               <button
                 type="submit"
                 disabled={isProcessingPrompt}
+                aria-label="Run AI copilot query"
                 className="ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-900 dark:bg-cyan-500 hover:bg-neutral-800 dark:hover:bg-cyan-400 text-white dark:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 shrink-0"
                 title="Run AI query"
               >
@@ -442,4 +445,6 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+MaterialFlowFunnelCard.displayName = 'MaterialFlowFunnelCard';
