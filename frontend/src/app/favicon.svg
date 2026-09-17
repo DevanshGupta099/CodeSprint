@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="veritas-tab-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFA012" />
+      <stop offset="50%" stop-color="#FF6B00" />
+      <stop offset="100%" stop-color="#E64500" />
+    </linearGradient>
+  </defs>
+  <!-- Squircle Emblem Background -->
+  <rect x="0" y="0" width="32" height="32" rx="9" fill="url(#veritas-tab-orange)" />
+  
+  <!-- Isometric Cube Core Glyph -->
+  <g transform="translate(6.4, 6.4) scale(0.8)">
+    <path
+      d="M12 2L2 8.5v7L12 22l10-6.5v-7L12 2zm0 3.3l6.7 4.35L12 14 5.3 9.65 12 5.3zm-7.7 6.25l6.7 4.35v6.5l-6.7-4.35v-6.5zm8.7 10.85v-6.5l6.7-4.35v6.5l-6.7 4.35z"
+      fill="#FFFFFF"
+    />
+  </g>
+</svg>

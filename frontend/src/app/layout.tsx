@@ -23,13 +23,13 @@ export const metadata: Metadata = {
   description: 'Enterprise AI Tier-N Supply Chain Disruption & ESG Intelligence Platform',
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
-      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg?v=3', type: 'image/svg+xml' },
+      { url: '/icon.png?v=3', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon.ico?v=3', sizes: 'any' },
     ],
-    shortcut: '/icon.svg',
+    shortcut: '/icon.svg?v=3',
     apple: [
-      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-icon.png?v=3', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
@@ -42,10 +42,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${sans.variable} ${jetbrainsMono.variable}`}>
       <head>
-        {/* Browser Tab Favicon Links */}
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        {/* Browser Tab Favicon Links with Cache-Busting Version */}
+        <link rel="icon" href="/icon.svg?v=3" type="image/svg+xml" />
+        <link rel="icon" href="/icon.png?v=3" type="image/png" sizes="32x32" />
+        <link rel="shortcut icon" href="/favicon.ico?v=3" />
+        <link rel="apple-touch-icon" href="/apple-icon.png?v=3" />
         {/* Preload critical self-hosted exact font binaries for instant zero-latency rendering */}
         <link rel="preload" href="/fonts/fraunces-900.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/instrumentserif-italic.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
