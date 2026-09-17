@@ -12,7 +12,22 @@ import { AICopilotResponse, SupplierAIAudit } from '../types/ai';
 import { INITIAL_DAG_DATA, ALTERNATES_MAP, SCENARIO_PRESETS } from '../data/seed-graph';
 import { BOM_PRESETS_CATALOG, BOM_DAG_MAP, BOMPresetInfo } from '../data/bom-presets';
 
-const rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').trim();
+// Sanitize API Base URL with fallback to production Render service
+let rawBase = (process.env.NEXT_PUBLIC_API_URL || 'https://codesprint-wu6p.onrender.com/api').trim();
+
+// Defend against accidental "KEY=VALUE" copy-paste in Vercel environment dashboard
+if (rawBase.includes('=')) {
+  rawBase = rawBase.split('=').pop()?.trim() || rawBase;
+}
+
+// Strip leading/trailing quotes if present
+rawBase = rawBase.replace(/^["']|["']$/g, '').trim();
+
+// Ensure URL begins with http:// or https://, else fallback to live Render backend
+if (!rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
+  rawBase = 'https://codesprint-wu6p.onrender.com/api';
+}
+
 const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase.replace(/\/$/, '')}/api`;
 
 
