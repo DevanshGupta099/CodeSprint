@@ -1,6 +1,11 @@
 {
   "name": "veritas-supply-frontend",
   "version": "0.1.0",
+  "homepage": "https://veritas-supply.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DevanshGupta099/CodeSprint.git"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -19,7 +19,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'VeritasSupply — Autonomous Tier-N Supply Chain Disruption Intelligence',
+  title: {
+    default: 'Veritas — Supply Chain AI',
+    template: '%s | Veritas',
+  },
   description: 'Enterprise AI Tier-N Supply Chain Disruption & ESG Intelligence Platform',
   icons: {
     icon: [

@@ -2,12 +2,43 @@
 
 > **Autonomous AI Tier-N Supply Chain Disruption & Sanctions/ESG Intelligence Engine**
 
+[![Live Demo](https://img.shields.io/badge/Production%20App-veritas--supply.vercel.app-00F0FF?style=for-the-badge&logo=vercel&logoColor=white)](https://veritas-supply.vercel.app)
+[![API Status](https://img.shields.io/badge/Production%20API-Live%20on%20Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://codesprint-wu6p.onrender.com/api/health)
+[![Cloud Database](https://img.shields.io/badge/Cloud%20Database-Neon%20Postgres-00E599?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
+
 [![GitHub branch](https://img.shields.io/badge/branch-main-00F0FF?style=flat-square&logo=github)](https://github.com/DevanshGupta099/CodeSprint)
 [![Next.js](https://img.shields.io/badge/Next.js-14%2F15%20App%20Router-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Recursive%20CTEs-336791?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
 [![React Flow](https://img.shields.io/badge/Graph-React%20Flow%20%2B%20Dagre-FF0072?style=flat-square)](https://reactflow.dev/)
 [![SDG 8](https://img.shields.io/badge/SDG%208-Decent%20Work%20%26%20Economic%20Growth-A21942?style=flat-square)](https://sdgs.un.org/goals/goal8)
 [![SDG 12](https://img.shields.io/badge/SDG%2012-Responsible%20Production-BF8B2E?style=flat-square)](https://sdgs.un.org/goals/goal12)
+
+---
+
+## 🌐 Live Production Deployments & Cloud Endpoints
+
+The complete system is deployed live in production across high-availability cloud infrastructure:
+
+| Component | Platform | Production URL | Status / Verification |
+| :--- | :--- | :--- | :--- |
+| **Frontend Web App** | **Vercel** (Global CDN) | [https://veritas-supply.vercel.app](https://veritas-supply.vercel.app) | `🟢 HTTP 200 OK` · Next.js 14 App Router |
+| **Frontend Mirror** | **Vercel** (Secondary) | [https://code-sprint-delta.vercel.app](https://code-sprint-delta.vercel.app) | `🟢 HTTP 200 OK` · Zero-downtime alias |
+| **Backend REST API** | **Render** (Cloud Compute) | [https://codesprint-wu6p.onrender.com](https://codesprint-wu6p.onrender.com) | `🟢 Active` · Express / TypeScript + Python |
+| **Cloud Database** | **Neon** (Serverless Postgres) | `br-nameless-river-b3r9pefy` (`production`) | `🟢 Connected` · Recursive CTEs + 7 Relational Tables |
+
+### 🚀 Direct Application Links
+- 🖥️ **Landing & Mission Brief**: [https://veritas-supply.vercel.app/](https://veritas-supply.vercel.app/)
+- 📊 **Executive Command Center**: [https://veritas-supply.vercel.app/dashboard](https://veritas-supply.vercel.app/dashboard)
+- 🕸️ **Interactive DAG Studio**: [https://veritas-supply.vercel.app/graph](https://veritas-supply.vercel.app/graph)
+
+### 🔌 Live Production API Endpoints
+- `GET` **Health Check**: [`https://codesprint-wu6p.onrender.com/api/health`](https://codesprint-wu6p.onrender.com/api/health)
+- `GET` **Supply Chain DAG**: [`https://codesprint-wu6p.onrender.com/api/supply-chain`](https://codesprint-wu6p.onrender.com/api/supply-chain)
+- `GET` **Current Risk State**: [`https://codesprint-wu6p.onrender.com/api/risk-state`](https://codesprint-wu6p.onrender.com/api/risk-state)
+- `POST` **Trigger Disruption**: [`https://codesprint-wu6p.onrender.com/api/disruption/trigger`](https://codesprint-wu6p.onrender.com/api/disruption/trigger)
+- `GET` **Disruption Scenarios**: [`https://codesprint-wu6p.onrender.com/api/disruption/scenarios`](https://codesprint-wu6p.onrender.com/api/disruption/scenarios)
+- `GET` **Portfolio Breakdown**: [`https://codesprint-wu6p.onrender.com/api/analytics/portfolio-breakdown`](https://codesprint-wu6p.onrender.com/api/analytics/portfolio-breakdown)
+
 
 ---
 

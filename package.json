@@ -1,4 +1,12 @@
 {
+  "name": "veritas-supply",
+  "version": "1.0.0",
+  "description": "VeritasSupply Autonomous AI Tier-N Supply Chain Disruption & ESG Intelligence Engine",
+  "homepage": "https://veritas-supply.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DevanshGupta099/CodeSprint.git"
+  },
   "dependencies": {
     "@neon/config": "^1.7.0",
     "@neon/env": "^1.4.1"
