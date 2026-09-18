@@ -1,0 +1,12 @@
+supplierName,code,country,countryCode,tier,materialCategory,componentName,spendUsd,leadTimeDays,parentSupplierCode,shippingRoute,lat,lng
+Apex Autotech ECU Systems,AES-USA,United States,USA,0,Automotive Powertrain ECUs,Grade-0 Autonomous Powertrain Microcontroller,520000000,0,ROOT,Detroit Automotive Corridor,42.3314,-83.0458
+Hsinchu Semiconductor Foundry,HSF-TWN,Taiwan,TWN,1,28nm Automotive Microcontroller Wafers,Monolithic 32-bit Automotive MCU Die,240000000,45,AES-USA,Transpacific Air Freight,24.7820,120.9980
+Stuttgart ECU Packaging AG,SEP-DEU,Germany,DEU,1,Ceramic BGA Packaging,Hermetic Automotive BGA Substrate,95000000,28,AES-USA,Transatlantic Air Express,48.7758,9.1829
+Tainan Lithography Mask Corp,TLM-TWN,Taiwan,TWN,2,EUV / DUV Photolithography Reticles,Quartz Optical Photomasks,42000000,35,HSF-TWN,Taiwan High-Speed Corridor,22.9997,120.2270
+Kyoto Micro Substrates,KMS-JPN,Japan,JPN,2,Multi-Layer Ceramic Interposers,High-Density Ceramic Interposer,51000000,25,SEP-DEU,Japan Sea Air Link,35.0116,135.7681
+Odesa Noble Gas Refiners,ONR-UKR,Ukraine,UKR,3,Excimer Laser Neon Gas (99.999%),Lithography Grade Purified Neon Gas,28000000,50,TLM-TWN,Black Sea Maritime Corridor,46.4825,30.7233
+Hokkaido Ultra-Pure Quartz,HUQ-JPN,Japan,JPN,3,Synthetic Fused Silica Ingots,Ultra-Low Expansion Quartz Substrate,34000000,32,TLM-TWN,Tsugaru Strait Rail Corridor,43.0642,141.3469
+Gwangyang Copper Clad Ltd,GCC-KOR,South Korea,KOR,3,Copper Clad Laminate Sheets,Low-Loss Halogen-Free Laminate,26000000,22,KMS-JPN,Korea Strait Ferry Logistics,34.9407,127.6959
+Donbas Raw Air Separation,DAS-UKR,Ukraine,UKR,4,Crude Noble Gas Extraction,Raw Liquefied Neon-Krypton Mix,16000000,65,ONR-UKR,Dnieper River Rail Route,48.0159,37.8029
+Xinjiang High-Purity Silicon,XHS-CHN,China,CHN,4,Electronic Grade Polysilicon 11N,Monocrystalline Silicon Ingot Feedstock,38000000,60,HUQ-JPN,Eurasian Overland Silk Rail,43.8256,87.6168
+Atacama Sputtering Targets,AST-CHL,Chile,CHL,4,High-Purity Copper Ore,Grade-A Cathode Sputtering Raw Material,21000000,48,GCC-KOR,South Pacific Bulk Carrier,-23.8634,-67.1420

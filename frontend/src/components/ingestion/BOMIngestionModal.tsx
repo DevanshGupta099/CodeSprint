@@ -15,10 +15,12 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 
+import { SupplyChainDAGResponse } from '../../types/supply-chain';
+
 interface BOMIngestionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onIngestSuccess: (filename: string) => void;
+  onIngestSuccess: (filename: string, dag?: SupplyChainDAGResponse, lineItemsCount?: number) => void;
 }
 
 export const BOMIngestionModal: React.FC<BOMIngestionModalProps> = ({
@@ -54,7 +56,7 @@ export const BOMIngestionModal: React.FC<BOMIngestionModalProps> = ({
       const result = await api.ingestBOMFile(file);
       setMessage(result.message || `Successfully ingested ${file.name} into PostgreSQL recursive CTE.`);
       setIsError(false);
-      onIngestSuccess(file.name);
+      onIngestSuccess(file.name, result.dag, result.lineItemsCount);
       setTimeout(() => {
         onClose();
         setFile(null);

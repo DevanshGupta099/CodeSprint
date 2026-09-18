@@ -335,6 +335,62 @@ export const ALTERNATES_MAP: Record<string, AlternateSupplier[]> = {
       certifications: ['MPA Green Ship Programme', 'ISO 14001'],
     },
   ],
+
+  // Malacca Strait chokepoint (Strait Maritime Heavy Freight) - Aerospace Preset
+  'aerospace-node-smh-sgp': [
+    {
+      id: '50000000-0000-0000-0000-000000000003',
+      replacesSupplierId: 'aerospace-node-smh-sgp',
+      name: 'Nippon Aero Titanium Corp (Pacific Route)',
+      country: 'Japan',
+      countryCode: 'JPN',
+      priceIndex: 1.036, // +3.6%
+      leadTimeDays: 41,  // -4 days
+      emissionsFactor: 0.65, // avoids 2,180 tCO2e
+      certifications: ['AS9100D Aerospace Certified', 'ISO 14001', 'JAXA Qualified'],
+    },
+  ],
+  'SMH-SGP': [
+    {
+      id: '50000000-0000-0000-0000-000000000003',
+      replacesSupplierId: 'SMH-SGP',
+      name: 'Nippon Aero Titanium Corp (Pacific Route)',
+      country: 'Japan',
+      countryCode: 'JPN',
+      priceIndex: 1.036,
+      leadTimeDays: 41,
+      emissionsFactor: 0.65,
+      certifications: ['AS9100D Aerospace Certified', 'ISO 14001', 'JAXA Qualified'],
+    },
+  ],
+
+  // Black Sea chokepoint (Odesa Noble Gas Refiners) - Semiconductor Preset
+  'semi-node-onr-ukr': [
+    {
+      id: '50000000-0000-0000-0000-000000000004',
+      replacesSupplierId: 'semi-node-onr-ukr',
+      name: 'Linde Gas Singapore Specialty Gases',
+      country: 'Singapore',
+      countryCode: 'SGP',
+      priceIndex: 1.038, // +3.8%
+      leadTimeDays: 47,  // -5 days
+      emissionsFactor: 0.58, // avoids 1,650 tCO2e
+      certifications: ['ISO 14001', 'UFLPA Audited Provenance', 'Responsible Minerals Initiative (RMI)'],
+    },
+  ],
+  'ONR-UKR': [
+    {
+      id: '50000000-0000-0000-0000-000000000004',
+      replacesSupplierId: 'ONR-UKR',
+      name: 'Linde Gas Singapore Specialty Gases',
+      country: 'Singapore',
+      countryCode: 'SGP',
+      priceIndex: 1.038,
+      leadTimeDays: 47,
+      emissionsFactor: 0.58,
+      certifications: ['ISO 14001', 'UFLPA Audited Provenance', 'Responsible Minerals Initiative (RMI)'],
+    },
+  ],
 };
 
 export const SCENARIO_PRESETS: DisruptionScenario[] = [

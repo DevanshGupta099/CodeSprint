@@ -16,7 +16,7 @@ import { SupplyChainDAGResponse, Supplier, MitigationMemo, PortfolioBreakdownRes
 import { AICopilotResponse } from '@/types/ai';
 import { api } from '@/services/api';
 import { useRiskState } from '@/hooks/useRiskState';
-import { BOM_PRESETS_CATALOG } from '@/data/bom-presets';
+import { BOM_PRESETS_CATALOG, buildContextualMitigationMemo } from '@/data/bom-presets';
 
 // Performance: Code-split heavy interactive workspaces & modals into on-demand chunks
 const SupplyWorkflowStudio = dynamic(
@@ -237,31 +237,18 @@ export default function VeritasSupplyDashboard() {
         setDagData(res.dag);
       }
 
-      const memo: MitigationMemo = res?.memo || {
-        id: '60000000-0000-0000-0000-000000000001',
-        disruptedSupplierId: supplierId,
-        alternateSupplierId: '50000000-0000-0000-0000-000000000001',
-        alternateName: 'Nordic Horn Maritime Lines (Norway Cape Route)',
-        priceVariancePct: 4.2,
-        leadTimeDeltaDays: -3,
-        avoidedScope3Tco2e: 1420.5,
-        complianceRationale: 'Full compliance with UN SDG 12 (Responsible Production) & SDG 8. Bypasses Bab-el-Mandeb conflict zone utilizing low-sulfur dual-fuel fleet along South Atlantic corridor.',
-        executiveSummary: 
-          `CRITICAL DISRUPTION ALERT // AUTONOMOUS MITIGATION DIRECTIVE\n` +
-          `Target Node [Apex Maritime Logistics] compromised by maritime security blockade at Bab-el-Mandeb Strait.\n` +
-          `Recursive CTE risk wave propagated upstream: Tier-2 Voltaic Cell Dynamics and Tier-1 Apex PowerSystems GmbH.\n` +
-          `Autonomous Recommendation: Execute split-order rerouting to Nordic Horn Maritime Lines (Cape Route) and secondary packaging in Vietnam & Mexico. Price variance contained to +4.2%, transit reduced by 3 days, avoiding 1,420.5 tCO2e in Scope-3 carbon emissions.`,
-        generatedAt: new Date().toISOString(),
-      };
-
+      const memo: MitigationMemo = res?.memo || buildContextualMitigationMemo(supplierId, dagData, activeBOMKey);
       setActiveMemo(memo);
     } catch (err) {
       console.error('Trigger disruption error:', err);
       setIsDisrupted(true);
+      const defaultSupplierId = BOM_PRESETS_CATALOG[activeBOMKey]?.primaryChokepointSupplierId || '30000000-0000-0000-0000-000000000001';
+      const supplierId = targetSupplierId || defaultSupplierId;
+      setActiveMemo(buildContextualMitigationMemo(supplierId, dagData, activeBOMKey));
     } finally {
       setIsProcessing(false);
     }
-  }, [activeBOMKey]);
+  }, [activeBOMKey, dagData]);
 
   // 2. Execute Reroute Action
   const handleExecuteReroute = useCallback(async () => {
@@ -559,13 +546,41 @@ export default function VeritasSupplyDashboard() {
       <BOMIngestionModal
         isOpen={isIngestModalOpen}
         onClose={() => setIsIngestModalOpen(false)}
-        onIngestSuccess={async (filename) => {
+        onIngestSuccess={async (filename, ingestedDag, lineCount) => {
           setIsProcessing(true);
           try {
-            const updatedDag = await api.getSupplyChainDAG();
-            if (updatedDag && updatedDag.nodes) {
-              setDagData(updatedDag);
+            const finalDag = (ingestedDag && ingestedDag.nodes && ingestedDag.nodes.length > 0)
+              ? ingestedDag
+              : await api.getSupplyChainDAG();
+
+            if (finalDag && finalDag.nodes && finalDag.nodes.length > 0) {
+              setDagData(finalDag);
+
+              // Register custom BOM preset dynamically in BOM_PRESETS_CATALOG
+              const cleanBase = filename.replace(/\.[^/.]+$/, '').slice(0, 16);
+              const customKey = 'CUSTOM_' + filename.toUpperCase().replace(/[^A-Z0-9]/g, '_').slice(0, 20);
+              const primaryChokepointNode = finalDag.nodes.find((n) => n.isSPOF) ||
+                finalDag.nodes.find((n) => n.tier === 3) ||
+                finalDag.nodes[0];
+
+              BOM_PRESETS_CATALOG[customKey] = {
+                key: customKey,
+                badge: cleanBase.toUpperCase(),
+                title: `Custom Ingested: ${filename}`,
+                shortTitle: cleanBase,
+                industry: 'Enterprise Ingested Architecture',
+                description: `${finalDag.nodes.length} nodes parsed from ${filename}. Directed Acyclic Graph constructed in PostgreSQL CTE pipeline.`,
+                nodeCount: finalDag.nodes.length,
+                primaryChokepoint: `${primaryChokepointNode?.name || 'Chokepoint Node'} (${primaryChokepointNode?.country || 'Transit Corridor'} // SPOF)`,
+                primaryChokepointSupplierId: primaryChokepointNode?.id || 'custom-chokepoint',
+                defaultSpendUSD: `$${Math.round(finalDag.nodes.reduce((s, n) => s + (n.spend || 0), 0) * 1000000).toLocaleString()}`,
+              };
+
+              setActiveBOMKey(customKey);
+              setIsDisrupted(false);
+              setActiveMemo(null);
             }
+
             const analytics = await api.getPortfolioAnalytics();
             if (analytics) setPortfolioData(analytics);
           } catch (err) {

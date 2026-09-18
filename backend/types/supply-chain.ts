@@ -4,12 +4,12 @@ export const SupplierStatusSchema = z.enum(['NOMINAL', 'ELEVATED', 'CRITICAL']);
 export type SupplierStatus = z.infer<typeof SupplierStatusSchema>;
 
 export const SupplierSchema = z.object({
-  id: z.string().uuid(),
-  orgId: z.string().uuid(),
+  id: z.string().min(1),
+  orgId: z.string().min(1),
   name: z.string(),
   code: z.string(),
   country: z.string(),
-  countryCode: z.string().length(3),
+  countryCode: z.string().min(2).max(4),
   tier: z.number().int().min(0).max(4),
   materialCategory: z.string(),
   certifications: z.array(z.string()).default([]),
@@ -25,8 +25,8 @@ export type Supplier = z.infer<typeof SupplierSchema>;
 
 export const SupplierEdgeSchema = z.object({
   id: z.string(),
-  parentSupplierId: z.string().uuid(), // Downstream consumer
-  childSupplierId: z.string().uuid(),  // Upstream supplier
+  parentSupplierId: z.string().min(1), // Downstream consumer
+  childSupplierId: z.string().min(1),  // Upstream supplier
   componentName: z.string(),
   spendUsd: z.number(),
   leadTimeDays: z.number().int(),
@@ -43,51 +43,51 @@ export const DisruptionTypeSchema = z.enum([
 export type DisruptionType = z.infer<typeof DisruptionTypeSchema>;
 
 export const DisruptionEventSchema = z.object({
-  id: z.string().uuid(),
-  supplierId: z.string().uuid(),
+  id: z.string().min(1),
+  supplierId: z.string().min(1),
   type: DisruptionTypeSchema,
   severity: z.number().min(0).max(1),
   sourceSummary: z.string(),
-  sourceUrl: z.string().url().optional(),
-  triggeredAt: z.string().datetime(),
+  sourceUrl: z.string().url().optional().or(z.literal('')),
+  occurredAt: z.string().datetime().optional(),
 });
 export type DisruptionEvent = z.infer<typeof DisruptionEventSchema>;
 
 export const RiskScoreSchema = z.object({
-  id: z.string().uuid().optional(),
-  supplierId: z.string().uuid(),
+  id: z.string().min(1),
+  supplierId: z.string().min(1),
   probability: z.number().min(0).max(1),
   severity: z.number().min(0).max(1),
   confidence: z.number().min(0).max(1),
   rationale: z.string(),
-  computedAt: z.string().datetime(),
+  computedAt: z.string().datetime().optional(),
 });
 export type RiskScore = z.infer<typeof RiskScoreSchema>;
 
 export const AlternateSupplierSchema = z.object({
-  id: z.string().uuid(),
-  replacesSupplierId: z.string().uuid(),
+  id: z.string().min(1),
+  replacesSupplierId: z.string().min(1),
   name: z.string(),
   country: z.string(),
-  countryCode: z.string().length(3),
+  countryCode: z.string().min(2).max(4),
   priceIndex: z.number(),
   leadTimeDays: z.number().int(),
   emissionsFactor: z.number(),
-  certifications: z.array(z.string()),
+  certifications: z.array(z.string()).default([]),
 });
 export type AlternateSupplier = z.infer<typeof AlternateSupplierSchema>;
 
 export const MitigationMemoSchema = z.object({
-  id: z.string().uuid(),
-  disruptedSupplierId: z.string().uuid(),
-  alternateSupplierId: z.string().uuid(),
+  id: z.string().min(1),
+  disruptedSupplierId: z.string().min(1),
+  alternateSupplierId: z.string().min(1),
   alternateName: z.string(),
   priceVariancePct: z.number(),
   leadTimeDeltaDays: z.number().int(),
   avoidedScope3Tco2e: z.number(),
   complianceRationale: z.string(),
   executiveSummary: z.string(),
-  generatedAt: z.string().datetime(),
+  generatedAt: z.string().min(1),
 });
 export type MitigationMemo = z.infer<typeof MitigationMemoSchema>;
 

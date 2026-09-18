@@ -111,15 +111,30 @@ export default function Hero3DCanvas({ isVisible }: Hero3DCanvasProps) {
   return (
     <Canvas
       camera={{ position: [0, 0, 16], fov: 45 }}
-      gl={{ antialias: false, alpha: true, powerPreference: 'high-performance' }}
-      dpr={[1, 1.5]}
+      gl={{ 
+        antialias: false, 
+        alpha: true, 
+        powerPreference: 'default',
+        preserveDrawingBuffer: false,
+        failIfMajorPerformanceCaveat: false 
+      }}
+      dpr={[1, 1.25]}
       frameloop={isVisible ? 'always' : 'never'}
       className="w-full h-full"
       onCreated={({ gl }) => {
-        gl.domElement.addEventListener(
+        const dom = gl.domElement;
+        dom.addEventListener(
           'webglcontextlost',
           (e) => {
             e.preventDefault();
+            console.warn('[WEBGL] Ambient canvas context paused for memory conservation.');
+          },
+          false
+        );
+        dom.addEventListener(
+          'webglcontextrestored',
+          () => {
+            console.log('[WEBGL] Ambient canvas context restored.');
           },
           false
         );

@@ -93,6 +93,24 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
 
   const currentBOMInfo = BOM_PRESETS_CATALOG[activeBOMKey] || BOM_PRESETS_CATALOG.EV_BATTERY_PACK;
 
+  const simulateLabel = isDisrupted
+    ? activeBOMKey === 'AEROSPACE_SATELLITE'
+      ? '[MALACCA ALERT]'
+      : activeBOMKey === 'SEMICONDUCTOR_MCU'
+      ? '[BLACK SEA ALERT]'
+      : activeBOMKey.startsWith('CUSTOM')
+      ? '[CHOKEPOINT ALERT]'
+      : '[RED SEA ALERT]'
+    : activeBOMKey === 'AEROSPACE_SATELLITE'
+    ? 'SIMULATE MALACCA'
+    : activeBOMKey === 'SEMICONDUCTOR_MCU'
+    ? 'SIMULATE BLACK SEA'
+    : activeBOMKey.startsWith('CUSTOM')
+    ? 'SIMULATE CHOKEPOINT'
+    : 'SIMULATE RED SEA';
+
+  const simulateShortLabel = isDisrupted ? 'ALERT' : 'SIMULATE';
+
   const tabs: { id: ZentraTab; label: string; badge?: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'graph', label: 'Graph' },
@@ -303,10 +321,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
             >
               <Zap className={`w-3.5 h-3.5 shrink-0 ${isProcessing ? 'animate-spin' : ''}`} />
               <span className="hidden md:inline font-mono">
-                {isDisrupted ? '[RED SEA ALERT]' : 'SIMULATE RED SEA'}
+                {simulateLabel}
               </span>
               <span className="md:hidden font-mono text-[11px]">
-                {isDisrupted ? 'ALERT' : 'SIMULATE'}
+                {simulateShortLabel}
               </span>
             </button>
           )}

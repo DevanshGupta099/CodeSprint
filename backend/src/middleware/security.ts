@@ -109,9 +109,10 @@ export function hardenedSecurityHeaders(req: Request, res: Response, next: NextF
 }
 
 /**
- * Identifier sanitizer for route parameters (e.g. scenarioKey, presetKey)
+ * Identifier sanitizer for route parameters (e.g. scenarioKey, presetKey, supplierId, memoId)
+ * Supports alphanumeric, underscores, and hyphens up to 100 chars (UUIDs and slugs)
  */
-const SAFE_IDENTIFIER_REGEX = /^[A-Z0-9_]{1,64}$/i;
+const SAFE_IDENTIFIER_REGEX = /^[A-Z0-9_-]{1,100}$/i;
 
 export function validateSafeIdentifier(paramName: string) {
   return (req: Request, res: Response, next: NextFunction) => {

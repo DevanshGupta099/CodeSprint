@@ -163,7 +163,7 @@ app.post(
 app.post(
   '/api/mitigation/:memoId/execute',
   sensitiveEndpointLimiter,
-  validateUUIDParam('memoId', true),
+  validateSafeIdentifier('memoId'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { memoId } = req.params;
@@ -182,7 +182,7 @@ app.post(
 app.post(
   '/api/mitigation/:supplierId',
   sensitiveEndpointLimiter,
-  validateUUIDParam('supplierId', true),
+  validateSafeIdentifier('supplierId'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { supplierId } = req.params;
@@ -225,7 +225,7 @@ app.post(
 // 7. Get Candidate Alternates for a Disrupted Node
 app.get(
   '/api/alternates/:supplierId',
-  validateUUIDParam('supplierId', true),
+  validateSafeIdentifier('supplierId'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { supplierId } = req.params;

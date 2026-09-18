@@ -685,3 +685,83 @@ export const BOM_DAG_MAP: Record<string, SupplyChainDAGResponse> = {
   AEROSPACE_SATELLITE: AEROSPACE_DAG_DATA,
   SEMICONDUCTOR_MCU: SEMICONDUCTOR_DAG_DATA,
 };
+
+import { MitigationMemo } from '../types/supply-chain';
+
+export function buildContextualMitigationMemo(
+  supplierId: string,
+  dag: SupplyChainDAGResponse,
+  activeKey: string = 'EV_BATTERY_PACK'
+): MitigationMemo {
+  const targetNode = dag?.nodes?.find((n) => n.id === supplierId) ||
+    dag?.nodes?.find((n) => n.isSPOF) ||
+    dag?.nodes?.[0] || {
+      id: supplierId,
+      name: 'Primary Chokepoint Node',
+      country: 'Global Transit Corridor',
+      materialCategory: 'Logistics Corridor',
+      leadTimeDays: 42,
+    };
+
+  const name = targetNode.name || 'Primary Chokepoint Node';
+  const category = (targetNode.materialCategory || '').toLowerCase();
+  const desc = `${name} ${category}`.toLowerCase();
+
+  const isAerospace = activeKey === 'AEROSPACE_SATELLITE' || /aerospace|satellite|thruster|titanium|malacca/i.test(desc) || supplierId.includes('aerospace') || supplierId.includes('smh');
+  const isSemiconductor = activeKey === 'SEMICONDUCTOR_MCU' || /semi|neon|wafer|lithography|chip|mcu|odesa/i.test(desc) || supplierId.includes('semi') || supplierId.includes('onr');
+
+  let altName = 'Nordic Horn Maritime Lines (Norway Cape Route)';
+  let altId = '50000000-0000-0000-0000-000000000001';
+  let priceVariancePct = 4.2;
+  let leadTimeDeltaDays = -3;
+  let avoidedScope3Tco2e = 1420.5;
+  let complianceRationale = 'Full compliance with UN SDG 12 (Responsible Production) & SDG 8 (Decent Work). Bypasses Bab-el-Mandeb conflict zone utilizing low-sulfur dual-fuel fleet along South Atlantic corridor.';
+  let narrative = `Target Node [${name}] compromised by maritime security blockade at Bab-el-Mandeb Strait.\n` +
+    `Recursive CTE risk wave propagated upstream across supply tiers.\n` +
+    `Autonomous Recommendation: Execute split-order rerouting to Nordic Horn Maritime Lines (Cape Route). Price variance contained to +4.2%, transit reduced by 3 days, avoiding 1,420.5 tCO2e in Scope-3 carbon emissions.`;
+
+  if (isAerospace) {
+    altName = 'Nippon Aero Titanium Corp (Japan Pacific Route)';
+    altId = '50000000-0000-0000-0000-000000000003';
+    priceVariancePct = 3.6;
+    leadTimeDeltaDays = -4;
+    avoidedScope3Tco2e = 2180.0;
+    complianceRationale = 'Full compliance with UN SDG 12 (Responsible Production) & SDG 8 (Decent Work). Bypasses Strait of Malacca maritime bottleneck utilizing AS9100D certified Pacific transit corridor and Japanese titanium forging capacity.';
+    narrative = `Target Node [${name}] compromised by maritime transport stoppage at Strait of Malacca.\n` +
+      `Recursive CTE risk wave propagated upstream through satellite bus propulsion and telemetry systems.\n` +
+      `Autonomous Recommendation: Activate pre-vetted alternate Nippon Aero Titanium Corp (Pacific Route). Price variance contained to +3.6%, transit reduced by 4 days, avoiding 2,180.0 tCO2e in Scope-3 emissions.`;
+  } else if (isSemiconductor) {
+    altName = 'Linde Gas Singapore Specialty Gases';
+    altId = '50000000-0000-0000-0000-000000000004';
+    priceVariancePct = 3.8;
+    leadTimeDeltaDays = -5;
+    avoidedScope3Tco2e = 1650.0;
+    complianceRationale = 'Full compliance with UN SDG 8 (Decent Work) & SDG 12 (Responsible Production). Diverts laser noble gas procurement away from Black Sea conflict zone to ISO 14001 and UFLPA certified Singapore purification facility.';
+    narrative = `Target Node [${name}] compromised by Black Sea corridor transport embargo.\n` +
+      `Recursive CTE risk wave propagated upstream through 28nm microcontroller fabrication lines.\n` +
+      `Autonomous Recommendation: Execute procurement switch to Linde Gas Singapore. Price variance contained to +3.8%, lead time reduced by 5 days, avoiding 1,650.0 tCO2e in Scope-3 emissions.`;
+  } else if (activeKey.startsWith('CUSTOM')) {
+    altName = 'Nordic Clean Sourcing Corp (EU Verified)';
+    altId = '50000000-0000-0000-0000-000000000005';
+    priceVariancePct = 3.9;
+    leadTimeDeltaDays = -3;
+    avoidedScope3Tco2e = 1250.0;
+    complianceRationale = 'Full compliance with UN SDG 8 (Decent Work) & SDG 12. Reroutes critical component procurement to audited low-carbon certified alternate supplier.';
+    narrative = `Target Node [${name}] compromised by regional supply chain disruption.\n` +
+      `Recursive CTE risk wave propagated upstream through manufacturing tiers.\n` +
+      `Autonomous Recommendation: Execute split-order rerouting to Nordic Clean Sourcing Corp. Price variance contained to +3.9%, transit reduced by 3 days, avoiding 1,250.0 tCO2e in Scope-3 emissions.`;
+  }
+
+  return {
+    id: `memo-${Date.now()}`,
+    disruptedSupplierId: supplierId,
+    alternateSupplierId: altId,
+    alternateName: altName,
+    priceVariancePct,
+    leadTimeDeltaDays,
+    avoidedScope3Tco2e,
+    complianceRationale,
+    executiveSummary: `CRITICAL DISRUPTION ALERT // AUTONOMOUS MITIGATION DIRECTIVE\n${narrative}`,
+    generatedAt: new Date().toISOString(),
+  };
+}

@@ -9,7 +9,7 @@ import { AICopilotModal } from '../../components/ai/AICopilotModal';
 import { BOMIngestionModal } from '../../components/ingestion/BOMIngestionModal';
 import { SVGDefs } from '../../components/zentra/SVGDefs';
 import { INITIAL_DAG_DATA } from '../../data/seed-graph';
-import { BOM_PRESETS_CATALOG } from '../../data/bom-presets';
+import { BOM_PRESETS_CATALOG, buildContextualMitigationMemo } from '../../data/bom-presets';
 import { SupplyChainDAGResponse, Supplier, MitigationMemo } from '../../types/supply-chain';
 import { AICopilotResponse } from '../../types/ai';
 import { api } from '../../services/api';
@@ -31,18 +31,22 @@ export default function GraphWorkflowPage() {
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [isProcessingAi, setIsProcessingAi] = useState<boolean>(false);
 
-  // Fetch initial DAG from backend API
+  // Initial Data Fetch
   useEffect(() => {
     let isMounted = true;
-    api.getSupplyChainDAG().then((data) => {
-      if (isMounted && data && data.nodes) {
-        setDagData(data);
-      }
-    }).catch(console.error);
-    return () => { isMounted = false; };
+    api.getSupplyChainDAG()
+      .then((data) => {
+        if (isMounted && data && data.nodes) setDagData(data);
+      })
+      .catch((err) => {
+        console.warn('Backend offline, running on simulated DAG baseline:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Switch Active BOM Architecture Preset
+  // Switch Active BOM Preset
   const handleSelectBOM = useCallback(async (presetKey: string) => {
     setIsProcessing(true);
     setActiveBOMKey(presetKey);
@@ -53,7 +57,6 @@ export default function GraphWorkflowPage() {
       }
       setIsDisrupted(false);
       setActiveMemo(null);
-      setSelectedSupplier(null);
     } catch (err) {
       console.error('BOM preset switch error:', err);
     } finally {
@@ -61,7 +64,7 @@ export default function GraphWorkflowPage() {
     }
   }, []);
 
-  // Trigger Disruption Sentinel ([SIMULATE RED SEA BLOCKADE] or node-specific shock)
+  // Trigger Disruption Sentinel
   const handleTriggerDisruption = useCallback(async (customSupplierId?: string, customSeverity?: number) => {
     setIsProcessing(true);
     try {
@@ -75,31 +78,18 @@ export default function GraphWorkflowPage() {
         setDagData(res.dag);
       }
 
-      const memo: MitigationMemo = res?.memo || {
-        id: '60000000-0000-0000-0000-000000000001',
-        disruptedSupplierId: targetSupplierId,
-        alternateSupplierId: '50000000-0000-0000-0000-000000000001',
-        alternateName: 'Nordic Horn Maritime Lines (Norway Cape Route)',
-        priceVariancePct: 4.2,
-        leadTimeDeltaDays: -3,
-        avoidedScope3Tco2e: 1420.5,
-        complianceRationale: 'Full compliance with UN SDG 12 (Responsible Production) & SDG 8. Bypasses Bab-el-Mandeb conflict zone utilizing low-sulfur dual-fuel fleet along South Atlantic corridor.',
-        executiveSummary: 
-          `CRITICAL DISRUPTION ALERT // AUTONOMOUS MITIGATION DIRECTIVE\n` +
-          `Target Node [Apex Maritime Logistics] compromised by maritime security blockade at Bab-el-Mandeb Strait.\n` +
-          `Recursive CTE risk wave propagated upstream: Tier-2 Voltaic Cell Dynamics and Tier-1 Apex PowerSystems GmbH.\n` +
-          `Autonomous Recommendation: Execute split-order rerouting to Nordic Horn Maritime Lines (Cape Route) and secondary packaging in Vietnam & Mexico. Price variance contained to +4.2%, transit reduced by 3 days, avoiding 1,420.5 tCO2e in Scope-3 carbon emissions.`,
-        generatedAt: new Date().toISOString(),
-      };
-
+      const memo: MitigationMemo = res?.memo || buildContextualMitigationMemo(targetSupplierId, dagData, activeBOMKey);
       setActiveMemo(memo);
     } catch (err) {
       console.error('Trigger disruption error:', err);
       setIsDisrupted(true);
+      const defaultSupplierId = BOM_PRESETS_CATALOG[activeBOMKey]?.primaryChokepointSupplierId || '30000000-0000-0000-0000-000000000001';
+      const targetSupplierId = customSupplierId || defaultSupplierId;
+      setActiveMemo(buildContextualMitigationMemo(targetSupplierId, dagData, activeBOMKey));
     } finally {
       setIsProcessing(false);
     }
-  }, [activeBOMKey]);
+  }, [activeBOMKey, dagData]);
 
   // Execute Reroute Action
   const handleExecuteReroute = useCallback(async () => {
@@ -242,11 +232,37 @@ export default function GraphWorkflowPage() {
       <BOMIngestionModal
         isOpen={isIngestModalOpen}
         onClose={() => setIsIngestModalOpen(false)}
-        onIngestSuccess={(filename) => {
+        onIngestSuccess={async (filename, ingestedDag) => {
           setIsIngestModalOpen(false);
-          api.getSupplyChainDAG().then((data) => {
-            if (data && data.nodes) setDagData(data);
-          }).catch(console.error);
+          const finalDag = (ingestedDag && ingestedDag.nodes && ingestedDag.nodes.length > 0)
+            ? ingestedDag
+            : await api.getSupplyChainDAG();
+
+          if (finalDag && finalDag.nodes && finalDag.nodes.length > 0) {
+            setDagData(finalDag);
+            const cleanBase = filename.replace(/\.[^/.]+$/, '').slice(0, 16);
+            const customKey = 'CUSTOM_' + filename.toUpperCase().replace(/[^A-Z0-9]/g, '_').slice(0, 20);
+            const primaryChokepointNode = finalDag.nodes.find((n) => n.isSPOF) ||
+              finalDag.nodes.find((n) => n.tier === 3) ||
+              finalDag.nodes[0];
+
+            BOM_PRESETS_CATALOG[customKey] = {
+              key: customKey,
+              badge: cleanBase.toUpperCase(),
+              title: `Custom Ingested: ${filename}`,
+              shortTitle: cleanBase,
+              industry: 'Enterprise Ingested Architecture',
+              description: `${finalDag.nodes.length} nodes parsed from ${filename}. Directed Acyclic Graph constructed in PostgreSQL CTE pipeline.`,
+              nodeCount: finalDag.nodes.length,
+              primaryChokepoint: `${primaryChokepointNode?.name || 'Chokepoint Node'} (${primaryChokepointNode?.country || 'Transit Corridor'} // SPOF)`,
+              primaryChokepointSupplierId: primaryChokepointNode?.id || 'custom-chokepoint',
+              defaultSpendUSD: `$${Math.round(finalDag.nodes.reduce((s, n) => s + (n.spend || 0), 0) * 1000000).toLocaleString()}`,
+            };
+
+            setActiveBOMKey(customKey);
+            setIsDisrupted(false);
+            setActiveMemo(null);
+          }
         }}
       />
 
