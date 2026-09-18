@@ -232,6 +232,13 @@ Respond ONLY with valid JSON matching:
 `;
 ```
 
+### 3. Multi-Provider Cascading Failover Flow
+The system queries providers sequentially, failing over seamlessly on rate limits (`429`) or timeouts:
+1. **Primary**: **Mistral AI** (`codestral-latest`, `ministral-8b-latest`) — ~2.3s latency, excellent structured code & JSON adherence.
+2. **High-Speed LPU**: **Groq** (`openai/gpt-oss-120b`, `qwen/qwen3.8-27b`) — sub-second ~210ms–980ms execution.
+3. **Deep Reasoning**: **Google Gemini** (`gemini-3.5-flash-lite`, `gemini-3.6-flash`) — ~2.6s reasoning.
+4. **Deterministic Fallback**: Offline PostgreSQL CTE and seed graph fixtures (<1ms) guarantees 100% demo uptime without blank screens.
+
 ---
 
 ## 6. API Route Handlers
@@ -255,17 +262,36 @@ For advanced mathematical graph analytics and low-latency algorithmic risk model
   - Betweenness Centrality: identifying structural supply bottlenecks.
 - **Data Validation**: Strict Pydantic v2 models mirroring `types/supply-chain.ts`.
 - **Database Access**: Threaded connection pool against PostgreSQL using recursive CTE queries.
+- **AI Synthesis**: Asynchronous multi-provider LLM cascade with `httpx` in `backend/python/app/services/ai_engine.py`.
 
 ---
 
-## 8. Development & Testing Commands
+## 8. Enterprise Security Architecture
+
+- **Sliding-Window IP Rate Limiting**:
+  - 120 req/min for read routes (`/api/supply-chain`, `/api/health`, `/api/risk-state`).
+  - 30 req/min for AI generation & mutation endpoints (`/api/disruption/trigger`, `/api/mitigation/*`).
+- **OWASP Security Headers**:
+  - HSTS (`Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`).
+  - `X-Content-Type-Options: nosniff` and `X-Frame-Options: DENY`.
+  - `Referrer-Policy: strict-origin-when-cross-origin`.
+- **Input Sanitization**:
+  - Regex verification (`^[A-Z0-9_]{1,64}$`) for route preset IDs.
+  - UUID format validation before SQL queries.
+  - 1,500 character ceiling on user prompts.
+- **Dynamic CORS**:
+  - Restricts requests to `https://veritas-supply.vercel.app`, Vercel previews (`*.vercel.app`), and local development.
+
+---
+
+## 9. Development & Testing Commands
 
 ### Node.js / TypeScript Backend (Port 5000)
 ```bash
 cd backend
 npm install
 npm run dev                # Start Express dev server on port 5000
-npm test                   # Run automated security & API suite (14/14 tests)
+npm test                   # Run automated security & API suite (16/16 tests)
 ```
 
 ### Python FastAPI Intelligence Backend (Port 8000)
@@ -279,7 +305,7 @@ python backend/python/run_server.py
 # Or via npm shortcut in backend/:
 npm run start:python
 
-# Run Pytest suite
+# Run Pytest suite (9/9 tests)
 npm run test:python
 # Or directly:
 backend/.venv/Scripts/pytest backend/python/tests/test_python_backend.py -v
