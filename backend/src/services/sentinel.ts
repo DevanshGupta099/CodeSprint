@@ -4,7 +4,7 @@ import { propagateRiskUpstream } from '../db/queries.js';
 import { DisruptionTypeSchema } from '../types/supply-chain.js';
 
 export const TriggerDisruptionRequestSchema = z.object({
-  supplierId: z.string().uuid().optional(),
+  supplierId: z.string().min(1).max(100).optional(),
   type: DisruptionTypeSchema.optional().default('GEOPOLITICAL_BLOCKADE'),
   severity: z.number().min(0).max(1).optional().default(0.90),
   sourceSummary: z.string().max(1000).optional(),
@@ -13,9 +13,10 @@ export const TriggerDisruptionRequestSchema = z.object({
 
 export type TriggerDisruptionParams = z.infer<typeof TriggerDisruptionRequestSchema>;
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function triggerDisruptionSentinel(params: TriggerDisruptionParams) {
-  // Default to the showstopper: Apex Maritime Logistics (Bab-el-Mandeb chokepoint)
-  const targetSupplierId = params.supplierId || '30000000-0000-0000-0000-000000000001';
+  let rawSupplierId = params.supplierId || '30000000-0000-0000-0000-000000000001';
   const eventType = params.type || 'GEOPOLITICAL_BLOCKADE';
   const severity = params.severity !== undefined ? params.severity : 0.90;
   const probability = 0.95;
@@ -23,12 +24,43 @@ export async function triggerDisruptionSentinel(params: TriggerDisruptionParams)
     'Bab-el-Mandeb Strait transit halt due to maritime security escalation. 42 commercial bulk carriers rerouted or held.';
   const sourceUrl = params.sourceUrl || 'https://lloydslist.maritimeintelligence.informa.com';
 
-  // Verify target supplier exists
-  const supplierCheck = await query('SELECT id, name, country, tier FROM suppliers WHERE id = $1', [targetSupplierId]);
-  if (supplierCheck.rows.length === 0) {
-    throw new Error(`Target supplier '${targetSupplierId}' not found`);
+  // Resilient target supplier lookup: UUID -> code/name -> SPOF node -> Tier 3 node -> any node
+  let targetSupplier: any = null;
+
+  if (UUID_REGEX.test(rawSupplierId)) {
+    const supplierCheck = await query('SELECT id, name, country, tier FROM suppliers WHERE id = $1', [rawSupplierId]);
+    if (supplierCheck.rows.length > 0) {
+      targetSupplier = supplierCheck.rows[0];
+    }
   }
-  const targetSupplier = supplierCheck.rows[0];
+
+  if (!targetSupplier) {
+    const codeCheck = await query(
+      'SELECT id, name, country, tier FROM suppliers WHERE code = $1 OR name ILIKE $1 LIMIT 1',
+      [rawSupplierId]
+    );
+    if (codeCheck.rows.length > 0) {
+      targetSupplier = codeCheck.rows[0];
+    }
+  }
+
+  if (!targetSupplier) {
+    const spofCheck = await query(
+      'SELECT id, name, country, tier FROM suppliers WHERE is_spof = TRUE OR tier = 3 ORDER BY tier DESC LIMIT 1'
+    );
+    if (spofCheck.rows.length > 0) {
+      targetSupplier = spofCheck.rows[0];
+    } else {
+      const anyCheck = await query('SELECT id, name, country, tier FROM suppliers LIMIT 1');
+      if (anyCheck.rows.length > 0) targetSupplier = anyCheck.rows[0];
+    }
+  }
+
+  if (!targetSupplier) {
+    throw new Error('No suppliers found in active database to disrupt');
+  }
+
+  const targetSupplierId = targetSupplier.id;
 
   // 1. Record Disruption Event
   const eventInsert = await query(

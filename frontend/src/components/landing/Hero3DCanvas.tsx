@@ -115,6 +115,15 @@ export default function Hero3DCanvas({ isVisible }: Hero3DCanvasProps) {
       dpr={[1, 1.5]}
       frameloop={isVisible ? 'always' : 'never'}
       className="w-full h-full"
+      onCreated={({ gl }) => {
+        gl.domElement.addEventListener(
+          'webglcontextlost',
+          (e) => {
+            e.preventDefault();
+          },
+          false
+        );
+      }}
     >
       <ambientLight intensity={0.4} />
       <SparseNodeField />

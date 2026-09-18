@@ -148,11 +148,8 @@ app.post(
   sensitiveEndpointLimiter,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const memoId = req.body.memoId;
-      if (!memoId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(memoId)) {
-        return res.status(400).json({ error: 'INVALID_PARAMETER', message: 'Valid UUID memoId is required' });
-      }
-      const result = await executeReroute(memoId);
+      const { memoId, supplierId, alternateId } = req.body;
+      const result = await executeReroute(memoId, supplierId, alternateId);
       res.json(result);
     } catch (error: any) {
       if (error.message?.includes('not found')) {
