@@ -20,14 +20,22 @@ export interface LLMMitigationInsight {
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
 
 const MISTRAL_MODELS = ['codestral-latest', 'ministral-8b-latest'];
 const GROQ_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b'];
+const OPENROUTER_MODELS = [
+  'nvidia/nemotron-3.5-lightning:free',
+  'deepseek/deepseek-v4-flash-0731:free',
+  'qwen/qwen3.8-27b:free',
+];
+const CEREBRAS_MODELS = ['qwen-3.8-27b', 'gpt-oss-120b'];
 const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
 
 /**
  * Calls Autonomous Multi-Provider Structured AI Engine
- * (Mistral AI -> Groq -> Google Gemini -> Deterministic Fallback)
+ * (Mistral AI -> Groq -> OpenRouter -> Cerebras -> Google Gemini -> Deterministic Fallback)
  */
 async function callGeminiStructured<T>(prompt: string, fallbackFixture: T): Promise<T> {
   // 1. Try Mistral AI if MISTRAL_API_KEY is available (European ESG/CSRD aligned)
@@ -100,7 +108,79 @@ async function callGeminiStructured<T>(prompt: string, fallbackFixture: T): Prom
     }
   }
 
-  // 3. Try Gemini models if GEMINI_API_KEY is available
+  // 3. Try OpenRouter if OPENROUTER_API_KEY is available (fast multi-model free pool)
+  if (OPENROUTER_API_KEY) {
+    for (const model of OPENROUTER_MODELS) {
+      try {
+        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+            'HTTP-Referer': 'https://veritas-supply.vercel.app',
+            'X-Title': 'VeritasSupply Backend',
+          },
+          signal: AbortSignal.timeout(6000),
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        if (res.ok) {
+          const json: any = await res.json();
+          const content = json.choices?.[0]?.message?.content;
+          if (content) {
+            console.log(`[AI_AGENT] Successfully generated response via OpenRouter (${model})`);
+            return JSON.parse(content) as T;
+          }
+        } else {
+          console.warn(`[AI_AGENT] OpenRouter ${model} returned ${res.status}, evaluating next provider.`);
+        }
+      } catch (err: any) {
+        console.warn(`[AI_AGENT] OpenRouter ${model} error: ${err.message}`);
+      }
+    }
+  }
+
+  // 4. Try Cerebras Cloud if CEREBRAS_API_KEY is available (ultra-fast LPU inference)
+  if (CEREBRAS_API_KEY) {
+    for (const model of CEREBRAS_MODELS) {
+      try {
+        const res = await fetch('https://api.cerebras.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${CEREBRAS_API_KEY}`,
+          },
+          signal: AbortSignal.timeout(5000),
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        if (res.ok) {
+          const json: any = await res.json();
+          const content = json.choices?.[0]?.message?.content;
+          if (content) {
+            console.log(`[AI_AGENT] Successfully generated response via Cerebras (${model})`);
+            return JSON.parse(content) as T;
+          }
+        } else {
+          console.warn(`[AI_AGENT] Cerebras ${model} returned ${res.status}, evaluating next provider.`);
+        }
+      } catch (err: any) {
+        console.warn(`[AI_AGENT] Cerebras ${model} error: ${err.message}`);
+      }
+    }
+  }
+
+  // 5. Try Gemini models if GEMINI_API_KEY is available
   if (GEMINI_API_KEY) {
     for (const model of GEMINI_MODELS) {
       try {
@@ -134,7 +214,7 @@ async function callGeminiStructured<T>(prompt: string, fallbackFixture: T): Prom
     }
   }
 
-  // 4. Guaranteed Deterministic Fallback Fixture
+  // 6. Guaranteed Deterministic Fallback Fixture
   console.log('[AI_AGENT] Utilizing deterministic fallback fixture for 100% demo resilience.');
   return fallbackFixture;
 }

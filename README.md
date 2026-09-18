@@ -12,6 +12,8 @@
 [![React Flow](https://img.shields.io/badge/Graph-React%20Flow%20%2B%20Dagre-FF0072?style=flat-square)](https://reactflow.dev/)
 [![Mistral AI](https://img.shields.io/badge/AI%20Engine-Mistral%20AI%20%28Codestral%29-FF7000?style=flat-square)](https://mistral.ai/)
 [![Groq](https://img.shields.io/badge/LPU%20Inference-Groq-F55036?style=flat-square)](https://groq.com/)
+[![OpenRouter](https://img.shields.io/badge/Multi--Model-OpenRouter-6366F1?style=flat-square)](https://openrouter.ai/)
+[![Cerebras](https://img.shields.io/badge/Ultra--Fast-Cerebras-10B981?style=flat-square)](https://cerebras.ai/)
 [![Google Gemini](https://img.shields.io/badge/Reasoning-Google%20Gemini-8E75B2?style=flat-square&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![OWASP Security](https://img.shields.io/badge/Security-OWASP%20Hardened-00C853?style=flat-square)](https://owasp.org/)
 [![SDG 8](https://img.shields.io/badge/SDG%208-Decent%20Work%20%26%20Economic%20Growth-A21942?style=flat-square)](https://sdgs.un.org/goals/goal8)
@@ -93,13 +95,15 @@ Enterprise manufacturers have visibility into their direct **Tier-1** suppliers,
 │ Core: Recursive CTEs for DAG traversal and risk attenuation            │
 └────────────────────────────────────────────────────────────────────────┘
             ▲
-            │ Multi-Provider Cascading Fallback (Mistral -> Groq -> Gemini -> Offline CTE)
+            │ 6-Tier Cascading Failover (Mistral -> Groq -> OpenRouter -> Cerebras -> Gemini -> CTE)
 ┌───────────┴────────────────────────────────────────────────────────────┐
 │ AI LAYER (Multi-Provider Resilience Engine)                            │
 │ 1. Primary: Mistral AI (codestral-latest / ministral-8b-latest)        │
 │ 2. High-Speed LPU: Groq (openai/gpt-oss-120b / qwen3.8-27b)           │
-│ 3. Deep Reasoning: Google Gemini (gemini-3.5-flash-lite / 3.6-flash)   │
-│ 4. Guaranteed Offline Fallback: Deterministic Postgres Knowledge Fixt. │
+│ 3. Multi-Model Pool: OpenRouter (nvidia/nemotron-3.5-lightning:free)   │
+│ 4. Ultra-Fast LPU: Cerebras Cloud (qwen-3.8-27b / gpt-oss-120b)        │
+│ 5. Deep Reasoning: Google Gemini (gemini-3.5-flash-lite / 3.6-flash)   │
+│ 6. Guaranteed Offline Fallback: Deterministic Postgres Knowledge Fixt. │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -234,40 +238,54 @@ CodeSprint/
 
 ## 6. Multi-Provider AI Engine & Zero-Downtime Cascades
 
-VeritasSupply is architected for enterprise-grade high availability. AI operations (Disruption Sentinel, Procurement Mitigation Memos, and Copilot Chat) do not rely on a single vulnerable model endpoint. Instead, the engine implements a **4-tier cascading failover**:
+VeritasSupply is architected for enterprise-grade high availability. AI operations (Disruption Sentinel, Procurement Mitigation Memos, and Copilot Chat) do not rely on a single vulnerable model endpoint. Instead, the engine implements a **6-tier cascading failover**:
 
 ```text
-┌────────────────────────────────────────────────────────┐
-│ USER / SIMULATION DISRUPTION TRIGGER                   │
-└──────────────────────────┬─────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│ TIER 1: MISTRAL AI (Primary High-Fidelity Engine)      │
-│ Model: codestral-latest / ministral-8b-latest          │
-│ Latency: ~2.3s · 100% strict JSON schema conformity    │
-└──────────────────────────┬─────────────────────────────┘
-                           │ (429 Rate Limit / Timeout >6s)
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│ TIER 2: GROQ LPU INFERENCE (High-Throughput Fallback)  │
-│ Models: openai/gpt-oss-120b / qwen/qwen3.8-27b         │
-│ Latency: ~210ms - 980ms · Sub-second execution         │
-└──────────────────────────┬─────────────────────────────┘
-                           │ (429 Rate Limit / Quota Spikes)
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│ TIER 3: GOOGLE GEMINI (Deep Reasoning Fallback)        │
-│ Models: gemini-3.5-flash-lite / gemini-3.6-flash       │
-│ Latency: ~2.6s · High free-tier allowance              │
-└──────────────────────────┬─────────────────────────────┘
-                           │ (Total Network / API Outage)
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│ TIER 4: DETERMINISTIC KNOWLEDGE GRAPH FIXTURES         │
-│ Low-latency offline PostgreSQL CTE data & heuristics   │
-│ Latency: <1ms · 100% Guaranteed Uptime in Demos        │
-└────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│ USER / SIMULATION DISRUPTION TRIGGER                           │
+└───────────────────────────────┬────────────────────────────────┘
+                                │
+                                ▼
+┌────────────────────────────────────────────────────────────────┐
+│ TIER 1: MISTRAL AI (Primary High-Fidelity Engine)              │
+│ Model: codestral-latest / ministral-8b-latest                  │
+│ Latency: ~2.3s · 100% strict JSON schema conformity            │
+└───────────────────────────────┬────────────────────────────────┘
+                                │ (429 Rate Limit / Timeout >6s)
+                                ▼
+┌────────────────────────────────────────────────────────────────┐
+│ TIER 2: GROQ LPU INFERENCE (High-Throughput Fallback)          │
+│ Models: openai/gpt-oss-120b / qwen/qwen3.8-27b                 │
+│ Latency: ~210ms - 980ms · Sub-second execution                 │
+└───────────────────────────────┬────────────────────────────────┘
+                                │ (429 Rate Limit / Quota Spikes)
+                                ▼
+┌────────────────────────────────────────────────────────────────┐
+│ TIER 3: OPENROUTER (Multi-Model Free Inference Pool)           │
+│ Models: nvidia/nemotron-3.5-lightning:free / deepseek-v4:free  │
+│ Latency: ~430ms · Rotating free model resilience               │
+└───────────────────────────────┬────────────────────────────────┘
+                                │ (Upstream Rate Limit)
+                                ▼
+┌────────────────────────────────────────────────────────────────┐
+│ TIER 4: CEREBRAS CLOUD (Ultra-Fast LPU Inference)              │
+│ Models: qwen-3.8-27b / gpt-oss-120b                            │
+│ Latency: ~180ms · High token bandwidth                         │
+└───────────────────────────────┬────────────────────────────────┘
+                                │ (Billing / Quota Depletion)
+                                ▼
+┌────────────────────────────────────────────────────────────────┐
+│ TIER 5: GOOGLE GEMINI (Deep Reasoning Fallback)                │
+│ Models: gemini-3.5-flash-lite / gemini-3.6-flash               │
+│ Latency: ~2.6s · High free-tier allowance                      │
+└───────────────────────────────┬────────────────────────────────┘
+                                │ (Total Network / Provider Outage)
+                                ▼
+┌────────────────────────────────────────────────────────────────┐
+│ TIER 6: DETERMINISTIC KNOWLEDGE GRAPH FIXTURES                 │
+│ Low-latency offline PostgreSQL CTE data & heuristics           │
+│ Latency: <1ms · 100% Guaranteed Uptime in Demos                │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ### Key AI Grounding Metrics:
@@ -312,6 +330,8 @@ All public-facing API routes in the Node.js backend and Next.js Edge handlers ar
 | `NEXT_PUBLIC_API_URL` | Backend URL: `https://codesprint-wu6p.onrender.com` |
 | `MISTRAL_API_KEY` | Mistral AI key for primary Copilot reasoning |
 | `GROQ_API_KEY` | Groq API key for sub-second LPU fallback |
+| `OPENROUTER_API_KEY` | OpenRouter multi-model free pool key |
+| `CEREBRAS_API_KEY` | Cerebras Cloud ultra-fast LPU key |
 | `GEMINI_API_KEY` | Google Gemini key for deep reasoning fallback |
 
 4. Trigger a zero-downtime redeploy under **Deployments** $\rightarrow$ **Redeploy**.
@@ -329,6 +349,8 @@ DATABASE_URL=postgresql://neondb_owner:npg_...@ep-....neon.tech/neondb?sslmode=r
 ALLOWED_ORIGINS=https://veritas-supply.vercel.app,http://localhost:3000
 MISTRAL_API_KEY=your_mistral_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+CEREBRAS_API_KEY=your_cerebras_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
