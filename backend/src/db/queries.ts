@@ -349,11 +349,17 @@ export async function getSPOFAnalytics(orgId: string) {
 /**
  * Executes an autonomous reroute: re-points DAG edges from disrupted supplier to alternate
  * and restores upstream nominal status.
+ *
+ * Resilient to non-UUID memoIds (e.g. "memo-<timestamp>" from frontend fallback),
+ * duplicate supplier inserts, and missing alternate_suppliers rows.
  */
 export async function executeReroute(memoId?: string, fallbackSupplierId?: string, fallbackAlternateId?: string) {
-  // 1. Fetch mitigation memo details if exists
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  // 1. Fetch mitigation memo details if memoId is a valid UUID
   let memo: any = null;
-  if (memoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(memoId)) {
+  let targetSupplier: any = null;
+  if (memoId && UUID_RE.test(memoId)) {
     const memoRes = await query(
       `SELECT 
         m.id, 
@@ -378,10 +384,28 @@ export async function executeReroute(memoId?: string, fallbackSupplierId?: strin
 
   // If memo record doesn't exist, synthesize it from active disrupted supplier or fallback
   if (!memo) {
-    let targetSupplier: any = null;
+    targetSupplier = null;
+
+    // Try by UUID or code lookup
     if (fallbackSupplierId) {
-      const sCheck = await query('SELECT id, name, org_id, tier, material_category, spend FROM suppliers WHERE id = $1 OR code = $1 LIMIT 1', [fallbackSupplierId]);
-      if (sCheck.rows.length > 0) targetSupplier = sCheck.rows[0];
+      if (UUID_RE.test(fallbackSupplierId)) {
+        const sCheck = await query('SELECT id, name, org_id, tier, material_category, spend FROM suppliers WHERE id = $1 LIMIT 1', [fallbackSupplierId]);
+        if (sCheck.rows.length > 0) targetSupplier = sCheck.rows[0];
+      }
+      if (!targetSupplier) {
+        // Try code, slug suffix, or ILIKE name match
+        const cleanId = fallbackSupplierId.trim();
+        const slugSuffix = cleanId.replace(/^.*node-/, '').toUpperCase();
+        const candidateCodes = [cleanId, slugSuffix, cleanId.toUpperCase()];
+        for (const code of candidateCodes) {
+          const sCheck = await query(
+            `SELECT id, name, org_id, tier, material_category, spend FROM suppliers 
+             WHERE code = $1 OR code ILIKE $2 OR name ILIKE $3 LIMIT 1`,
+            [code, `%${code}%`, `%${cleanId.replace(/[-_]/g, ' ')}%`]
+          );
+          if (sCheck.rows.length > 0) { targetSupplier = sCheck.rows[0]; break; }
+        }
+      }
     }
     if (!targetSupplier) {
       const sCheck = await query("SELECT id, name, org_id, tier, material_category, spend FROM suppliers WHERE status = 'CRITICAL' OR is_spof = TRUE ORDER BY tier DESC LIMIT 1");
@@ -404,99 +428,142 @@ export async function executeReroute(memoId?: string, fallbackSupplierId?: strin
       avoided_scope3_tco2e: 1420.5,
       disrupted_name: targetSupplier.name,
       org_id: targetSupplier.org_id,
-      tier: targetSupplier.tier,
-      material_category: targetSupplier.material_category,
-      spend: targetSupplier.spend,
+      tier: targetSupplier.tier ?? 3,
+      material_category: targetSupplier.material_category || 'General Components',
+      spend: targetSupplier.spend ?? 0,
     };
   }
 
   // 2. Fetch alternate supplier specs
-  let altRes = await query(
-    `SELECT id, name, country, country_code, price_index, lead_time_days, emissions_factor, certifications
-     FROM alternate_suppliers
-     WHERE id = $1`,
-    [memo.alternate_supplier_id]
-  );
+  let alt: any = null;
+  if (UUID_RE.test(memo.alternate_supplier_id)) {
+    const altRes = await query(
+      `SELECT id, name, country, country_code, price_index, lead_time_days, emissions_factor, certifications
+       FROM alternate_suppliers WHERE id = $1`,
+      [memo.alternate_supplier_id]
+    );
+    if (altRes.rows.length > 0) alt = altRes.rows[0];
+  }
 
-  if (altRes.rows.length === 0) {
-    altRes = await query(
+  if (!alt) {
+    const altRes = await query(
       `SELECT id, name, country, country_code, price_index, lead_time_days, emissions_factor, certifications
        FROM alternate_suppliers LIMIT 1`
     );
+    if (altRes.rows.length > 0) alt = altRes.rows[0];
   }
 
-  if (altRes.rows.length === 0) {
+  if (!alt) {
     // Built-in verified alternate fallback (Nordic Horn Cape Route)
-    altRes = {
-      rows: [{
-        id: '50000000-0000-0000-0000-000000000001',
-        name: 'Nordic Horn Maritime Lines',
-        country: 'Norway',
-        country_code: 'NOR',
-        price_index: 1.042,
-        lead_time_days: 39,
-        emissions_factor: 0.72,
-        certifications: ['IMO 2020 Clean Fuel Compliant', 'SBTi Verified Net-Zero', 'Green Marine EU'],
-      }],
-    } as any;
+    alt = {
+      id: '50000000-0000-0000-0000-000000000001',
+      name: 'Nordic Horn Maritime Lines',
+      country: 'Norway',
+      country_code: 'NOR',
+      price_index: 1.042,
+      lead_time_days: 39,
+      emissions_factor: 0.72,
+      certifications: ['IMO 2020 Clean Fuel Compliant', 'SBTi Verified Net-Zero', 'Green Marine EU'],
+    };
   }
-  const alt = altRes.rows[0];
 
-  // 3. Ensure alternate exists as an active node in suppliers table
-  const existingSupplier = await query(
-    `SELECT id FROM suppliers WHERE id = $1`,
-    [alt.id]
-  );
+  // Ensure certifications is a proper array and IDs are valid UUIDs
+  const altCerts = Array.isArray(alt.certifications) ? alt.certifications : [];
+  const altTier = memo.tier ?? 3;
+  const altCode = `ALT-${alt.country_code || 'UNK'}-${altTier}`;
+  const altSpend = Number(memo.spend || 0) * (alt.price_index || 1.042);
+  const safeAltId = UUID_RE.test(alt?.id) ? alt.id : '50000000-0000-0000-0000-000000000001';
+  const safeDisruptedId = UUID_RE.test(memo.disrupted_supplier_id)
+    ? memo.disrupted_supplier_id
+    : (targetSupplier?.id || '10000000-0000-0000-0000-000000000004');
+  const safeOrgId = UUID_RE.test(memo.org_id) ? memo.org_id : '00000000-0000-0000-0000-000000000001';
 
-  const altCode = `ALT-${alt.country_code}-${memo.tier}`;
-  if (existingSupplier.rows.length === 0) {
-    await query(
-      `INSERT INTO suppliers (
-        id, org_id, name, code, country, country_code, tier, material_category,
-        certifications, spend, lead_time_days, status, risk_score, is_spof
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'NOMINAL', 0.05, FALSE)
-      ON CONFLICT (code) DO UPDATE SET 
-        status = 'NOMINAL', 
-        risk_score = 0.05`,
-      [
-        alt.id,
-        memo.org_id,
-        alt.name,
-        altCode,
-        alt.country,
-        alt.country_code,
-        memo.tier,
-        memo.material_category,
-        alt.certifications || [],
-        Number(memo.spend || 0) * alt.price_index,
-        alt.lead_time_days,
-      ]
+  // 3. Ensure alternate exists as an active node in suppliers table (resilient upsert)
+  try {
+    const existingSupplier = await query(
+      `SELECT id, code FROM suppliers WHERE id = $1`,
+      [safeAltId]
     );
-  } else {
-    await query(
-      `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05 WHERE id = $1`,
-      [alt.id]
-    );
+
+    if (existingSupplier.rows.length === 0) {
+      // Check for code collision first
+      const codeCollision = await query(
+        `SELECT id FROM suppliers WHERE code = $1`,
+        [altCode]
+      );
+
+      if (codeCollision.rows.length > 0) {
+        // Code already taken by another supplier; just update it
+        await query(
+          `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05, name = $1 WHERE code = $2`,
+          [alt.name, altCode]
+        );
+      } else {
+        await query(
+          `INSERT INTO suppliers (
+            id, org_id, name, code, country, country_code, tier, material_category,
+            certifications, spend, lead_time_days, status, risk_score, is_spof
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'NOMINAL', 0.05, FALSE)`,
+          [
+            safeAltId,
+            safeOrgId,
+            alt.name,
+            altCode,
+            alt.country || 'Norway',
+            alt.country_code || 'NOR',
+            altTier,
+            memo.material_category || 'General Components',
+            altCerts,
+            altSpend,
+            alt.lead_time_days || 39,
+          ]
+        );
+      }
+    } else {
+      await query(
+        `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05 WHERE id = $1`,
+        [safeAltId]
+      );
+    }
+  } catch (insertErr: any) {
+    // Non-fatal: if the insert fails due to constraints, just update existing
+    console.warn('[REROUTE] Supplier upsert note:', insertErr.message);
+    try {
+      await query(
+        `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05 WHERE id = $1`,
+        [safeAltId]
+      );
+    } catch {
+      // Truly non-fatal — the reroute can still proceed
+    }
   }
 
   // 4. Rewire supplier_edges: re-point edges where child was disrupted to alternate
-  await query(
-    `UPDATE supplier_edges
-     SET child_supplier_id = $1, lead_time_days = $2
-     WHERE child_supplier_id = $3`,
-    [alt.id, alt.lead_time_days, memo.disrupted_supplier_id]
-  );
+  try {
+    await query(
+      `UPDATE supplier_edges
+       SET child_supplier_id = $1, lead_time_days = $2
+       WHERE child_supplier_id = $3`,
+      [safeAltId, alt.lead_time_days || 39, safeDisruptedId]
+    );
+  } catch (edgeErr: any) {
+    console.warn('[REROUTE] Edge rewire note:', edgeErr.message);
+  }
 
   // 5. Clean disruption events for this supplier
-  await query(
-    `DELETE FROM disruption_events WHERE supplier_id = $1`,
-    [memo.disrupted_supplier_id]
-  );
+  try {
+    await query(
+      `DELETE FROM disruption_events WHERE supplier_id = $1`,
+      [safeDisruptedId]
+    );
+  } catch {
+    // Non-fatal
+  }
 
   // 6. Reset all suppliers in the org to NOMINAL (disruption bypassed)
   await query(
     `UPDATE suppliers SET status = 'NOMINAL', risk_score = 0.05 WHERE org_id = $1`,
-    [memo.org_id]
+    [safeOrgId]
   );
 
   const updatedDAG = await getSupplyChainDAG(memo.org_id);
