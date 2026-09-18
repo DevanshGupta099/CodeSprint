@@ -109,7 +109,19 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
     ? 'SIMULATE CHOKEPOINT'
     : 'SIMULATE RED SEA';
 
-  const simulateShortLabel = isDisrupted ? 'ALERT' : 'SIMULATE';
+  const simulateActionLabels = {
+    mobile: isDisrupted ? 'ALERT' : 'SIMULATE',
+    compact: isDisrupted
+      ? '[ALERT]'
+      : activeBOMKey === 'AEROSPACE_SATELLITE'
+      ? '[MALACCA]'
+      : activeBOMKey === 'SEMICONDUCTOR_MCU'
+      ? '[BLACK SEA]'
+      : activeBOMKey.startsWith('CUSTOM')
+      ? '[CHOKEPOINT]'
+      : '[SIMULATE]',
+    full: simulateLabel,
+  };
 
   const tabs: { id: ZentraTab; label: string; badge?: string }[] = [
     { id: 'overview', label: 'Overview' },
@@ -162,13 +174,13 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
   ];
 
   return (
-    <div ref={headerContainerRef} className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 md:px-8 pt-3 sm:pt-6 font-sans relative z-30">
+    <div ref={headerContainerRef} className="w-full max-w-[1440px] mx-auto px-2.5 sm:px-6 md:px-8 pt-2.5 sm:pt-6 font-sans relative z-30">
       {/* Outer Container: Rounded pill nav bar floating at top with subtle border */}
-      <header className="w-full min-w-0 bg-white/95 dark:bg-[#0B0F19]/90 backdrop-blur-md px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-black/[0.05] dark:border-white/10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_25px_-4px_rgba(0,0,0,0.5)] flex items-center justify-between gap-1.5 sm:gap-2 transition-colors duration-300">
+      <header className="w-full min-w-0 bg-white/95 dark:bg-[#0B0F19]/90 backdrop-blur-md px-2.5 sm:px-4 xl:px-5 py-1.5 sm:py-2 xl:py-2.5 rounded-full border border-black/[0.05] dark:border-white/10 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_25px_-4px_rgba(0,0,0,0.5)] flex items-center justify-between gap-1 sm:gap-2 transition-colors duration-300">
         {/* LEFT: Amber square emblem + bold lowercase veritas brand logo + [ACTIVE_BOM] (on tablet/desktop) */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
           <div
-            className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 cursor-pointer"
             onClick={() => {
               onSelectTab('overview');
               setIsMobileMenuOpen(false);
@@ -182,16 +194,16 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
             </div>
 
             <div className="flex items-baseline gap-1 shrink-0">
-              <span className="font-extrabold text-base sm:text-xl text-neutral-900 dark:text-white tracking-tight lowercase">
+              <span className="font-extrabold text-base sm:text-lg xl:text-xl text-neutral-900 dark:text-white tracking-tight lowercase">
                 veritas
               </span>
-              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-widest text-neutral-600 dark:text-slate-300 font-mono px-1 py-0.5 bg-neutral-200/80 dark:bg-slate-800 rounded">
+              <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-neutral-600 dark:text-slate-300 font-mono px-1 py-0.5 bg-neutral-200/80 dark:bg-slate-800 rounded">
                 AI
               </span>
             </div>
           </div>
 
-          {/* ACTIVE BOM DROPDOWN BADGE (Only on tablet/desktop to save mobile space) */}
+          {/* ACTIVE BOM DROPDOWN BADGE (Visible on tablet/desktop to save mobile space) */}
           <div className="relative shrink-0 hidden sm:block" ref={bomDropdownRef}>
             <button
               onClick={() => setIsBomDropdownOpen(!isBomDropdownOpen)}
@@ -202,8 +214,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
               aria-expanded={isBomDropdownOpen}
             >
               <Database className="w-3 h-3 text-amber-500 shrink-0" />
-              <span className="hidden xl:inline text-neutral-600 dark:text-slate-400 font-medium">BOM:</span>
-              <span className="truncate max-w-[90px] sm:max-w-[130px] text-neutral-900 dark:text-white">
+              <span className="hidden 2xl:inline text-neutral-600 dark:text-slate-400 font-medium">BOM:</span>
+              <span className="truncate max-w-[70px] md:max-w-[90px] lg:max-w-[110px] xl:max-w-[130px] text-neutral-900 dark:text-white">
                 {currentBOMInfo?.badge || activeBOMKey}
               </span>
               <ChevronDown className={`w-3 h-3 text-neutral-500 dark:text-slate-400 transition-transform ${isBomDropdownOpen ? 'rotate-180' : ''}`} />
@@ -280,8 +292,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
           </div>
         </div>
 
-        {/* CENTER PILL SWITCHER (DESKTOP): dynamically scales between 1024px and 1440px */}
-        <nav className="hidden lg:flex items-center bg-neutral-100 dark:bg-slate-900/90 p-0.5 xl:p-1 rounded-full border border-black/5 dark:border-white/10 shadow-inner shrink-0">
+        {/* CENTER PILL SWITCHER (DESKTOP): Visible on >= xl (1280px) to prevent tablet & laptop collision */}
+        <nav className="hidden xl:flex items-center bg-neutral-100 dark:bg-slate-900/90 p-0.5 xl:p-1 rounded-full border border-black/5 dark:border-white/10 shadow-inner shrink-0">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -289,13 +301,13 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
                 key={tab.id}
                 onClick={() => onSelectTab(tab.id)}
                 className={`transition-all duration-200 cursor-pointer flex items-center gap-1 xl:gap-1.5 shrink-0 ${isActive
-                  ? 'bg-[#18181B] dark:bg-white text-white dark:text-slate-950 px-2.5 xl:px-3.5 py-1 xl:py-1.5 rounded-full font-semibold text-[11px] xl:text-xs shadow-sm'
-                  : 'text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white px-2 xl:px-3 py-1 xl:py-1.5 text-[11px] xl:text-xs font-medium'
+                  ? 'bg-[#18181B] dark:bg-white text-white dark:text-slate-950 px-2.5 xl:px-3 py-1 rounded-full font-semibold text-[11px] xl:text-xs shadow-sm'
+                  : 'text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white px-2 xl:px-2.5 py-1 text-[11px] xl:text-xs font-medium'
                   }`}
               >
                 <span>{tab.label}</span>
                 {tab.badge && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${isActive
+                  <span className={`hidden 2xl:inline px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${isActive
                     ? 'bg-white/20 dark:bg-slate-950/20 text-white dark:text-slate-900'
                     : 'bg-neutral-200 dark:bg-slate-800 text-neutral-600 dark:text-slate-300'
                     }`}>
@@ -308,23 +320,29 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
         </nav>
 
         {/* RIGHT CONTROLS: [SIMULATE] + ThemeToggle + Search + Bell + Avatar + Mobile Hamburger */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
           {/* THE SHOWSTOPPER ACTION BUTTON */}
           {onSimulateRedSea && (
             <button
               onClick={onSimulateRedSea}
               disabled={isProcessing}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:scale-[1.02] shrink-0 ${isDisrupted
+              className={`px-2.5 sm:px-3.5 xl:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 sm:gap-1.5 shadow-sm hover:scale-[1.02] shrink-0 ${isDisrupted
                 ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-200 dark:shadow-rose-950 animate-pulse'
                 : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-200 dark:shadow-amber-950'
                 }`}
             >
               <Zap className={`w-3.5 h-3.5 shrink-0 ${isProcessing ? 'animate-spin' : ''}`} />
-              <span className="hidden md:inline font-mono">
-                {simulateLabel}
+              {/* Mobile (<640px) */}
+              <span className="sm:hidden font-mono text-[10px] font-extrabold tracking-tight">
+                {simulateActionLabels.mobile}
               </span>
-              <span className="md:hidden font-mono text-[11px]">
-                {simulateShortLabel}
+              {/* Tablet & Small Desktop (640px to 1279px) */}
+              <span className="hidden sm:inline xl:hidden font-mono text-[11px] font-bold">
+                {simulateActionLabels.compact}
+              </span>
+              {/* Large Desktop (1280px+) */}
+              <span className="hidden xl:inline font-mono text-xs">
+                {simulateActionLabels.full}
               </span>
             </button>
           )}
@@ -334,18 +352,18 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
             <ThemeToggle />
           </div>
 
-          {/* Search Button (Visible on sm screens and up, also present in mobile menu) */}
+          {/* Search Button (Visible on md screens and up, also present in mobile menu) */}
           <button
             onClick={() => setIsSearchModalOpen(true)}
             aria-label="Search Suppliers & Tiers"
-            className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-full bg-white dark:bg-slate-900/90 border border-black/[0.06] dark:border-white/10 items-center justify-center text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white shadow-[0_2px_5px_rgba(0,0,0,0.04)] hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            className="hidden md:flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-full bg-white dark:bg-slate-900/90 border border-black/[0.06] dark:border-white/10 items-center justify-center text-neutral-600 dark:text-slate-300 hover:text-neutral-900 dark:hover:text-white shadow-[0_2px_5px_rgba(0,0,0,0.04)] hover:bg-neutral-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
             title="Search Suppliers & Tiers"
           >
             <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
-          {/* Notification Bell with Popover (Visible on sm screens and up) */}
-          <div className="relative shrink-0 hidden sm:block" ref={notifsRef}>
+          {/* Notification Bell with Popover (Visible on md screens and up) */}
+          <div className="relative shrink-0 hidden md:block" ref={notifsRef}>
             <button
               onClick={() => setIsNotifsOpen(!isNotifsOpen)}
               aria-label="Notifications"
@@ -398,8 +416,8 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
             )}
           </div>
 
-          {/* User Avatar with Profile Dropdown */}
-          <div className="relative shrink-0" ref={profileRef}>
+          {/* User Avatar with Profile Dropdown (Visible on sm screens and up; on mobile, profile is rendered in drawer) */}
+          <div className="relative shrink-0 hidden sm:block" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               aria-label="SD, Organization Profile"
@@ -448,10 +466,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
             )}
           </div>
 
-          {/* MOBILE HAMBURGER BUTTON (< lg) */}
+          {/* MOBILE / TABLET HAMBURGER BUTTON (< xl) */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-neutral-100 dark:bg-slate-800 border border-black/[0.06] dark:border-white/10 flex items-center justify-center text-neutral-700 dark:text-slate-200 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer shrink-0"
+            className="xl:hidden h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-neutral-100 dark:bg-slate-800 border border-black/[0.06] dark:border-white/10 flex items-center justify-center text-neutral-700 dark:text-slate-200 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer shrink-0"
             title="Toggle Navigation Menu"
             aria-label="Toggle navigation menu"
           >
@@ -460,9 +478,9 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
         </div>
       </header>
 
-      {/* MOBILE EXPANDED MENU DRAWER */}
+      {/* MOBILE & TABLET EXPANDED MENU DRAWER (< xl) */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden mt-2 p-3.5 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl rounded-3xl border border-black/[0.06] dark:border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150 space-y-2.5">
+        <div className="xl:hidden mt-2 p-3.5 bg-white/95 dark:bg-[#0B0F19]/95 backdrop-blur-xl rounded-3xl border border-black/[0.06] dark:border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150 space-y-2.5">
             {/* User Profile Header on Mobile */}
             <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/10">
               <div className="flex items-center gap-2.5">

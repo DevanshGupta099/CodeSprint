@@ -84,16 +84,16 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
   return (
     <div className="w-full flex flex-col gap-5 select-none font-sans">
       {/* 1. TIER PROGRESSION PIPELINE HEADER */}
-      <div className="w-full bg-white dark:bg-[#0B0F19] rounded-[28px] border border-black/[0.06] dark:border-white/10 p-6 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5)] transition-colors">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-black/[0.06] dark:border-white/10">
+      <div className="w-full bg-white dark:bg-[#0B0F19] rounded-[28px] border border-black/[0.06] dark:border-white/10 p-4 sm:p-6 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_30px_-5px_rgba(0,0,0,0.5)] transition-colors">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 sm:pb-5 border-b border-black/[0.06] dark:border-white/10">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider font-mono bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                 End-To-End Autonomous DAG Workflow
               </span>
               <span className="text-xs text-neutral-400 dark:text-slate-400 font-medium">PostgreSQL Recursive CTE Engine</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
+            <h2 className="text-lg sm:text-2xl font-extrabold text-neutral-900 dark:text-white tracking-tight">
               Multi-Tier Supply Chain Dependency Studio
             </h2>
             <p className="text-xs text-neutral-500 dark:text-slate-400 mt-1 max-w-2xl">
@@ -119,7 +119,8 @@ export const SupplyWorkflowStudio: React.FC<SupplyWorkflowStudioProps> = ({
               ) : (
                 <>
                   <Zap className="w-3.5 h-3.5 text-amber-400" />
-                  <span>SIMULATE RED SEA BLOCKADE</span>
+                  <span className="sm:hidden">SIMULATE BLOCKADE</span>
+                  <span className="hidden sm:inline">SIMULATE RED SEA BLOCKADE</span>
                 </>
               )}
             </button>

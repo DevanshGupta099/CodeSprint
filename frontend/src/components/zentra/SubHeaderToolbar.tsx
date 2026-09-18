@@ -121,11 +121,11 @@ export const SubHeaderToolbar: React.FC<SubHeaderToolbarProps> = React.memo(({
   return (
     <div 
       ref={containerRef}
-      className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 pt-4 sm:pt-6 pb-3 sm:pb-4 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 select-none font-sans relative z-20"
+      className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 md:px-10 pt-3 sm:pt-6 pb-2 sm:pb-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 select-none font-sans relative z-20"
     >
       {/* LEFT: Title in 28-36px font-semibold with circular link icon button + toast */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-semibold tracking-tight text-neutral-900 dark:text-white leading-none transition-colors">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <h1 className="text-xl sm:text-3xl lg:text-[36px] font-semibold tracking-tight text-neutral-900 dark:text-white leading-none transition-colors">
           {title}
         </h1>
         <button
