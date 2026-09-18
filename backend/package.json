@@ -13,6 +13,7 @@
     "test:security": "tsx test/test-security-and-edge-cases.ts",
     "test": "tsx test/test-security-and-edge-cases.ts",
     "test:expansions": "tsx test/test-reroute-and-scenarios.ts",
+    "test:neon": "tsx test/test_neon_diagnostics.ts",
     "test:contributor-a": "tsx test/test-contributor-a-features.ts",
     "start:python": ".venv\\Scripts\\python python/run_server.py",
     "test:python": ".venv\\Scripts\\pytest python/tests/test_python_backend.py -v"
