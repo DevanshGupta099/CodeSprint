@@ -93,7 +93,7 @@ export const DisruptionCenterView: React.FC<DisruptionCenterViewProps> = ({
                 disabled={isProcessing}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.12] text-white text-xs font-semibold transition-all cursor-pointer"
               >
-                <RotateCcw className={`w-4 h-4 ${isProcessing ? 'animate-spin' : ''}`} />
+                <RotateCcw className="w-4 h-4" />
                 <span>Restore Baseline Network</span>
               </button>
             ) : (
@@ -175,7 +175,7 @@ export const DisruptionCenterView: React.FC<DisruptionCenterViewProps> = ({
             >
               {isExecutingReroute ? (
                 <>
-                  <RotateCcw className="w-4 h-4 animate-spin" />
+                  <RotateCcw className="w-4 h-4" />
                   <span>Executing Autonomous Reroute...</span>
                 </>
               ) : (

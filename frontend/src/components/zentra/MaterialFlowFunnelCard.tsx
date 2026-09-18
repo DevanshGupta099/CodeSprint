@@ -423,7 +423,7 @@ export const MaterialFlowFunnelCard: React.FC<MaterialFlowFunnelCardProps> = Rea
                 className="ml-2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-900 dark:bg-cyan-500 hover:bg-neutral-800 dark:hover:bg-cyan-400 text-white dark:text-slate-950 flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 shrink-0"
                 title="Run AI query"
               >
-                <ArrowRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isProcessingPrompt ? 'animate-spin' : ''}`} />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </form>
 

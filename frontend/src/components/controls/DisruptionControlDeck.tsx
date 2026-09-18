@@ -120,7 +120,7 @@ export const DisruptionControlDeck: React.FC<DisruptionControlDeckProps> = ({
               disabled={isProcessing}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-slate-200 hover:text-white text-xs font-semibold transition-all shadow-md"
             >
-              <RotateCcw className={`w-3.5 h-3.5 ${isProcessing ? 'animate-spin' : ''}`} />
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>Restore Baseline</span>
             </button>
           </div>
@@ -132,7 +132,7 @@ export const DisruptionControlDeck: React.FC<DisruptionControlDeckProps> = ({
           >
             {isProcessing ? (
               <>
-                <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                <RotateCcw className="w-3.5 h-3.5" />
                 <span>Simulating CTE Propagation...</span>
               </>
             ) : (

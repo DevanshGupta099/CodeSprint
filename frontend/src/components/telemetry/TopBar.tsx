@@ -112,7 +112,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             disabled={isProcessing}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.12] text-zinc-200 hover:text-white text-xs font-semibold transition-all shadow-sm cursor-pointer"
           >
-            <RotateCcw className={`w-3.5 h-3.5 ${isProcessing ? 'animate-spin' : ''}`} />
+            <RotateCcw className="w-3.5 h-3.5" />
             <span>Restore Baseline</span>
           </button>
         ) : (
@@ -133,7 +133,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer"
           title="Reset to nominal graph state"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isProcessing ? 'animate-spin' : ''}`} />
+          <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>

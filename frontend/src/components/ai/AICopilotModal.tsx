@@ -197,7 +197,7 @@ export const AICopilotModal: React.FC<AICopilotModalProps> = ({
                 disabled={isProcessing}
                 className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
               >
-                <Zap className={`w-3.5 h-3.5 ${isProcessing ? 'animate-spin' : ''}`} />
+                <Zap className="w-3.5 h-3.5" />
                 <span>{response.suggestedActionLabel}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>

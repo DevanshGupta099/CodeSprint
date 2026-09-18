@@ -150,7 +150,7 @@ export const BOMUploadModal: React.FC<BOMUploadModalProps> = ({
           >
             {isUploading ? (
               <>
-                <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>{isPDF ? 'AI Agent Extracting PDF...' : 'Constructing Graph CTE...'}</span>
               </>
             ) : (

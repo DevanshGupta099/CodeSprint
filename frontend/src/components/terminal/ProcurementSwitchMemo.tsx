@@ -470,7 +470,7 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
             className="w-full px-3.5 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-900 dark:text-sky-200 text-xs font-semibold flex items-center justify-between border border-sky-200 dark:border-sky-800/60 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-1.5">
-              <Sparkles className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 ${isLoadingAi ? 'animate-spin' : ''}`} />
+              <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
               <span>{isLoadingAi ? 'Analyzing Trade-Offs...' : 'Ask AI to Explain Trade-Off Rationale'}</span>
             </div>
             <ChevronDown className={`w-3.5 h-3.5 text-sky-600 dark:text-sky-400 transition-transform ${isAiExpanded ? 'rotate-180' : ''}`} />
@@ -498,7 +498,7 @@ export const ProcurementSwitchMemo: React.FC<ProcurementSwitchMemoProps> = ({
       >
         {isExecuting ? (
           <>
-            <RotateCcw className="w-4 h-4 animate-spin text-amber-400 dark:text-black" />
+            <RotateCcw className="w-4 h-4 text-amber-400 dark:text-black" />
             <span>COMMITTING AUTONOMOUS REROUTE (POSTGRES CTE)...</span>
           </>
         ) : (

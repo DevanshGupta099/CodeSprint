@@ -247,7 +247,7 @@ export const BOMIngestionModal: React.FC<BOMIngestionModalProps> = ({
             >
               {isUploading ? (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                  <Sparkles className="w-3.5 h-3.5" />
                   <span>{isPDF ? 'AI Extracting Multi-Tier Nodes...' : 'Constructing Graph CTE...'}</span>
                 </>
               ) : (

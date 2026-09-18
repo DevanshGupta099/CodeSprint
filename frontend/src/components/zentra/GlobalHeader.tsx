@@ -331,7 +331,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = React.memo(({
                 : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-200 dark:shadow-amber-950'
                 }`}
             >
-              <Zap className={`w-3.5 h-3.5 shrink-0 ${isProcessing ? 'animate-spin' : ''}`} />
+              <Zap className="w-3.5 h-3.5 shrink-0" />
               {/* Mobile (<640px) */}
               <span className="sm:hidden font-mono text-[10px] font-extrabold tracking-tight">
                 {simulateActionLabels.mobile}

@@ -145,7 +145,7 @@ export const BOMIngestionView: React.FC<BOMIngestionViewProps> = ({
             >
               {isUploading ? (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin" />
+                  <Sparkles className="w-4 h-4" />
                   <span>{isPDF ? 'AI Extracting Multi-Tier Nodes...' : 'Constructing Graph CTE...'}</span>
                 </>
               ) : (

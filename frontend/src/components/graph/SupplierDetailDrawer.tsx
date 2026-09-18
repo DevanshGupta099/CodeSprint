@@ -176,7 +176,7 @@ export const SupplierDetailDrawer: React.FC<SupplierDetailDrawerProps> = ({
               disabled={isAuditing}
               className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60 transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <RefreshCw className={`w-3 h-3 ${isAuditing ? 'animate-spin' : ''}`} />
+              <RefreshCw className="w-3 h-3" />
               <span>{aiAudit ? 'Re-Audit' : 'Run Audit'}</span>
             </button>
           </div>
@@ -205,7 +205,7 @@ export const SupplierDetailDrawer: React.FC<SupplierDetailDrawerProps> = ({
               disabled={isAuditing}
               className="w-full p-3 rounded-2xl border border-dashed border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/40 dark:bg-indigo-950/30 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <Sparkles className={`w-3.5 h-3.5 ${isAuditing ? 'animate-spin' : ''}`} />
+              <Sparkles className="w-3.5 h-3.5" />
               <span>{isAuditing ? 'Executing Gemini & Groq Audit...' : 'Generate Real-Time AI Risk Audit'}</span>
             </button>
           )}
