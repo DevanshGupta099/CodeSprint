@@ -19,9 +19,17 @@
 [![SDG 8](https://img.shields.io/badge/SDG%208-Decent%20Work%20%26%20Economic%20Growth-A21942?style=flat-square)](https://sdgs.un.org/goals/goal8)
 [![SDG 12](https://img.shields.io/badge/SDG%2012-Responsible%20Production-BF8B2E?style=flat-square)](https://sdgs.un.org/goals/goal12)
 
+[![Pitch & Demo Playbook](https://img.shields.io/badge/%F0%9F%8E%A4%20Pitch%20Playbook-Reviewer%20Guide%20%26%20Demo%20Script-FFD700?style=for-the-badge&logo=markdown&logoColor=black)](./PITCH_AND_DEMO_PLAYBOOK.md)
+
 ---
 
-## 🌐 Live Production Deployments & Cloud Endpoints
+## 🎯 Reviewer & Judge Quick Links
+- 📖 **[Reviewer Pitch Deck & Step-by-Step Live Demo Playbook](./PITCH_AND_DEMO_PLAYBOOK.md)** *(Complete presentation script, Q&A defense, and screen-by-screen guide)*
+- 🌐 **[Live Production Web App (Vercel)](https://veritas-supply.vercel.app)**
+- 🔌 **[Live Backend REST API (Render)](https://codesprint-wu6p.onrender.com/api/health)**
+- 🗄️ **[Cloud Database (Neon Serverless Postgres)](https://neon.tech)**
+
+---
 
 The complete system is deployed live in production across high-availability cloud infrastructure:
 
