@@ -5,9 +5,13 @@ import { GlobalHeader } from '../../components/zentra/GlobalHeader';
 import { SubHeaderToolbar } from '../../components/zentra/SubHeaderToolbar';
 import { SupplyWorkflowStudio } from '../../components/graph/SupplyWorkflowStudio';
 import { ProcurementSwitchMemo } from '../../components/terminal/ProcurementSwitchMemo';
+import { AICopilotModal } from '../../components/ai/AICopilotModal';
+import { BOMIngestionModal } from '../../components/ingestion/BOMIngestionModal';
 import { SVGDefs } from '../../components/zentra/SVGDefs';
 import { INITIAL_DAG_DATA } from '../../data/seed-graph';
+import { BOM_PRESETS_CATALOG } from '../../data/bom-presets';
 import { SupplyChainDAGResponse, Supplier, MitigationMemo } from '../../types/supply-chain';
+import { AICopilotResponse } from '../../types/ai';
 import { api } from '../../services/api';
 import { useRouter } from 'next/navigation';
 
@@ -19,6 +23,13 @@ export default function GraphWorkflowPage() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [activeMemo, setActiveMemo] = useState<MitigationMemo | null>(null);
   const [avoidedCo2Total, setAvoidedCo2Total] = useState<number>(0);
+  const [activeBOMKey, setActiveBOMKey] = useState<string>('EV_BATTERY_PACK');
+  const [isIngestModalOpen, setIsIngestModalOpen] = useState<boolean>(false);
+
+  // AI Copilot state
+  const [copilotResponse, setCopilotResponse] = useState<AICopilotResponse | null>(null);
+  const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
+  const [isProcessingAi, setIsProcessingAi] = useState<boolean>(false);
 
   // Fetch initial DAG from backend API
   useEffect(() => {
@@ -31,12 +42,33 @@ export default function GraphWorkflowPage() {
     return () => { isMounted = false; };
   }, []);
 
+  // Switch Active BOM Architecture Preset
+  const handleSelectBOM = useCallback(async (presetKey: string) => {
+    setIsProcessing(true);
+    setActiveBOMKey(presetKey);
+    try {
+      const res = await api.loadBOMPreset(presetKey);
+      if (res && res.dag && res.dag.nodes) {
+        setDagData(res.dag);
+      }
+      setIsDisrupted(false);
+      setActiveMemo(null);
+      setSelectedSupplier(null);
+    } catch (err) {
+      console.error('BOM preset switch error:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
+
   // Trigger Disruption Sentinel ([SIMULATE RED SEA BLOCKADE] or node-specific shock)
-  const handleTriggerDisruption = useCallback(async (customSupplierId?: string) => {
+  const handleTriggerDisruption = useCallback(async (customSupplierId?: string, customSeverity?: number) => {
     setIsProcessing(true);
     try {
-      const targetSupplierId = customSupplierId || '30000000-0000-0000-0000-000000000001'; // AML-YEM (Apex Maritime Logistics)
-      const res = await api.triggerDisruption(targetSupplierId, 0.94, 'GEOPOLITICAL_BLOCKADE');
+      const defaultSupplierId = BOM_PRESETS_CATALOG[activeBOMKey]?.primaryChokepointSupplierId || '30000000-0000-0000-0000-000000000001';
+      const targetSupplierId = customSupplierId || defaultSupplierId;
+      const severity = customSeverity || 0.94;
+      const res = await api.triggerDisruption(targetSupplierId, severity, 'GEOPOLITICAL_BLOCKADE');
       
       setIsDisrupted(true);
       if (res && res.dag) {
@@ -67,7 +99,7 @@ export default function GraphWorkflowPage() {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [activeBOMKey]);
 
   // Execute Reroute Action
   const handleExecuteReroute = useCallback(async () => {
@@ -116,6 +148,44 @@ export default function GraphWorkflowPage() {
     }
   }, []);
 
+  // AI Copilot Query Execution
+  const handleExplorePrompt = useCallback(async (promptText: string) => {
+    setIsProcessingAi(true);
+    try {
+      const res = await api.askAICopilot(promptText);
+      setCopilotResponse(res);
+      setIsCopilotOpen(true);
+    } catch (err) {
+      console.error('AI Copilot query error:', err);
+    } finally {
+      setIsProcessingAi(false);
+    }
+  }, []);
+
+  // Execute Action directly from AI Copilot Modal
+  const handleExecuteCopilotAction = useCallback(async (response: AICopilotResponse) => {
+    if (response.suggestedAction === 'SIMULATE_DISRUPTION') {
+      const targetId = response.suggestedPayload?.supplierId || response.recommendations.targetSupplierId;
+      const severity = response.suggestedPayload?.severity || 0.94;
+      await handleTriggerDisruption(targetId, severity);
+      setIsCopilotOpen(false);
+    } else if (response.suggestedAction === 'EXECUTE_REROUTE') {
+      if (activeMemo) {
+        await handleExecuteReroute();
+      } else {
+        await handleTriggerDisruption(response.recommendations.targetSupplierId);
+      }
+      setIsCopilotOpen(false);
+    } else if (response.suggestedAction === 'INSPECT_SUPPLIER') {
+      const targetId = response.suggestedPayload?.supplierId || response.recommendations.targetSupplierId;
+      const node = dagData.nodes.find(n => n.id === targetId);
+      if (node) setSelectedSupplier(node);
+      setIsCopilotOpen(false);
+    } else {
+      setIsCopilotOpen(false);
+    }
+  }, [handleTriggerDisruption, handleExecuteReroute, activeMemo, dagData]);
+
   return (
     <div className="min-h-screen w-full tactile-canvas text-neutral-900 dark:text-slate-100 font-sans antialiased pb-20 flex flex-col overflow-x-hidden">
       <SVGDefs />
@@ -135,6 +205,9 @@ export default function GraphWorkflowPage() {
         onSimulateRedSea={isDisrupted ? handleResetBaseline : () => handleTriggerDisruption()}
         isDisrupted={isDisrupted}
         isProcessing={isProcessing}
+        activeBOMKey={activeBOMKey}
+        onSelectBOM={handleSelectBOM}
+        onOpenIngest={() => setIsIngestModalOpen(true)}
       />
 
       {/* 2. SUB-HEADER TOOLBAR */}
@@ -163,6 +236,27 @@ export default function GraphWorkflowPage() {
         onExecuteReroute={handleExecuteReroute}
         isExecuting={isProcessing}
         onClose={() => setActiveMemo(null)}
+      />
+
+      {/* 5. MULTIMODAL BOM INGESTION MODAL */}
+      <BOMIngestionModal
+        isOpen={isIngestModalOpen}
+        onClose={() => setIsIngestModalOpen(false)}
+        onIngestSuccess={(filename) => {
+          setIsIngestModalOpen(false);
+          api.getSupplyChainDAG().then((data) => {
+            if (data && data.nodes) setDagData(data);
+          }).catch(console.error);
+        }}
+      />
+
+      {/* 6. CONTEXTUAL AI COPILOT MODAL */}
+      <AICopilotModal
+        response={copilotResponse}
+        isOpen={isCopilotOpen}
+        onClose={() => setIsCopilotOpen(false)}
+        onExecuteAction={handleExecuteCopilotAction}
+        isProcessing={isProcessing}
       />
     </div>
   );
