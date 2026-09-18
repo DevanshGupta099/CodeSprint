@@ -522,6 +522,27 @@ export const api = {
 
   // 11. AI Trade-off Explanation for Mitigation Memo
   async explainMitigationTradeoffsWithAI(memo: MitigationMemo): Promise<string> {
+    try {
+      const prompt = `Provide an autonomous executive trade-off breakdown for switching to alternate ${memo.alternateName}: price variance ${memo.priceVariancePct}%, lead time delta ${memo.leadTimeDeltaDays} days, avoided Scope-3 carbon ${memo.avoidedScope3Tco2e} tCO2e. Anchor in UN SDG 8 and SDG 12.`;
+      const aiRes = await this.askAICopilot(prompt, memo.disruptedSupplierId);
+      if (aiRes && aiRes.summary) {
+        return (
+          `AUTONOMOUS AI TRADE-OFF SYNTHESIS // UN SDG 8 & SDG 12\n\n` +
+          `ANALYSIS: ${aiRes.headline}\n` +
+          `${aiRes.summary}\n\n` +
+          `TRADE-OFF PROFILE:\n` +
+          `• Price Variance: ${memo.priceVariancePct >= 0 ? '+' : ''}${memo.priceVariancePct}%\n` +
+          `• Lead Time Variance: ${memo.leadTimeDeltaDays >= 0 ? '+' : ''}${memo.leadTimeDeltaDays} days\n` +
+          `• Avoided Carbon: -${memo.avoidedScope3Tco2e.toLocaleString()} tCO2e (SDG 12)\n\n` +
+          `COMPLIANCE DIRECTIVE:\n` +
+          `• ${aiRes.riskMetrics?.sdgImpact?.sdg8ForcedLabor || '100% audited provenance under UFLPA and ILO standards (SDG 8).'}\n` +
+          `• ${aiRes.riskMetrics?.sdgImpact?.sdg12AvoidedCarbon || 'Optimized low-emission transport corridor verified (SDG 12).'}`
+        );
+      }
+    } catch {
+      // Fallback below
+    }
+
     return (
       `AUTONOMOUS AI TRADE-OFF SYNTHESIS // UN SDG 8 & SDG 12\n\n` +
       `1. PRICE VARIANCE (+${memo.priceVariancePct}%):\n` +
@@ -532,6 +553,7 @@ export const api = {
       `   Prevents bunker fuel idle burn in high-risk zones, delivering audited Scope-3 GHG compliance for EU CSRD & SEC climate reporting disclosure.`
     );
   },
+
 
   // 12. Multi-BOM Presets Catalog
   async getBOMPresets(): Promise<BOMPresetInfo[]> {

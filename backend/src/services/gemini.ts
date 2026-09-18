@@ -18,48 +18,127 @@ export interface LLMMitigationInsight {
 }
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+
+const MISTRAL_MODELS = ['codestral-latest', 'ministral-8b-latest'];
+const GROQ_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b'];
+const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
 
 /**
- * Calls Google Gemini structured JSON mode with timeout and automatic fallback fixture
+ * Calls Autonomous Multi-Provider Structured AI Engine
+ * (Mistral AI -> Groq -> Google Gemini -> Deterministic Fallback)
  */
 async function callGeminiStructured<T>(prompt: string, fallbackFixture: T): Promise<T> {
-  if (!GEMINI_API_KEY) {
-    return fallbackFixture;
+  // 1. Try Mistral AI if MISTRAL_API_KEY is available (European ESG/CSRD aligned)
+  if (MISTRAL_API_KEY) {
+    for (const model of MISTRAL_MODELS) {
+      try {
+        const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${MISTRAL_API_KEY}`,
+          },
+          signal: AbortSignal.timeout(6000),
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        if (res.ok) {
+          const json: any = await res.json();
+          const content = json.choices?.[0]?.message?.content;
+          if (content) {
+            console.log(`[AI_AGENT] Successfully generated response via Mistral AI (${model})`);
+            return JSON.parse(content) as T;
+          }
+        } else {
+          console.warn(`[AI_AGENT] Mistral ${model} returned ${res.status}, evaluating next provider.`);
+        }
+      } catch (err: any) {
+        console.warn(`[AI_AGENT] Mistral ${model} error: ${err.message}`);
+      }
+    }
   }
 
-  try {
-    const res = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(3500), // 3.5s timeout for demo responsiveness
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: 'application/json',
-        },
-      }),
-    });
+  // 2. Try Groq if GROQ_API_KEY is available (ultra-fast sub-second throughput)
+  if (GROQ_API_KEY) {
+    for (const model of GROQ_MODELS) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${GROQ_API_KEY}`,
+          },
+          signal: AbortSignal.timeout(5000),
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.1,
+            response_format: { type: 'json_object' },
+          }),
+        });
 
-    if (!res.ok) {
-      console.warn(`[GEMINI_AGENT] API returned ${res.status}, using deterministic fallback.`);
-      return fallbackFixture;
+        if (res.ok) {
+          const json: any = await res.json();
+          const content = json.choices?.[0]?.message?.content;
+          if (content) {
+            console.log(`[AI_AGENT] Successfully generated response via Groq (${model})`);
+            return JSON.parse(content) as T;
+          }
+        } else {
+          console.warn(`[AI_AGENT] Groq ${model} returned ${res.status}, evaluating next provider.`);
+        }
+      } catch (err: any) {
+        console.warn(`[AI_AGENT] Groq ${model} error: ${err.message}`);
+      }
     }
-
-    const data: any = await res.json();
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) {
-      return fallbackFixture;
-    }
-
-    return JSON.parse(candidateText) as T;
-  } catch (err: any) {
-    console.warn(`[GEMINI_AGENT] Network/quota fallback: ${err.message}`);
-    return fallbackFixture;
   }
+
+  // 3. Try Gemini models if GEMINI_API_KEY is available
+  if (GEMINI_API_KEY) {
+    for (const model of GEMINI_MODELS) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(8000),
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.2,
+              responseMimeType: 'application/json',
+            },
+          }),
+        });
+
+        if (res.ok) {
+          const data: any = await res.json();
+          const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (candidateText) {
+            console.log(`[AI_AGENT] Successfully generated response via Gemini (${model})`);
+            return JSON.parse(candidateText) as T;
+          }
+        } else {
+          console.warn(`[AI_AGENT] Gemini ${model} returned ${res.status}, evaluating failover.`);
+        }
+      } catch (err: any) {
+        console.warn(`[AI_AGENT] Gemini ${model} error: ${err.message}`);
+      }
+    }
+  }
+
+  // 4. Guaranteed Deterministic Fallback Fixture
+  console.log('[AI_AGENT] Utilizing deterministic fallback fixture for 100% demo resilience.');
+  return fallbackFixture;
 }
+
 
 /**
  * Autonomous Disruption Intelligence Agent

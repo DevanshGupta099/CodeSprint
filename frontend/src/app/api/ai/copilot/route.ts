@@ -4,6 +4,8 @@ import { INITIAL_DAG_DATA, ALTERNATES_MAP, SCENARIO_PRESETS } from '../../../../
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+
 
 // Deterministic Supply Chain Reasoning Engine (Always Available Fallback)
 function generateDeterministicAIResponse(query: string, supplierId?: string): AICopilotResponse {
@@ -177,13 +179,15 @@ function generateDeterministicAIResponse(query: string, supplierId?: string): AI
     suggestedPayload: { supplierId: '10000000-0000-0000-0000-000000000007' },
   };
 }
+// Mistral AI API Call (Ultra-fast code & reasoning with codestral-latest and ministral-8b-latest)
+async function callMistralCopilot(query: string): Promise<AICopilotResponse | null> {
+  if (!MISTRAL_API_KEY) return null;
 
-// Groq API Call (OpenAI-compatible)
-async function callGroqCopilot(query: string): Promise<AICopilotResponse | null> {
-  if (!GROQ_API_KEY) return null;
+  const models = ['codestral-latest', 'ministral-8b-latest'];
 
-  try {
-    const prompt = `
+  for (const model of models) {
+    try {
+      const prompt = `
 You are the VeritasSupply Autonomous AI Supply Chain Disruption Engine.
 The user is asking: "${query}".
 
@@ -193,7 +197,7 @@ Ground your analysis in:
 2. UN SDG 8 (Decent Work & Forced Labor / UFLPA Section 307 sanctions).
 3. UN SDG 12 (Responsible Production & Avoided Scope-3 Carbon emissions).
 
-Return a JSON object conforming strictly to this format:
+Return ONLY a valid JSON object conforming strictly to this format:
 {
   "query": "${query}",
   "headline": "<punchy 1-sentence technical title>",
@@ -202,10 +206,10 @@ Return a JSON object conforming strictly to this format:
   "affectedTiers": ["<Tier X name>", "<Tier Y name>"],
   "affectedSupplierNames": ["<Supplier A>", "<Supplier B>"],
   "riskMetrics": {
-    "probability": <float 0.0-1.0>,
-    "severity": <float 0.0-1.0>,
-    "confidence": <float 0.0-1.0>,
-    "financialExposureUSD": "<e.g. $41,540,000>",
+    "probability": 0.85,
+    "severity": 0.8,
+    "confidence": 0.9,
+    "financialExposureUSD": "$24,500,000",
     "sdgImpact": {
       "sdg8ForcedLabor": "<statement on labor compliance & sanctions>",
       "sdg12AvoidedCarbon": "<statement on carbon savings>"
@@ -225,97 +229,261 @@ Return a JSON object conforming strictly to this format:
 }
 `;
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      signal: AbortSignal.timeout(4000),
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.1,
-        response_format: { type: 'json_object' },
-      }),
-    });
+      const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${MISTRAL_API_KEY}`,
+        },
+        signal: AbortSignal.timeout(6000),
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          response_format: { type: 'json_object' },
+        }),
+      });
 
-    if (!res.ok) return null;
-    const json = await res.json();
-    const content = json.choices?.[0]?.message?.content;
-    if (!content) return null;
-    return JSON.parse(content) as AICopilotResponse;
-  } catch (err) {
-    console.warn('[GROQ_COPILOT] Fallback to deterministic engine:', err);
-    return null;
+      if (res.ok) {
+        const json = await res.json();
+        const content = json.choices?.[0]?.message?.content;
+        if (content) {
+          return JSON.parse(content) as AICopilotResponse;
+        }
+      }
+    } catch (err) {
+      console.warn(`[MISTRAL_COPILOT] Model ${model} error:`, err);
+    }
   }
+
+  return null;
 }
 
-// Gemini API Call (Supports gemini-2.5-flash / gemini-2.0-flash / gemini-1.5-flash)
+// Groq API Call (High-throughput frontier LLM)
+async function callGroqCopilot(query: string): Promise<AICopilotResponse | null> {
+  if (!GROQ_API_KEY) return null;
+
+  const models = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b'];
+
+  for (const model of models) {
+    try {
+      const prompt = `
+You are the VeritasSupply Autonomous AI Supply Chain Disruption Engine.
+The user is asking: "${query}".
+
+Analyze our multi-tier supply chain (Tier-0 finished electric vehicles to Tier-4 raw mines like Chile lithium, DRC cobalt, Xinjiang silicon, and Bab-el-Mandeb Red Sea shipping choke points).
+Ground your analysis in:
+1. Recursive CTE risk propagation (0.7x decay factor per upstream hop).
+2. UN SDG 8 (Decent Work & Forced Labor / UFLPA Section 307 sanctions).
+3. UN SDG 12 (Responsible Production & Avoided Scope-3 Carbon emissions).
+
+Return a JSON object conforming strictly to this format:
+{
+  "query": "${query}",
+  "headline": "<punchy 1-sentence technical title>",
+  "summary": "<2-3 sentence executive intelligence briefing>",
+  "rootCauseDiagnosis": "<technical analysis of upstream choke points and CTE propagation>",
+  "affectedTiers": ["<Tier X name>", "<Tier Y name>"],
+  "affectedSupplierNames": ["<Supplier A>", "<Supplier B>"],
+  "riskMetrics": {
+    "probability": 0.85,
+    "severity": 0.8,
+    "confidence": 0.9,
+    "financialExposureUSD": "$24,500,000",
+    "sdgImpact": {
+      "sdg8ForcedLabor": "<statement on labor compliance & sanctions>",
+      "sdg12AvoidedCarbon": "<statement on carbon savings>"
+    }
+  },
+  "recommendations": {
+    "action": "<executive procurement reroute directive>",
+    "targetSupplierId": "10000000-0000-0000-0000-000000000007",
+    "alternateSupplierId": "50000000-0000-0000-0000-000000000001",
+    "alternateName": "Nordic Horn Maritime Lines (Cape Route)",
+    "priceVariancePct": 4.2,
+    "leadTimeDeltaDays": -3,
+    "avoidedScope3Tco2e": 1420.5
+  },
+  "suggestedAction": "SIMULATE_DISRUPTION",
+  "suggestedActionLabel": "Execute Simulation on DAG"
+}
+`;
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${GROQ_API_KEY}`,
+        },
+        signal: AbortSignal.timeout(5000),
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.1,
+          response_format: { type: 'json_object' },
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const content = json.choices?.[0]?.message?.content;
+        if (content) {
+          return JSON.parse(content) as AICopilotResponse;
+        }
+      }
+    } catch (err) {
+      console.warn(`[GROQ_COPILOT] Model ${model} error:`, err);
+    }
+  }
+
+  return null;
+}
+
+// Gemini API Call (Supports gemini-3.6-flash and gemini-3.5-flash-lite)
 async function callGeminiCopilot(query: string): Promise<AICopilotResponse | null> {
   if (!GEMINI_API_KEY) return null;
 
-  try {
-    const model = 'gemini-2.0-flash';
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+  const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite'];
 
-    const prompt = `
+  for (const model of models) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
+      const prompt = `
 You are the VeritasSupply Autonomous AI Supply Chain Disruption Engine.
 The user is asking: "${query}".
 Return a JSON object conforming strictly to the AICopilotResponse structure with headline, summary, rootCauseDiagnosis, affectedTiers, affectedSupplierNames, riskMetrics (probability, severity, confidence, financialExposureUSD, sdgImpact), recommendations, and suggestedAction.
 `;
 
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(4000),
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.1,
-          responseMimeType: 'application/json',
-        },
-      }),
-    });
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(6000),
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: 'application/json',
+          },
+        }),
+      });
 
-    if (!res.ok) return null;
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) return null;
-    return JSON.parse(text) as AICopilotResponse;
-  } catch (err) {
-    console.warn('[GEMINI_COPILOT] Fallback to deterministic engine:', err);
-    return null;
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          return JSON.parse(text) as AICopilotResponse;
+        }
+      }
+    } catch (err) {
+      console.warn(`[GEMINI_COPILOT] Model ${model} error:`, err);
+    }
   }
+
+  return null;
+}
+
+
+// In-memory rate limiter for Edge/Serverless Next.js API route
+const copilotIpLimits = new Map<string, { count: number; resetTime: number }>();
+
+function checkCopilotRateLimit(ip: string, limit: number = 30, windowMs: number = 60000): { allowed: boolean; remaining: number; retryAfter: number } {
+  const now = Date.now();
+  let record = copilotIpLimits.get(ip);
+
+  if (!record || now > record.resetTime) {
+    record = { count: 1, resetTime: now + windowMs };
+    copilotIpLimits.set(ip, record);
+    return { allowed: true, remaining: limit - 1, retryAfter: 0 };
+  }
+
+  record.count += 1;
+  const remaining = Math.max(0, limit - record.count);
+  const retryAfter = Math.ceil((record.resetTime - now) / 1000);
+
+  if (record.count > limit) {
+    return { allowed: false, remaining: 0, retryAfter };
+  }
+
+  return { allowed: true, remaining, retryAfter: 0 };
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const query = (body.query || '').trim();
-    const supplierId = body.supplierId;
+    // 1. IP Rate Limiting Guardrail
+    const forwarded = req.headers.get('x-forwarded-for');
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : 'client-unknown';
+    const rateCheck = checkCopilotRateLimit(clientIp, 30, 60000);
 
-    if (!query && !supplierId) {
-      return NextResponse.json({ error: 'Query or supplierId is required' }, { status: 400 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: 'TOO_MANY_REQUESTS',
+          message: `AI Copilot request limit exceeded. Please retry in ${rateCheck.retryAfter}s.`,
+          retryAfterSeconds: rateCheck.retryAfter,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(rateCheck.retryAfter),
+            'X-RateLimit-Limit': '30',
+            'X-RateLimit-Remaining': '0',
+          },
+        }
+      );
     }
 
-    // 1. Try Groq API if key present
-    let result = await callGroqCopilot(query);
+    // 2. Parse & Sanitize Request Body
+    const body = await req.json();
+    let query = typeof body.query === 'string' ? body.query.trim() : '';
+    const supplierId = typeof body.supplierId === 'string' ? body.supplierId.trim() : undefined;
 
-    // 2. Try Gemini API if Groq failed or not present
+    if (!query && !supplierId) {
+      return NextResponse.json(
+        { error: 'BAD_REQUEST', message: 'Query or supplierId is required' },
+        { status: 400 }
+      );
+    }
+
+    // Guard against prompt-bloat / denial of service
+    if (query.length > 1500) {
+      return NextResponse.json(
+        { error: 'PAYLOAD_TOO_LARGE', message: 'Query text exceeds 1500 character security limit.' },
+        { status: 400 }
+      );
+    }
+
+    // Strip non-printable control characters
+    query = query.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+    // 3. Multi-Provider Cascading Engine: Mistral -> Groq -> Gemini -> Deterministic Fallback
+    let result = await callMistralCopilot(query);
+
+    // 4. Failover to Groq if Mistral is busy or unavailable
+    if (!result) {
+      result = await callGroqCopilot(query);
+    }
+
+    // 5. Failover to Gemini API if Groq unavailable or quota exceeded
     if (!result) {
       result = await callGeminiCopilot(query);
     }
 
-    // 3. Guaranteed High-Intelligence Fallback
+    // 6. Guaranteed High-Intelligence Deterministic Fallback
     if (!result) {
       result = generateDeterministicAIResponse(query, supplierId);
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'X-RateLimit-Limit': '30',
+        'X-RateLimit-Remaining': String(rateCheck.remaining),
+      },
+    });
   } catch (error: any) {
-    console.error('AI Copilot route error:', error);
+    console.error('[SECURITY_GUARD] AI Copilot route error:', error.message);
     const fallback = generateDeterministicAIResponse('Supply Chain Overview');
     return NextResponse.json(fallback);
   }
 }
+

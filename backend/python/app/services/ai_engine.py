@@ -147,22 +147,22 @@ def generate_mitigation_memo(supplier_id: str) -> MitigationMemo:
     is_logistics = any(k in s_material.lower() for k in ("logistics", "maritime", "shipping"))
     avoided_scope3 = 1420.0 if is_logistics else round(max(350.0, s_spend * 2.8), 2)
 
-    # Compliance rationale anchor (SDG 8 & SDG 12)
+    # Fallback compliance rationale anchor (SDG 8 & SDG 12)
     if is_logistics:
-        compliance_rationale = (
+        fallback_compliance_rationale = (
             f"Re-routing maritime transit away from Bab-el-Mandeb conflict corridor to {alt_name}'s EU-monitored fleet. "
             f"Carrier holds SBTi Net-Zero verification and 100% compliant crew welfare under ILO Maritime Labour Convention (MLC 2006), "
             f"directly upholding UN SDG 8 (Decent Work) and avoiding unvetted black-market bunker fuel."
         )
     else:
-        compliance_rationale = (
+        fallback_compliance_rationale = (
             f"Switch to {alt_name} eliminates high-risk conflict corridor exposure. "
             f"Guarantees compliance with Uyghur Forced Labor Prevention Act (UFLPA) and Responsible Minerals Initiative (RMI), "
             f"directly upholding UN SDG 8 (Decent Work) and reducing carbon intensity per ton (SDG 12 Responsible Production)."
         )
 
     # Executive memo formatted for terminal typewriter CRT display
-    terminal_memo = (
+    fallback_terminal_memo = (
         f"======================================================================\n"
         f"VERITAS SENTINEL // AUTONOMOUS PROCUREMENT DIRECTIVE [MEMO-409]\n"
         f"STATUS: ROUTE MITIGATION VALIDATED\n"
@@ -176,8 +176,21 @@ def generate_mitigation_memo(supplier_id: str) -> MitigationMemo:
         f"- Avoided Scope-3 Carbon: -{avoided_scope3:,.1f} tCO2e (SDG 12)\n"
         f"- Labor Compliance:       AUDITED 100% CLEAN (SDG 8)\n\n"
         f"EXECUTIVE SUMMARY:\n"
-        f"{compliance_rationale}\n"
+        f"{fallback_compliance_rationale}\n"
         f"======================================================================"
+    )
+
+    # Live Multi-Model LLM Synthesis (Gemini 3.6 Flash -> Gemini 3.5 Flash-Lite -> Groq -> Fallback)
+    compliance_rationale, terminal_memo = synthesize_memo_with_llm(
+        s_name=s_name,
+        s_country=s_country,
+        s_material=s_material,
+        alt_name=alt_name,
+        price_variance_pct=price_variance_pct,
+        lead_time_delta=lead_time_delta,
+        avoided_scope3=avoided_scope3,
+        fallback_rationale=fallback_compliance_rationale,
+        fallback_memo=fallback_terminal_memo
     )
 
     memo_record = {
@@ -192,3 +205,84 @@ def generate_mitigation_memo(supplier_id: str) -> MitigationMemo:
     }
 
     return save_mitigation_memo(memo_record)
+
+
+def synthesize_memo_with_llm(
+    s_name: str,
+    s_country: str,
+    s_material: str,
+    alt_name: str,
+    price_variance_pct: float,
+    lead_time_delta: int,
+    avoided_scope3: float,
+    fallback_rationale: str,
+    fallback_memo: str
+) -> tuple[str, str]:
+    import json
+    import httpx
+
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    groq_key = os.getenv("GROQ_API_KEY")
+
+    prompt = f"""
+You are VeritasSentinel Autonomous Procurement Engine. Generate an executive mitigation directive memo:
+- Disrupted Supplier: {s_name} ({s_country})
+- Critical Component: {s_material}
+- Recommended Compliant Alternate: {alt_name}
+- Price Variance: {'+' if price_variance_pct >= 0 else ''}{price_variance_pct}%
+- Transit / Lead Time Delta: {'+' if lead_time_delta >= 0 else ''}{lead_time_delta} days
+- Avoided Scope-3 Carbon: {avoided_scope3} tCO2e
+
+Anchor your justification in UN SDG 8 (Decent Work, Maritime Labor Standards, Forced Labor Prevention) and SDG 12 (Responsible Production, Scope-3 Decarbonization).
+Return ONLY a valid JSON object matching:
+{{
+  "complianceRationale": "<string paragraph detailing audited provenance and compliance standards>",
+  "executiveSummary": "<string terminal-style formatted executive memo directive>"
+}}
+"""
+
+    # 1. Try Gemini models
+    if gemini_key:
+        for model in ["gemini-3.6-flash", "gemini-3.5-flash-lite"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}
+                }
+                with httpx.Client(timeout=6.0) as client:
+                    resp = client.post(url, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        text = data["candidates"][0]["content"]["parts"][0]["text"]
+                        parsed = json.loads(text)
+                        if "complianceRationale" in parsed and "executiveSummary" in parsed:
+                            return parsed["complianceRationale"], parsed["executiveSummary"]
+            except Exception:
+                pass
+
+    # 2. Try Groq models
+    if groq_key:
+        for model in ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"]:
+            try:
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                payload = {
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                }
+                headers = {"Authorization": f"Bearer {groq_key}"}
+                with httpx.Client(timeout=5.0) as client:
+                    resp = client.post(url, json=payload, headers=headers)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        text = data["choices"][0]["message"]["content"]
+                        parsed = json.loads(text)
+                        if "complianceRationale" in parsed and "executiveSummary" in parsed:
+                            return parsed["complianceRationale"], parsed["executiveSummary"]
+            except Exception:
+                pass
+
+    return fallback_rationale, fallback_memo
+
