@@ -141,8 +141,8 @@ The codebase enforces a decoupled boundary through a **Shared Data Contract** ([
 
 | Track | Lead Contributor | Core Responsibilities |
 | :--- | :--- | :--- |
-| **Data & Backend** | **Contributor A (Devansh)** | PostgreSQL schema, DDL migrations, recursive CTEs (`bom_tree` & `risk_up`), ingestion engine, Disruption Sentinel, Mitigation AI agents, seed dataset. |
-| **Graph & Frontend** | **Contributor B (Sundar)** | Next.js App Router shell, Tailwind CSS, React Flow DAG canvas, WebGL coordinate grid canvas, `[SIMULATE RED SEA BLOCKADE]` trigger bar, terminal memo, Recharts dashboards. |
+| **Data & Backend** | **Contributor A ([Devansh Gupta](https://github.com/DevanshGupta099))** | PostgreSQL schema, DDL migrations, recursive CTEs (`bom_tree` & `risk_up`), ingestion engine, Disruption Sentinel, Mitigation AI agents, seed dataset. |
+| **Graph & Frontend** | **Contributor B ([Sundar](https://github.com/5und4r))** | Next.js App Router shell, Tailwind CSS, React Flow DAG canvas, WebGL coordinate grid canvas, `[SIMULATE RED SEA BLOCKADE]` trigger bar, terminal memo, Recharts dashboards. |
 
 ---
 
@@ -450,7 +450,16 @@ npm run dev
 
 ---
 
-## 11. License
+## 11. Team & Contributors
+
+| Contributor | Role & Domain | GitHub Profile |
+| :--- | :--- | :--- |
+| **Devansh Gupta** | Contributor A — Data, PostgreSQL CTEs & AI Backend | [@DevanshGupta099](https://github.com/DevanshGupta099) |
+| **Sundar** | Contributor B — Graph, WebGL & Frontend Command Center | [@5und4r](https://github.com/5und4r) |
+
+---
+
+## 12. License
 
 This project is built for the CodeSprint Hackathon under the **MIT License**.
 
